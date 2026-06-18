@@ -16,6 +16,7 @@ from sglang_omni.models.zonos2.payload_types import (
     DEFAULT_NUM_CODEBOOKS,
     DEFAULT_SAMPLE_RATE,
     DEFAULT_SPEAKER_EMBEDDING_DIM,
+    DEFAULT_SPEAKER_LDA_DIM,
 )
 from sglang_omni.models.zonos2.stages import DEFAULT_MAX_CONCURRENCY
 
@@ -54,6 +55,7 @@ class Zonos2PipelineConfig(PipelineConfig):
             factory=f"{_PKG}.stages.create_speaker_embedding_executor",
             factory_args={
                 "speaker_embedding_dim": DEFAULT_SPEAKER_EMBEDDING_DIM,
+                "speaker_lda_dim": DEFAULT_SPEAKER_LDA_DIM,
                 "max_concurrency": DEFAULT_MAX_CONCURRENCY,
             },
             next="lm_decode",

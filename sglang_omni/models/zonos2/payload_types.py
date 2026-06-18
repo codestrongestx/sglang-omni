@@ -8,7 +8,8 @@ from typing import Any
 
 DEFAULT_NUM_CODEBOOKS = 9
 DEFAULT_CODEBOOK_SIZE = 1024
-DEFAULT_SPEAKER_EMBEDDING_DIM = 128
+DEFAULT_SPEAKER_EMBEDDING_DIM = 2048
+DEFAULT_SPEAKER_LDA_DIM = 1024
 DEFAULT_SAMPLE_RATE = 44100
 TEXT_LANE_WIDTH = 1
 ZONOS2_TOPOLOGY_STAGES = (
@@ -36,10 +37,10 @@ ZONOS2_SHAPE_CONTRACT: dict[str, dict[str, str]] = {
     },
     "speaker_embedding": {
         "input": "reference audio or cached speaker artifact",
-        "output": "speaker embedding float32 [128]",
+        "output": "raw speaker embedding float32 [2048]; LDA projects to [1024]",
     },
     "lm_decode": {
-        "input": "prompt frames [seq, 10] plus speaker embedding [128]",
+        "input": "prompt frames [seq, 10] plus raw speaker embedding [2048]",
         "output": "DAC codebook token grid int64 [9, frames] plus eos_frame",
     },
     "dac_vocoder": {
@@ -66,6 +67,7 @@ _KNOWN_KEYS = {
     "num_codebooks",
     "codebook_size",
     "speaker_embedding_dim",
+    "speaker_lda_dim",
     "visited_stages",
     "stage_types",
     "shape_contract",
@@ -98,6 +100,7 @@ class Zonos2TTSState:
     num_codebooks: int = DEFAULT_NUM_CODEBOOKS
     codebook_size: int = DEFAULT_CODEBOOK_SIZE
     speaker_embedding_dim: int = DEFAULT_SPEAKER_EMBEDDING_DIM
+    speaker_lda_dim: int = DEFAULT_SPEAKER_LDA_DIM
     visited_stages: list[str] = field(default_factory=list)
     stage_types: dict[str, str] = field(
         default_factory=lambda: dict(ZONOS2_STAGE_TYPES)
@@ -122,6 +125,7 @@ class Zonos2TTSState:
                 "num_codebooks": int(self.num_codebooks),
                 "codebook_size": int(self.codebook_size),
                 "speaker_embedding_dim": int(self.speaker_embedding_dim),
+                "speaker_lda_dim": int(self.speaker_lda_dim),
                 "visited_stages": list(self.visited_stages),
                 "stage_types": dict(self.stage_types),
                 "shape_contract": dict(self.shape_contract),
@@ -186,6 +190,10 @@ class Zonos2TTSState:
             speaker_embedding_dim=int(
                 data.get("speaker_embedding_dim", DEFAULT_SPEAKER_EMBEDDING_DIM)
                 or DEFAULT_SPEAKER_EMBEDDING_DIM
+            ),
+            speaker_lda_dim=int(
+                data.get("speaker_lda_dim", DEFAULT_SPEAKER_LDA_DIM)
+                or DEFAULT_SPEAKER_LDA_DIM
             ),
             visited_stages=list(data.get("visited_stages") or []),
             stage_types=dict(data.get("stage_types") or ZONOS2_STAGE_TYPES),

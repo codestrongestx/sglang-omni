@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
+import threading
+
 from sglang_omni.config.schema import EndpointsConfig
+from sglang_omni.config.manager import ConfigManager
 from sglang_omni.models.registry import PIPELINE_CONFIG_REGISTRY
 from sglang_omni.models.zonos2.config import Zonos2PipelineConfig
 from sglang_omni.models.zonos2.payload_types import (
     DEFAULT_NUM_CODEBOOKS,
     DEFAULT_SAMPLE_RATE,
     DEFAULT_SPEAKER_EMBEDDING_DIM,
+    DEFAULT_SPEAKER_LDA_DIM,
     ZONOS2_SHAPE_CONTRACT,
     ZONOS2_STAGE_TYPES,
     ZONOS2_TOPOLOGY_STAGES,
@@ -19,10 +25,15 @@ from sglang_omni.models.zonos2.stages import (
     create_speaker_embedding_executor,
     create_text_frontend_executor,
 )
+from sglang_omni.pipeline.local_dispatch import LocalStageDispatcher
 from sglang_omni.pipeline.mp_runner import _build_stage_groups
 from sglang_omni.pipeline.runtime_config import prepare_pipeline_runtime
-from sglang_omni.proto import OmniRequest, StagePayload
-from tests.unit_test.fixtures.pipeline_fakes import FakeMpContext
+from sglang_omni.proto import OmniRequest, StagePayload, SubmitMessage
+from tests.unit_test.fixtures.pipeline_fakes import (
+    FakeMpContext,
+    RecordingStageControlPlane,
+)
+from tests.unit_test.pipeline.helpers import make_stage
 
 
 def test_zonos2_config_declares_plan_step_2_topology() -> None:
@@ -54,6 +65,15 @@ def test_zonos2_config_declares_plan_step_2_topology() -> None:
 
     registry_cls = PIPELINE_CONFIG_REGISTRY.get_config("Zonos2ForCausalLM")
     assert registry_cls is Zonos2PipelineConfig
+
+
+def test_zonos2_params_json_model_type_resolves_config(tmp_path) -> None:
+    (tmp_path / "params.json").write_text(json.dumps({"model_type": "zonos2"}))
+
+    manager = ConfigManager.from_model_path(str(tmp_path))
+
+    assert isinstance(manager.config, Zonos2PipelineConfig)
+    assert manager.config.model_path == str(tmp_path)
 
 
 def test_zonos2_runtime_specs_wire_all_inbox_outbox_links(tmp_path) -> None:
@@ -88,17 +108,131 @@ def test_zonos2_runtime_specs_wire_all_inbox_outbox_links(tmp_path) -> None:
     assert specs["lm_decode"].same_process_targets == {"dac_vocoder"}
 
 
-def test_zonos2_passthrough_stubs_move_dummy_payload_end_to_end() -> None:
-    payload = StagePayload(
-        request_id="req-zonos2",
-        request=OmniRequest(
-            inputs={
-                "text": "hello from topology",
-                "references": [{"audio_path": "/tmp/ref.wav", "text": "guide"}],
+def test_zonos2_passthrough_stubs_route_dummy_payload_through_stages() -> None:
+    async def _run() -> None:
+        payload = StagePayload(
+            request_id="req-zonos2",
+            request=OmniRequest(
+                inputs={
+                    "text": "hello from topology",
+                    "references": [{"audio_path": "/tmp/ref.wav", "text": "guide"}],
+                },
+                params={"language": "en_us"},
+                metadata={"task": "tts"},
+            ),
+            data={
+                "probe": "keep-me",
+                "prompt_tokens": [[0] * (DEFAULT_NUM_CODEBOOKS + 1)],
             },
-            params={"language": "en_us"},
-            metadata={"task": "tts"},
-        ),
+        )
+        schedulers = {
+            "text_frontend": create_text_frontend_executor(
+                "Zyphra/ZONOS2",
+                max_concurrency=1,
+            ),
+            "speaker_embedding": create_speaker_embedding_executor(
+                "Zyphra/ZONOS2",
+                max_concurrency=1,
+            ),
+            "lm_decode": create_lm_decode_executor(
+                "Zyphra/ZONOS2",
+                max_concurrency=1,
+            ),
+            "dac_vocoder": create_dac_vocoder_executor(
+                "Zyphra/ZONOS2",
+                max_concurrency=1,
+            ),
+        }
+        dispatcher = LocalStageDispatcher()
+        terminal_control_plane = RecordingStageControlPlane()
+        stages = [
+            make_stage(
+                name="text_frontend",
+                scheduler=schedulers["text_frontend"],
+                get_next=lambda request_id, output: "speaker_embedding",
+                endpoints={"speaker_embedding": "inproc://speaker_embedding"},
+                same_process_targets={"speaker_embedding"},
+                local_dispatcher=dispatcher,
+            ),
+            make_stage(
+                name="speaker_embedding",
+                scheduler=schedulers["speaker_embedding"],
+                get_next=lambda request_id, output: "lm_decode",
+                endpoints={"lm_decode": "inproc://lm_decode"},
+                same_process_targets={"lm_decode"},
+                local_dispatcher=dispatcher,
+            ),
+            make_stage(
+                name="lm_decode",
+                scheduler=schedulers["lm_decode"],
+                get_next=lambda request_id, output: "dac_vocoder",
+                endpoints={"dac_vocoder": "inproc://dac_vocoder"},
+                same_process_targets={"dac_vocoder"},
+                local_dispatcher=dispatcher,
+            ),
+            make_stage(
+                name="dac_vocoder",
+                scheduler=schedulers["dac_vocoder"],
+                control_plane=terminal_control_plane,
+                is_terminal=True,
+            ),
+        ]
+        dispatcher.register_many(stages)
+        threads = [
+            threading.Thread(target=scheduler.start, daemon=True)
+            for scheduler in schedulers.values()
+        ]
+        for thread in threads:
+            thread.start()
+        try:
+            await stages[0]._on_submit(SubmitMessage(payload.request_id, payload))
+            for stage in stages:
+                await _wait_for_outbox(stage.scheduler)
+                await stage._drain_outbox()
+        finally:
+            for scheduler in schedulers.values():
+                scheduler.stop()
+            for thread in threads:
+                thread.join(timeout=2.0)
+
+        assert len(terminal_control_plane.completions) == 1
+        completion = terminal_control_plane.completions[0]
+        assert completion.request_id == "req-zonos2"
+        assert completion.from_stage == "dac_vocoder"
+        assert completion.success is True
+        data = completion.result
+
+        assert data["probe"] == "keep-me"
+        assert data["text"] == "hello from topology"
+        assert data["reference_text"] == "guide"
+        assert data["visited_stages"] == list(ZONOS2_TOPOLOGY_STAGES)
+        assert data["stage_types"] == ZONOS2_STAGE_TYPES
+        assert data["shape_contract"] == ZONOS2_SHAPE_CONTRACT
+        assert data["prompt_shape"] == [1, DEFAULT_NUM_CODEBOOKS + 1]
+        assert data["speaker_embedding_shape"] == [DEFAULT_SPEAKER_EMBEDDING_DIM]
+        assert data["speaker_lda_dim"] == DEFAULT_SPEAKER_LDA_DIM
+        assert data["codebook_shape"] == [DEFAULT_NUM_CODEBOOKS, 0]
+        assert data["sample_rate"] == DEFAULT_SAMPLE_RATE
+        assert data["modality"] == "audio"
+        assert data["finish_reason"] == "stop"
+        assert data["audio_waveform_shape"] == [1]
+        assert data["audio_waveform_dtype"] == "float32"
+
+    asyncio.run(_run())
+
+
+async def _wait_for_outbox(scheduler) -> None:
+    for _ in range(100):
+        if not scheduler.outbox.empty():
+            return
+        await asyncio.sleep(0.01)
+    raise AssertionError("scheduler did not produce an output")
+
+
+def test_zonos2_passthrough_stubs_keep_private_executor_contract() -> None:
+    payload = StagePayload(
+        request_id="req-zonos2-direct",
+        request=OmniRequest(inputs="hello", params={}, metadata={}),
         data={"probe": "keep-me"},
     )
     schedulers = [
@@ -120,6 +254,7 @@ def test_zonos2_passthrough_stubs_move_dummy_payload_end_to_end() -> None:
     assert data["shape_contract"] == ZONOS2_SHAPE_CONTRACT
     assert data["prompt_shape"] == [0, DEFAULT_NUM_CODEBOOKS + 1]
     assert data["speaker_embedding_shape"] == [DEFAULT_SPEAKER_EMBEDDING_DIM]
+    assert data["speaker_lda_dim"] == DEFAULT_SPEAKER_LDA_DIM
     assert data["codebook_shape"] == [DEFAULT_NUM_CODEBOOKS, 0]
     assert data["sample_rate"] == DEFAULT_SAMPLE_RATE
     assert data["modality"] == "audio"

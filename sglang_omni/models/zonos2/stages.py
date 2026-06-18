@@ -10,6 +10,7 @@ from sglang_omni.models.zonos2.payload_types import (
     DEFAULT_NUM_CODEBOOKS,
     DEFAULT_SAMPLE_RATE,
     DEFAULT_SPEAKER_EMBEDDING_DIM,
+    DEFAULT_SPEAKER_LDA_DIM,
     Zonos2TTSState,
     infer_shape,
     prompt_frame_width,
@@ -52,6 +53,7 @@ def create_speaker_embedding_executor(
     model_path: str,
     *,
     speaker_embedding_dim: int = DEFAULT_SPEAKER_EMBEDDING_DIM,
+    speaker_lda_dim: int = DEFAULT_SPEAKER_LDA_DIM,
     max_concurrency: int = DEFAULT_MAX_CONCURRENCY,
 ) -> SimpleScheduler:
     del model_path
@@ -59,6 +61,7 @@ def create_speaker_embedding_executor(
     def _speaker_embedding(payload: StagePayload) -> StagePayload:
         state = load_state(payload)
         state.speaker_embedding_dim = int(speaker_embedding_dim)
+        state.speaker_lda_dim = int(speaker_lda_dim)
         state.mark("speaker_embedding")
         if state.speaker_embedding_shape is None:
             state.speaker_embedding_shape = (state.speaker_embedding_dim,)
@@ -161,6 +164,13 @@ def _state_from_request(
                 state.reference_text = state.reference_text or first_ref.get("text")
     elif isinstance(inputs, list):
         state.text = state.text or _text_from_messages(inputs)
+
+    if state.prompt_tokens is not None and state.prompt_shape is None:
+        inferred = infer_shape(state.prompt_tokens)
+        if inferred is not None:
+            if len(inferred) == 1:
+                inferred = (inferred[0], prompt_frame_width(state.num_codebooks))
+            state.prompt_shape = inferred
 
     if not state.text and tts_params.get("text"):
         state.text = str(tts_params["text"])
