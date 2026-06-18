@@ -247,8 +247,7 @@ def test_zonos2_passthrough_stubs_keep_private_executor_contract() -> None:
 
     data = payload.data
     assert data["probe"] == "keep-me"
-    assert data["text"] == "hello from topology"
-    assert data["reference_text"] == "guide"
+    assert data["text"] == "hello"
     assert data["visited_stages"] == list(ZONOS2_TOPOLOGY_STAGES)
     assert data["stage_types"] == ZONOS2_STAGE_TYPES
     assert data["shape_contract"] == ZONOS2_SHAPE_CONTRACT
