@@ -1,4 +1,4 @@
-Plan for implementing https://github.com/sgl-project/sglang-omni/issues/775
+Plan for implementing Support Zyphra ZONOS2 (TTS MoE) in SGLang Omni https://github.com/sgl-project/sglang-omni/issues/775
 1. Golden-trace harness. Instrument the minisgl reference to dump intermediate artifacts at every stage seam for a fixed input set + seed: conditioning tokens, the speaker-embedding vector, the full 9×T codebook token grid + eos_frame, and final PCM. Evaluated by: re-running produces byte-identical artifacts — these become the oracle for every step below.
 2. Topology skeleton. Declare the 4-stage DAG in Omni — stage types, the tensor-shape contract at each handoff, inbox/outbox connections — with all stages as passthrough stubs. Evaluated by: a dummy payload traverses all four stages end-to-end and the server responds. Plumbing is proven correct before any model logic exists.
 3. Text-frontend stage. Real normalization → UTF-8 byte tokenization → conditioning-token assembly, with NeMo TN as a lazy/optional component. Evaluated by: emitted token sequence matches the golden trace exactly, token-for-token.
