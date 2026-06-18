@@ -36,7 +36,7 @@ from tests.unit_test.fixtures.pipeline_fakes import (
 from tests.unit_test.pipeline.helpers import make_stage
 
 
-def test_zonos2_config_declares_plan_step_2_topology() -> None:
+def test_zonos2_config_declares_topology() -> None:
     config = Zonos2PipelineConfig(model_path="Zyphra/ZONOS2")
     stages = {stage.name: stage for stage in config.stages}
 
