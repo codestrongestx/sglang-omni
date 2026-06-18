@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Passthrough executors for the ZONOS2 plan-step-2 topology skeleton."""
+"""Passthrough executors for the ZONOS2 topology skeleton."""
 
 from __future__ import annotations
 

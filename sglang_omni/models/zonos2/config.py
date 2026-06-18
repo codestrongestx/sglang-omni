@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Pipeline configuration for Zyphra ZONOS2 TTS.
 
-This is the plan-step-2 topology skeleton: it declares the four ZONOS2
-handoffs and uses passthrough executors until later plan steps add the real
-text frontend, speaker encoder, LM sampler, and DAC vocoder.
+This declares the ZONOS2 handoffs and uses passthrough executors until the
+real text frontend, speaker encoder, LM sampler, and DAC vocoder are wired in.
 """
 
 from __future__ import annotations

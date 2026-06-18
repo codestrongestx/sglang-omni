@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Payload contracts for the ZONOS2 plan-step-2 topology skeleton."""
+"""Payload contracts for the ZONOS2 topology skeleton."""
 
 from __future__ import annotations
 
@@ -78,9 +78,8 @@ _KNOWN_KEYS = {
 class Zonos2TTSState:
     """Per-request data passed through the four ZONOS2 skeleton components.
 
-    The current implementation is intentionally a topology probe. Later plan
-    steps replace the placeholders at each seam with real tokenizer, speaker,
-    LM, sampler, and DAC outputs while preserving these handoff names.
+    The current implementation is intentionally a topology probe. It preserves
+    handoff names for the real tokenizer, speaker, LM, sampler, and DAC outputs.
     """
 
     text: str = ""
