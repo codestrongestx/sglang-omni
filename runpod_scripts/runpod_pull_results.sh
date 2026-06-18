@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pull /workspace/results/ from a Runpod pod into results/runpod/<pod-id>/ locally.
-# Uses scripts/runpod_jupyter_exec.py — no SSH dependency.
+# Uses runpod_scripts/runpod_jupyter_exec.py — no SSH dependency.
 #
 # Usage:
 #   scripts/runpod_pull_results.sh <pod-id> <jupyter-password|@password-file> [remote-subdir]
@@ -20,7 +20,7 @@ JUPYTER_PASSWORD_ARG="$2"
 REMOTE_SUBDIR="${3:-results}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-EXEC_SCRIPT="${REPO_ROOT}/scripts/runpod_jupyter_exec.py"
+EXEC_SCRIPT="${REPO_ROOT}/runpod_scripts/runpod_jupyter_exec.py"
 BASE_URL="https://${POD_ID}-8888.proxy.runpod.net"
 LOCAL_ROOT="${REPO_ROOT}/results/runpod/${POD_ID}"
 
