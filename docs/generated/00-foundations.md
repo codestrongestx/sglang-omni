@@ -1,0 +1,516 @@
+# 00 — Foundations: Everything You Need Before Optimizing Qwen3-ASR
+
+> **The task** ([issue #831](https://github.com/sgl-project/sglang-omni/issues/831)): make Qwen3-ASR
+> *faster*, because it sits on the **evaluation hot path** — every CI run that checks whether a
+> text-to-speech model still sounds right has to wait for Qwen3-ASR to transcribe the audio first.
+> Speed up the judge, and you speed up every correctness check that depends on it.
+>
+> This document does **not** tell you how to write the patch. It teaches you the concepts the
+> codebase assumes you already have, so that when you open the code, *nothing surprises you* and you
+> can immediately see where the seconds are hiding. Read it top to bottom once; after that it's a
+> reference.
+
+---
+
+## How to read this
+
+There is exactly **one idea** that makes the whole task click, so let's plant it before anything
+else:
+
+> **You are optimizing a measuring instrument, not a product feature.**
+> Qwen3-ASR is used as a *ruler*. A faster ruler is only useful if it still measures the same length.
+> So every concept below serves one of two goals: **(a)** understand where the time goes so you can
+> remove it, or **(b)** understand what "correct" means so you can prove you didn't bend the ruler.
+
+The document is four short acts. You can stop after any act and still have a *correct* mental model —
+later acts add resolution, not corrections.
+
+```
+ACT I    Why ASR speed matters          → the round-trip, WER, the vocabulary of "fast"
+ACT II   What Qwen3-ASR actually is      → speech recognition, the encoder+LLM anatomy, prefill/decode
+ACT III  How it runs                     → the serving machine, and the physics of where time goes
+ACT IV   How you measure & don't break   → profilers, the benchmark/CI harness, reproducibility
+         ─────────────────────────────────────────────────────────────────────────────────────
+         SYNTHESIS: the lever map         → how every concept above turns into a candidate change
+```
+
+Each concept follows the same rhythm: **what it is → why it exists → how it works → where it lives in
+this repo** (with `file:line` you can click).
+
+---
+---
+
+# ACT I — Why ASR speed is on the critical path
+
+## 1. The evaluation round-trip (and why ASR is "the judge")
+
+**What it is.** You cannot directly measure whether synthesized speech is "good" by looking at the
+waveform — a waveform is a million numbers with no opinion about whether the words are right. So the
+field uses a clever trick: **close the loop**. Take known text, speak it with the TTS model, then
+*transcribe it back* with a speech recognizer, and compare the transcription to the original text. If
+the TTS spoke clearly, a good recognizer will recover the original words.
+
+```
+                  TTS model               Qwen3-ASR              compare
+   reference  ───────────────▶  audio  ───────────────▶  hypothesis  ─────▶  WER score
+   text  "the cat sat"          (.wav)      transcribe   "the cat sat"        (0.0 = perfect)
+     │                                                        ▲
+     └────────────────────────── same text? ─────────────────┘
+```
+
+**Why it exists.** This "round-trip" turns a subjective audio-quality question into an objective
+text-comparison question. It's the standard way to score intelligibility on benchmarks like
+**SeedTTS**. The reference recognizer becomes the *arbiter of truth* for every TTS model in the repo.
+
+**Why that makes ASR the bottleneck.** Notice the asymmetry: a TTS test generates audio **once**, but
+then the recognizer must transcribe **every single sample** before any score exists. With 1088
+samples in the full SeedTTS English set, the recognizer runs 1088 times per evaluation. If Qwen3-ASR
+is slow, *every* TTS correctness gate inherits that slowness. That is precisely what issue #831 means
+by "on the evaluation hot path."
+
+**Where it lives.**
+- The round-trip is implemented in `benchmarks/tasks/tts.py`: `transcribe_and_compute_wer()`
+  (`benchmarks/tasks/tts.py:332`) calls `transcribe()` (`:324`) to get the hypothesis, then scores it.
+- The transcription itself is an HTTP call to Qwen3-ASR's OpenAI-compatible endpoint,
+  `_transcribe_qwen3_asr()` (`benchmarks/tasks/tts.py:269`), which POSTs the `.wav` to
+  `/v1/audio/transcriptions`.
+- The same recognizer is reused across *many* evaluations — TTS WER, Omni SeedTTS, audio-bearing
+  multimodal tests — which is exactly why a single speedup pays off broadly.
+
+---
+
+## 2. Word Error Rate (WER): how "correct" is defined
+
+**What it is.** **WER** is the standard accuracy metric for transcription. It asks: *to turn the
+recognizer's output into the reference text, how many word-level edits do I need?* — then normalizes
+by the reference length. It is a direct application of **edit distance** (the Levenshtein distance)
+lifted from characters to words.
+
+$$\text{WER} = \frac{S + D + I}{S + D + H} = \frac{\text{substitutions}+\text{deletions}+\text{insertions}}{\text{reference word count}}$$
+
+- **S** — a wrong word swapped for the right one ("cat" → "hat")
+- **D** — a reference word missing from the output
+- **I** — an extra word the output invented
+- **H** — a *hit*, a correctly matched word
+- The denominator `S + D + H` is the number of words in the reference. WER `= 0.0` is perfect;
+  `0.05` means roughly one word in twenty is wrong. It can exceed `1.0` (more edits than words).
+
+**Why it exists.** A single number that is comparable across sentences of different lengths and
+penalizes the three ways a transcription can be wrong. It is the lingua franca of ASR — every paper,
+every leaderboard, every CI threshold in this repo speaks it.
+
+**Two things that quietly matter for you:**
+
+1. **Normalization comes first.** "Hello, world!" and "hello world" should not count as different.
+   Before any edit distance, both reference and hypothesis are normalized: English text runs through
+   OpenAI Whisper's `EnglishTextNormalizer` (lower-casing, punctuation/number canonicalization);
+   Chinese strips punctuation and splits into **per-character** tokens (`normalize_text()`,
+   `benchmarks/tasks/tts.py:108`). The edit distance is then computed by the `jiwer` library
+   (`process_words`, around `benchmarks/tasks/tts.py:355`).
+
+2. **Corpus WER ≠ average of per-sample WERs.** The headline number is the **corpus** (micro-average):
+   sum *all* errors across all samples, divide by *all* reference words
+   (`benchmarks/metrics/wer.py:45-47`). This weights long sentences more than short ones and is more
+   stable than averaging per-sentence rates. The per-sample mean/median/p95/max are reported
+   separately as a *distribution* (`:76-80`) so a single catastrophic sample is visible.
+
+**Where this bites you in #831.** WER is the **guardrail**, not the goal. Your job is to make the
+recognizer faster; if a "speedup" changes the transcription even slightly — a different dtype, a
+different attention kernel, fused math with different rounding — WER can drift. The CI gate refuses to
+merge if corpus WER exceeds `0.007` (with slack) (`tests/test_model/test_qwen3_asr_ci.py:42`). So you
+must treat WER as a **conserved quantity**: prove before/after that it didn't move.
+
+---
+
+## 3. The vocabulary of "fast": latency, throughput, RTF, percentiles
+
+You will be drowning in numbers; here is the precise meaning of each so you never optimize the wrong
+one.
+
+**Latency** — wall-clock time for *one* request, from sending the audio to receiving the text. This
+is what a single user feels. Measured per-sample as `asr_latency_s` and summarized as mean / median /
+p95 / p99 (`benchmarks/metrics/wer.py:257-260`).
+
+**Throughput** — *completed requests per second* across the whole run, `successes / wall_time`
+(`benchmarks/metrics/wer.py:263-264`). This is what CI feels when grinding through 1088 samples.
+**Latency and throughput are different axes**: batching can *raise* throughput while *raising* each
+request's latency. For #831, CI cares mostly about throughput (total time), but the gate also pins
+latency so you can't trade it away silently.
+
+**RTF — Real-Time Factor** — the metric that exists *because* the input is audio:
+
+$$\text{RTF} = \frac{\text{processing time}}{\text{audio duration}}$$
+
+RTF `= 1.0` means transcription takes exactly as long as the clip plays; `< 1.0` is faster than
+real-time; `0.025` (the current target) means a 4-second clip is transcribed in ~0.1 s
+(`benchmarks/metrics/wer.py:247`). RTF normalizes away the fact that clips have different lengths, so
+it's the *fairest* single speed number for ASR.
+
+**Percentiles (p95 / p99).** The mean lies when a distribution has a tail. **p95** is "95% of
+requests were at least this fast"; it captures the stragglers that dominate a batch's total time
+(your batch finishes when the *slowest* member does). CI gates on both mean *and* p95 precisely so an
+optimization can't improve the average while making the tail worse
+(`tests/test_model/test_qwen3_asr_ci.py:45-48`).
+
+> **Mental model to carry into profiling:** *mean tells you the typical cost; p95 tells you what's
+> actually limiting the batch; RTF makes clips comparable; throughput is the thing CI's clock
+> measures.* When you report results, report all four — the issue explicitly asks for before/after
+> benchmarks, and a single number is never enough.
+
+---
+---
+
+# ACT II — What Qwen3-ASR actually is
+
+## 4. Automatic Speech Recognition & the mel spectrogram
+
+**What it is.** **ASR** maps an audio waveform to text. The central difficulty: a waveform is a raw,
+high-rate, continuous signal (16,000 samples per second here), while text is a short, discrete
+sequence of tokens. The model must bridge a ~100,000-number input to a ~10-token output.
+
+**Why the mel spectrogram exists.** Feeding raw samples to a transformer is wasteful — most of the
+information humans use for speech lives in the *frequency* content over short time windows, not in
+individual samples. So audio is first turned into a **mel spectrogram**: chop the signal into ~25 ms
+frames stepped every 10 ms (so **100 frames per second**), and for each frame compute energy across
+**128 mel-frequency bins** (a perceptual, log-spaced frequency scale that mimics human hearing). The
+result is an image-like tensor of shape `[128 mel bins × T frames]` — a picture of "which pitches are
+loud, when."
+
+```
+ waveform (16kHz)          mel spectrogram                 a 30s clip:
+ ~~~~~~~~~~~~~~~~~   ──▶    128 ┌───────────────┐          30s × 100 fps = 3000 frames
+ |||  |||| || |||          bins │░▒▓█▓▒░ ▒▓█▓▒░ │          shape ≈ [128 × 3000]
+ raw samples               (mel)└───────────────┘
+                                 ── time (frames) ──▶
+```
+
+**Why this matters for speed.** Producing the mel spectrogram is **CPU work** that happens **per
+request** before the GPU sees anything: load and decode the file, resample to 16 kHz, run the Whisper
+feature extractor (`load_audio()` at `request_builders.py:72`; resample enforced to 16 kHz; feature
+extraction around `:174`). Three things to internalize: (1) audio is always normalized to **16 kHz**
+(`docs/cookbook/qwen3_asr.md:79`); (2) this preprocessing is serial and CPU-bound, so under
+concurrency it can become a hidden tax that no GPU optimization will touch; (3) it is a classic
+"is the bottleneck even on the GPU?" trap — **measure before assuming.**
+
+---
+
+## 5. The anatomy of Qwen3-ASR: an audio encoder bolted onto an LLM
+
+This is the single most important section. Qwen3-ASR is **not** a bespoke speech model — it is a
+**Qwen3 large language model** that has been taught to "read" audio by prepending an **audio
+encoder**. Understanding this two-part structure tells you exactly where compute is spent.
+
+```
+  ┌──────────────────────────────────────────────────────────────────────────────┐
+  │  PART A — AUDIO TOWER (a Whisper-style transformer encoder)                     │
+  │                                                                                 │
+  │   mel [128 × 3000] ──▶ 32 encoder layers (d_model 1280) ──▶ downsample ~8×      │
+  │                                                          ──▶ audio embeddings    │
+  │                                                              [~390 × 3584]       │
+  └──────────────────────────────────────────────────────────────────────────────┘
+                                       │  embeddings are *scattered into* the
+                                       ▼  positions of <|audio_pad|> placeholder tokens
+  ┌──────────────────────────────────────────────────────────────────────────────┐
+  │  PART B — LANGUAGE MODEL (Qwen3 causal LLM, the "decoder")                      │
+  │                                                                                 │
+  │   prompt:  <|audio_start|> <pad><pad>…<pad> <|audio_end|>  language en <asr_text>│
+  │            └──────── audio embeddings live here ────────┘  └─ forced prefix ─┘  │
+  │                                                                                 │
+  │   ──▶ Qwen3 transformer ──▶ generates text tokens autoregressively ──▶ "the cat"│
+  └──────────────────────────────────────────────────────────────────────────────┘
+```
+
+**How it works, step by step.**
+
+1. **The audio tower** (`Qwen3OmniMoeAudioEncoder`: 128 mel bins, 32 layers, `d_model` 1280, output
+   projected to 3584) consumes the mel spectrogram and emits a sequence of **audio embedding vectors**
+   — one vector per "audio token." It runs **once per request**, entirely during prefill, and has
+   **no KV cache to reuse** because every audio clip is different. This is pure feed-forward compute.
+
+2. **The mel → token geometry** is worth knowing exactly, because it determines how long the prompt
+   is. The encoder downsamples heavily: 100-frame windows emit 13 tokens, the remainder passes through
+   three stride-2 downsamples (`audio_lengths.py:11-21`). Net effect: ~8× reduction, so a 30-second
+   clip (3000 mel frames) becomes **~390 audio tokens**, not 3000. Fewer tokens = shorter prefill =
+   faster.
+
+3. **Multimodal stitching.** The text prompt contains a run of placeholder `<|audio_pad|>` tokens —
+   exactly one per audio token. During the forward pass, `get_audio_feature()`
+   (`sglang_model.py:72`) runs the encoder and **scatters** its output vectors into those placeholder
+   positions; this is orchestrated by `general_mm_embed_routine` inside `forward()`
+   (`sglang_model.py:111`). The LLM then sees a single embedding sequence where some positions came
+   from text and some from audio — it cannot tell the difference, which is the whole trick.
+
+4. **The forced prefix.** After the audio, the prompt injects `language <LANG> <asr_text>`
+   (`request_builders.py` prompt construction, ~`:154`). This *steers* the model: it has already been
+   told the language and that what follows is a transcription, so it dives straight into words. One
+   sharp gotcha you will trip over: **temperature 0.0 is silently bumped to 0.01**
+   (`request_builders.py:239`) because pure-greedy decoding makes this checkpoint degenerate. Don't
+   "fix" that thinking it's a bug.
+
+**The takeaway that drives optimization.** Two very different machines run back-to-back per request:
+a **dense feed-forward encoder** over a few hundred audio tokens, then an **autoregressive LLM** that
+emits a short transcription. The next section explains why those two halves have completely different
+performance characters — and therefore different levers.
+
+---
+
+## 6. LLM inference: prefill vs decode, and the KV cache
+
+This is the concept that separates people who *guess* at LLM speed from people who *reason* about it.
+An autoregressive transformer generates text one token at a time, and that process splits into two
+phases with opposite cost profiles.
+
+**Prefill** — the model ingests the entire prompt (here: the audio embeddings + the forced prefix) in
+**one big parallel pass**, building the **KV cache** (the per-layer Key/Value tensors that summarize
+everything seen so far). Prefill touches many tokens at once, so it is **compute-bound** — limited by
+raw GPU FLOPs.
+
+**Decode** — the model then generates the transcription **one token at a time**. Each new token
+requires a full forward pass, but over only *one* new position, reusing the KV cache for all prior
+context. Each step does little math but must re-read the model weights from GPU memory, so decode is
+**memory-bandwidth-bound** — limited by how fast you can stream weights, not by FLOPs.
+
+```
+  PREFILL  (once, parallel, COMPUTE-bound)        DECODE (looped, sequential, MEMORY-bound)
+  ┌──────────────────────────────────┐            ┌────┐ ┌────┐ ┌────┐ ┌────┐
+  │ audio tokens + prefix, all at once│   ──────▶  │tok1│→│tok2│→│tok3│→│ …  │ → EOS
+  │ → builds KV cache                 │            └────┘ └────┘ └────┘ └────┘
+  └──────────────────────────────────┘             each step reuses the KV cache
+```
+
+**Why this is *the* insight for Qwen3-ASR.** ASR is **prefill-heavy and decode-light**. The input is
+hundreds of audio tokens (plus the audio encoder's own dense pass), but the output is a *short* string
+— a sentence, not an essay. Most LLM-serving optimizations target the decode loop (because chatbots
+generate long answers); here, the **encoder + prefill** is likely the larger share of the clock. That
+single observation reframes the whole issue: *don't reflexively reach for decode tricks — profile to
+confirm whether the encoder, the prefill, or the per-request CPU preprocessing dominates.*
+
+**Where it lives.** The KV cache, prefill, and decode are managed by the SGLang backend the repo
+builds in `create_sglang_infrastructure()` (`scheduling/bootstrap.py`), which returns separate
+`prefill_mgr` and `decode_mgr`. The ASR stage wires them up in
+`create_sglang_qwen3_asr_executor()` (`sglang_omni/models/qwen3_asr/stages.py:24`), and sets a tiny
+context budget — `encoder_token_count + max_new_tokens + 8` (`stages.py:71`) — precisely because the
+output is short.
+
+---
+---
+
+# ACT III — How it runs, and where the time goes
+
+## 7. The serving machine (scoped to what an ASR request touches)
+
+SGLang-Omni is built for *multi-stage* models (a "thinker" LLM feeding a "talker" feeding a vocoder).
+Qwen3-ASR is the simple case: **a single stage**. You don't need the whole pipeline theory, just the
+spine that one transcription request travels.
+
+```
+  HTTP  POST /v1/audio/transcriptions   (serve/launcher.py, openai_api.py)
+    │      multipart .wav
+    ▼
+  Coordinator ──▶ Stage(asr) ──▶ OmniScheduler ──▶ ModelRunner ──▶ SGLang forward
+    │   submits     CPU preprocess   inbox/outbox     execute()       (encoder + LLM)
+    │               (mel features)   batching loop
+    ▼
+  text  {"text": "..."}   ◀── result drained from scheduler.outbox
+```
+
+Three components you will actually open:
+
+- **The scheduler** (`scheduling/omni_scheduler.py`) is a thread running a tight loop: drain the
+  **inbox** of new requests, build them into SGLang `Req` objects, pick the next batch, run a forward
+  pass, push results to the **outbox** (loop around `omni_scheduler.py:1259`; inbox/outbox at
+  `:115-116`). This is where **continuous batching** happens — the next section's lever.
+
+- **The model runner** (`model_runner/base.py`, `execute()`) builds the `ForwardBatch` and invokes the
+  SGLang model. This is the thin seam between "scheduling" and "GPU math."
+
+- **The stage factory** (`models/qwen3_asr/stages.py`) is where *all the knobs live* — dtype, CUDA
+  graphs, batch sizes, attention backend, caches. When you change behavior, you almost certainly edit
+  here. Read its `overrides` dict (`stages.py:47-59`) now; it is the control panel for #831.
+
+**Continuous batching, briefly.** Instead of waiting to assemble a fixed batch, the scheduler merges
+new requests into the running batch every loop iteration and evicts finished ones. This keeps the GPU
+busy at high concurrency — and it's why CI runs the recognizer at concurrency **32** to measure
+realistic throughput (`tests/test_model/test_qwen3_asr_ci.py:37`), even though the TTS-stage gate
+deliberately throttles to **2** to match a stable baseline.
+
+**CUDA graphs, briefly.** Launching each GPU kernel from Python has fixed overhead; for the many small
+kernels of a decode step, that launch overhead can dominate. A **CUDA graph** records a forward pass
+once and replays the whole sequence as a single launch, erasing per-kernel overhead. It is **on** for
+the ASR stage (`disable_cuda_graph: False`, `stages.py:48`) and captured for batch sizes up to
+`max_running_requests` (`cuda_graph_max_bs`, `:52`). Knowing it's already on tells you *not* to "add"
+it — but its batch-size ceiling is a parameter you can reason about.
+
+---
+
+## 8. The performance model: where seconds actually hide
+
+Before touching anything, internalize the physics. Three laws decide whether a change can possibly
+help.
+
+**(a) Compute-bound vs memory-bound (the roofline idea).** Every GPU kernel is limited by *either* how
+fast it can do arithmetic *or* how fast it can move data — never both at once. The defining ratio is
+**arithmetic intensity** (FLOPs per byte moved).
+
+- **Encoder + prefill** push lots of tokens through the math units → usually **compute-bound** →
+  helped by lower precision (more FLOPs/sec), fused kernels, better attention backends.
+- **Decode** does little math per step but re-reads all weights → usually **memory-bound** → helped by
+  batching (amortize the weight read across many requests) and by *fewer steps* (shorter output).
+
+If a phase is memory-bound, throwing more compute at it does nothing. This is why "what kind of
+bound am I hitting?" must be your *first* profiling question.
+
+**(b) Amdahl's Law — optimize the part that's actually big.** If a phase is 20% of the time, making it
+*infinitely* fast wins you at most 20%. The corollary is brutal and liberating: **measure the
+breakdown first, then attack the largest slice.** For ASR the candidates are CPU audio preprocessing,
+the audio-encoder forward, LLM prefill, LLM decode, and inter-process/serialization overhead — and
+the winner is *not obvious from reading code*. The issue says it outright: profile, don't guess.
+
+**(c) Latency vs throughput is a dial, not a free lunch.** Bigger batches and more concurrency raise
+throughput (CI's clock) but can raise per-request latency and the p95 tail. The CI gate pins *both*
+ends (`tests/test_model/test_qwen3_asr_ci.py:44-48`) so you can't quietly trade one for the other.
+Know which one your change moves, and in which direction.
+
+> **The discipline this implies:** form a hypothesis ("the encoder forward dominates"), confirm it
+> with a profile, change one thing, re-measure all four numbers (latency mean, p95, RTF, throughput)
+> **and** WER, and keep only changes the data justifies. That loop *is* the job.
+
+---
+---
+
+# ACT IV — How you measure, and how you avoid breaking the ruler
+
+## 9. Profiling: the repo already has the tools the issue tells you to use
+
+Issue #831 explicitly says **"utilize existing profiling tools already in the repository."** There are
+two layers, and they answer different questions. Use them in order.
+
+**Layer 1 — the request event recorder (where does *wall-clock* time go, per stage?).** A lightweight
+JSONL logger emits timestamped events around each meaningful boundary — preprocess start/end, encoder
+start/end, request build, prefill start, first token, stage hops. It is cheap enough to leave on.
+- Turn it on per-run via the server's HTTP control endpoint `POST /start_profile` (or the
+  lower-overhead `/start_request_profile`), then `/stop_profile` (`serve/launcher.py:178-284`).
+- Reconstruct timelines and a stage/interval breakdown with the bundled CLI:
+  `python -m sglang_omni.profiler <event-dir> --format table` (`sglang_omni/profiler/__main__.py`,
+  analysis in `views.py`). It gives you count / total / avg / p50 / p95 / max per interval — i.e., it
+  *answers Amdahl's question directly.*
+
+**Layer 2 — the PyTorch profiler (once you know *which* slice is big, what kernels are inside it?).**
+`TorchProfiler` (`sglang_omni/profiler/torch_profiler.py`) captures CPU+CUDA activity into a Chrome
+trace (`.trace.json.gz`) you open in `chrome://tracing` or Perfetto to see the actual kernel timeline.
+Expensive detail flags (record-shapes, memory, stacks, FLOPs) are **opt-in via env vars**
+(`SGLANG_TORCH_PROFILER_*`) so the default trace stays light. This is your kernel-level microscope —
+reach for it only after Layer 1 tells you where to point it.
+
+**Layer 0 — the benchmark itself is a profiler.** The concurrency benchmark already prints latency
+percentiles, RTF, and throughput. For optimization you often don't even need traces; you need a
+*stable* benchmark you can run before and after. That's the next section.
+
+---
+
+## 10. The benchmark & CI harness: how speed and accuracy are actually judged
+
+There is one canonical entry point for "how fast and how accurate is Qwen3-ASR," and the CI test
+reuses it — so if you make *that* number better, you make CI better. Learn it.
+
+**The benchmark.** `benchmarks/eval/benchmark_qwen3_asr_concurrency.py` drives the recognizer over
+SeedTTS clips at chosen concurrency levels and computes everything: WER (via
+`build_asr_eval_results()`, `:163`) and speed (`run_asr_transcription()`, `:133`). It is the tool to
+produce the **before/after, command, and hardware** evidence the issue asks for.
+
+**The CI gate.** `tests/test_model/test_qwen3_asr_ci.py` launches the router, runs **one** pass over
+the first **20** English SeedTTS samples (`:39`), and asserts thresholds. The constants are the
+contract you must not violate (`:42-48`):
+
+| Metric | Constant | Current value | Direction |
+|---|---|---|---|
+| Corpus WER | `SEEDTTS_ASR_CORPUS_WER_MAX` | `0.007` | lower better (guardrail) |
+| Per-sample WER (max) | `SEEDTTS_ASR_SAMPLE_WER_MAX` | `0.0667` | lower better |
+| Throughput (req/s) | `QWEN3_ASR_THROUGHPUT_MIN` | `15.62` | **higher better** |
+| Latency mean (s) | `QWEN3_ASR_LATENCY_MEAN_MAX_S` | `0.127` | lower better |
+| Latency p95 (s) | `QWEN3_ASR_LATENCY_P95_MAX_S` | `0.166` | lower better |
+| RTF mean | `QWEN3_ASR_RTF_MEAN_MAX` | `0.0252` | lower better |
+| RTF p95 | `QWEN3_ASR_RTF_P95_MAX` | `0.032` | lower better |
+
+**How those numbers were chosen (so you can move them honestly).** They are **worst-of-N calibrated**:
+the test is run many times and the *worst* observation is recorded as the baseline, then a **slack**
+is applied so normal noise doesn't flake CI — `×1.1` for "lower-is-better" metrics, `×0.9` for
+throughput (`test_qwen3_asr_ci.py:50-69`). This is why a genuine speedup is *safe* and a regression is
+*caught*: the gate has a deliberate, calibrated margin, not a hand-tuned guess. If your optimization
+shifts the real numbers, the right move is to re-calibrate the baselines with the repo's tooling (the
+`tune-ci-thresholds` skill, model `qwen3-asr-v1`), **not** to nudge constants by hand.
+
+**The asymmetry to remember:** the CI cares about *both* accuracy and speed simultaneously. A change
+that makes throughput `20%` better but lifts corpus WER from `0.005` to `0.008` **fails**. Speed is
+the objective; WER is the constraint.
+
+---
+
+## 11. Reproducibility: why your "before/after" must be apples-to-apples
+
+The issue asks for measured results "from real benchmarks (e.g., H100/H200)." Performance numbers are
+**meaningless without their context**, and three sources of variance will mislead you if you ignore
+them.
+
+- **Hardware.** RTF and throughput are GPU-specific; an H200 number cannot be compared to an H100
+  number. The repo's reference tables tag every row with hardware and workload (e.g.,
+  `[H200, router, 2-worker, full-set, c=16]`). Always report **GPU model + concurrency + sample count
+  + command**, exactly as the issue requests.
+- **The first run lies (warmup).** CUDA graph capture, the FlashInfer JIT kernel compile, and weight
+  loading all happen on the *first* requests. The benchmark warms up (`QWEN3_ASR_WARMUP_REQUESTS`,
+  `test_qwen3_asr_ci.py:38`) for exactly this reason. CI even wipes the JIT cache before each run so
+  startup is measured cold — a slow *first* startup is an environment artifact, not a regression.
+  Discard warmup; measure steady state.
+- **Noise is real; one run is not a measurement.** This is the whole reason baselines are
+  *worst-of-N*. Run multiple repeats, look at the distribution, and report medians/p95 — never a
+  single lucky number.
+
+> **The honesty bar for this issue:** a credible result is *"on \<GPU\>, with \<command\> over
+> \<N samples\> at concurrency \<C\>, throughput went X→Y and RTF p95 A→B across K repeats, while
+> corpus WER stayed Z."* Anything less and a reviewer cannot trust it — and the issue's "AI usage
+> note" stresses exactly this: own the results, understand the change, validate the improvement.
+
+---
+---
+
+# SYNTHESIS — Turning foundations into a lever map
+
+You now have the full picture. Here is how every concept above collapses into the **landscape of
+candidate optimizations** — not a plan, but the map you'll hold while profiling decides the route.
+Each lever is real: it corresponds to a knob in the ASR stage factory (`models/qwen3_asr/stages.py`)
+or a phase in the request lifecycle.
+
+| If profiling shows the cost is in… | …the relevant foundation | …and the candidate lever (with where to look) |
+|---|---|---|
+| **CPU audio preprocessing** (per-request, serial) | §4 mel spectrogram | move/parallelize decode+resample+feature-extract off the critical path (`request_builders.py:72,174`) |
+| **The audio encoder forward** (dense, compute-bound) | §5 audio tower, §8 roofline | precision/attention-backend choices (`dtype`, `mm_attention_backend`, `stages.py:58,60-65`); avoid redundant re-encoding |
+| **Re-encoding identical audio** | §5 multimodal stitching | the multimodal embedding cache, currently **off** (`mm_embedding_cache_size_bytes=0`, `stages.py:32,97`) |
+| **LLM prefill** (compute-bound) | §6 prefill | prefill/chunk sizes (`max_prefill_tokens`, `chunked_prefill_size`, `stages.py:55-56`); precision |
+| **LLM decode** (memory-bound) | §6 decode, §7 CUDA graphs | batch ceiling (`cuda_graph_max_bs`, `max_running_requests`, `stages.py:51-54`); `torch.compile` (off by default, `:50`); the disabled overlap schedule (`:49`) |
+| **Low GPU utilization at scale** | §7 continuous batching | concurrency / `max_running_requests` (`stages.py:54`), data-parallel workers |
+| **Per-request fixed overhead** | §7 serving spine | scheduler/serialization path (`omni_scheduler.py`, `model_runner/base.py`) |
+
+And the four rules that keep you honest, distilled:
+
+1. **Profile before you touch anything** (§8/§9) — Amdahl says the biggest slice is the only one worth
+   attacking, and it's not visible from reading code.
+2. **Classify the bound** (§8) — compute-bound phases want precision/kernels; memory-bound phases want
+   batching/fewer steps. Applying the wrong fix wastes effort.
+3. **WER is conserved** (§2/§10) — every speedup must come with a before/after WER showing it didn't
+   move. This is the constraint, not a formality.
+4. **Measure like CI measures** (§10/§11) — same benchmark, same hardware reported, warmup discarded,
+   multiple repeats, all four speed numbers plus WER. That's what turns "I think it's faster" into a
+   mergeable result.
+
+When you can look at a profiler breakdown and immediately say *"that slice is the encoder, it's
+compute-bound, here's the lever, and here's how I'll prove WER held" — you are ready to write the
+patch. That was the entire purpose of this chapter.
+
+---
+
+### Where to go next
+- The control panel: `sglang_omni/models/qwen3_asr/stages.py` — read the `overrides` dict line by line.
+- The model itself: `sglang_omni/models/qwen3_asr/sglang_model.py` (`forward`, `get_audio_feature`).
+- The measuring stick: `benchmarks/eval/benchmark_qwen3_asr_concurrency.py` and
+  `tests/test_model/test_qwen3_asr_ci.py`.
+- The microscope: `python -m sglang_omni.profiler --help` and `sglang_omni/profiler/views.py`.
