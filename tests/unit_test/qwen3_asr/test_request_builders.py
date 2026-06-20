@@ -156,14 +156,64 @@ def test_qwen3_asr_request_builder_caches_uploaded_audio_preprocessing(
     )
 
     data_1 = request_builder(payload_1)
+    audio_item_1 = data_1.req.multimodal_inputs.mm_items[0]
+    audio_item_1.feature.fill_(99.0)
+    audio_item_1.feature_attention_mask.zero_()
     data_2 = request_builder(payload_2)
 
     assert load_calls == 1
     assert extract_calls == 1
+    feature_1 = audio_item_1.feature
+    feature_2 = data_2.req.multimodal_inputs.mm_items[0].feature
+    mask_2 = data_2.req.multimodal_inputs.mm_items[0].feature_attention_mask
+    assert torch.equal(feature_1, torch.full((1, 128, 3000), 99.0))
+    assert torch.equal(feature_2, torch.ones((1, 128, 3000)))
+    assert torch.equal(mask_2, torch.ones((1, num_mel_frames), dtype=torch.long))
+    assert feature_1 is not feature_2
+
+
+def test_qwen3_asr_preprocess_cache_normalizes_mutable_audio_source(
+    monkeypatch,
+) -> None:
+    load_sources = []
+    extract_calls = 0
+
+    def fake_load_audio(source):
+        load_sources.append(source)
+        assert isinstance(source, bytes)
+        return np.zeros(1600, dtype=np.float32)
+
+    def fake_feature_extractor(*args, **kwargs):
+        nonlocal extract_calls
+        extract_calls += 1
+        return SimpleNamespace(
+            input_features=torch.full((1, 128, 3000), float(extract_calls)),
+            attention_mask=torch.ones((1, 101), dtype=torch.long),
+        )
+
+    monkeypatch.setattr(request_builders, "load_audio", fake_load_audio)
+    request_builder, _ = make_qwen3_asr_scheduler_adapters(
+        tokenizer=_FakeTokenizer(),
+        max_new_tokens=32,
+        feature_extractor=fake_feature_extractor,
+    )
+    audio = bytearray(b"same-wav")
+    payload = StagePayload(
+        request_id="req-asr",
+        request=OmniRequest(inputs={"audio_bytes": audio}),
+        data={},
+    )
+
+    data_1 = request_builder(payload)
+    audio[:] = b"otherwav"
+    data_2 = request_builder(payload)
+
+    assert load_sources == [b"same-wav", b"otherwav"]
+    assert extract_calls == 2
     feature_1 = data_1.req.multimodal_inputs.mm_items[0].feature
     feature_2 = data_2.req.multimodal_inputs.mm_items[0].feature
-    assert torch.equal(feature_1, feature_2)
-    assert feature_1 is not feature_2
+    assert torch.equal(feature_1, torch.full((1, 128, 3000), 1.0))
+    assert torch.equal(feature_2, torch.full((1, 128, 3000), 2.0))
 
 
 def test_qwen3_asr_preprocess_cache_is_scoped_to_adapter(monkeypatch) -> None:

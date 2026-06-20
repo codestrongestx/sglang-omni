@@ -83,14 +83,20 @@ def _clone_preprocessed_audio(entry: _PreprocessedAudio) -> _PreprocessedAudio:
 
 
 def _audio_cache_key(source: Any) -> tuple[str, int, str] | None:
-    if isinstance(source, memoryview):
-        source = source.tobytes()
-    if isinstance(source, bytearray):
-        source = bytes(source)
     if not isinstance(source, bytes):
         return None
     digest = hashlib.blake2b(source, digest_size=16).hexdigest()
     return ("bytes", len(source), digest)
+
+
+def _normalize_cacheable_audio_source(
+    source: Any,
+) -> tuple[Any, tuple[str, int, str] | None]:
+    if isinstance(source, memoryview):
+        source = source.tobytes()
+    elif isinstance(source, bytearray):
+        source = bytes(source)
+    return source, _audio_cache_key(source)
 
 
 def _get_cached_preprocessed_audio(
@@ -246,7 +252,7 @@ def make_qwen3_asr_scheduler_adapters(
     def request_builder(payload: StagePayload) -> Qwen3ASRRequestData:
         params = payload.request.params or {}
         audio_source = _audio_source_from_payload(payload)
-        cache_key = _audio_cache_key(audio_source)
+        audio_source, cache_key = _normalize_cacheable_audio_source(audio_source)
         preprocessed = _get_cached_preprocessed_audio(
             preprocess_cache, preprocess_cache_lock, cache_key
         )

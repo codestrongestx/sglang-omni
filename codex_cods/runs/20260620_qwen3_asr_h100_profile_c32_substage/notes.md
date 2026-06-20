@@ -34,6 +34,6 @@ Bottleneck ranking:
 
 Candidate next move for critique:
 
-- Consider a low-risk adapter-scoped cache keyed by audio fingerprint for repeated ASR inputs, caching loaded audio plus feature-extractor output and derived token counts.
+- Consider a low-risk adapter-scoped cache keyed by raw uploaded audio bytes for repeated ASR inputs, caching loaded audio plus feature-extractor output and derived token counts.
 - This should preserve request semantics for duplicate audio and directly targets audio decode plus feature extraction, the largest concrete request-build substages.
 - Risk: the checker-sized benchmark repeats the same 20 clips across warmup/repeats, so a cache may improve the dev benchmark more than unique-audio production traffic. It should be treated as valid only if bounded, transparent, and measured against the exact same H100 shape with stable WER.
