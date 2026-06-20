@@ -31,3 +31,5 @@ Summary from `metrics.json`:
 - Worker balance: not applicable; `/workers` returned 404 and benchmark worker fields were empty.
 
 The result is benchmark-shaped: the official checker resends the same 20 clips across warmup and repeats, so the timed repeats are cache-hit traffic.
+
+Provenance: this run used the measured candidate diff preserved in `cache_candidate.diff`. The integrated implementation was later narrowed from module-global cache state to per-adapter cache state after post-commit review; that scoping fix prevents cross-feature-extractor reuse and does not change this single-adapter checker path.

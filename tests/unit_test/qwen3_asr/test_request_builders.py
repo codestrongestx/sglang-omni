@@ -120,7 +120,6 @@ def test_qwen3_asr_request_builder_records_inclusive_audio_offsets(monkeypatch) 
 def test_qwen3_asr_request_builder_caches_uploaded_audio_preprocessing(
     monkeypatch,
 ) -> None:
-    request_builders._PREPROCESS_CACHE.clear()
     load_calls = 0
     extract_calls = 0
     num_mel_frames = 101
@@ -165,6 +164,51 @@ def test_qwen3_asr_request_builder_caches_uploaded_audio_preprocessing(
     feature_2 = data_2.req.multimodal_inputs.mm_items[0].feature
     assert torch.equal(feature_1, feature_2)
     assert feature_1 is not feature_2
+
+
+def test_qwen3_asr_preprocess_cache_is_scoped_to_adapter(monkeypatch) -> None:
+    load_calls = 0
+
+    def fake_load_audio(source):
+        nonlocal load_calls
+        load_calls += 1
+        assert source == b"same-wav"
+        return np.zeros(1600, dtype=np.float32)
+
+    def feature_extractor_with_value(value: float):
+        def fake_feature_extractor(*args, **kwargs):
+            return SimpleNamespace(
+                input_features=torch.full((1, 128, 3000), value),
+                attention_mask=torch.ones((1, 101), dtype=torch.long),
+            )
+
+        return fake_feature_extractor
+
+    monkeypatch.setattr(request_builders, "load_audio", fake_load_audio)
+    request_builder_1, _ = make_qwen3_asr_scheduler_adapters(
+        tokenizer=_FakeTokenizer(),
+        max_new_tokens=32,
+        feature_extractor=feature_extractor_with_value(1.0),
+    )
+    request_builder_2, _ = make_qwen3_asr_scheduler_adapters(
+        tokenizer=_FakeTokenizer(),
+        max_new_tokens=32,
+        feature_extractor=feature_extractor_with_value(2.0),
+    )
+    payload = StagePayload(
+        request_id="req-asr",
+        request=OmniRequest(inputs={"audio_bytes": b"same-wav"}),
+        data={},
+    )
+
+    data_1 = request_builder_1(payload)
+    data_2 = request_builder_2(payload)
+
+    assert load_calls == 2
+    feature_1 = data_1.req.multimodal_inputs.mm_items[0].feature
+    feature_2 = data_2.req.multimodal_inputs.mm_items[0].feature
+    assert torch.equal(feature_1, torch.full((1, 128, 3000), 1.0))
+    assert torch.equal(feature_2, torch.full((1, 128, 3000), 2.0))
 
 
 def test_qwen3_asr_result_adapter_decodes_without_text_round_trip() -> None:

@@ -68,10 +68,7 @@ class _PreprocessedAudio:
     num_audio_tokens: int
 
 
-_PREPROCESS_CACHE_LOCK = threading.Lock()
-_PREPROCESS_CACHE: OrderedDict[tuple[str, int, str], _PreprocessedAudio] = (
-    OrderedDict()
-)
+_PreprocessCache = OrderedDict[tuple[str, int, str], _PreprocessedAudio]
 
 
 def _clone_preprocessed_audio(entry: _PreprocessedAudio) -> _PreprocessedAudio:
@@ -97,19 +94,23 @@ def _audio_cache_key(source: Any) -> tuple[str, int, str] | None:
 
 
 def _get_cached_preprocessed_audio(
+    cache: _PreprocessCache,
+    lock: threading.Lock,
     key: tuple[str, int, str] | None,
 ) -> _PreprocessedAudio | None:
     if key is None:
         return None
-    with _PREPROCESS_CACHE_LOCK:
-        entry = _PREPROCESS_CACHE.get(key)
+    with lock:
+        entry = cache.get(key)
         if entry is None:
             return None
-        _PREPROCESS_CACHE.move_to_end(key)
+        cache.move_to_end(key)
         return _clone_preprocessed_audio(entry)
 
 
 def _put_cached_preprocessed_audio(
+    cache: _PreprocessCache,
+    lock: threading.Lock,
     key: tuple[str, int, str] | None,
     entry: _PreprocessedAudio,
 ) -> None:
@@ -123,11 +124,11 @@ def _put_cached_preprocessed_audio(
         num_mel_frames=entry.num_mel_frames,
         num_audio_tokens=entry.num_audio_tokens,
     )
-    with _PREPROCESS_CACHE_LOCK:
-        _PREPROCESS_CACHE[key] = cached
-        _PREPROCESS_CACHE.move_to_end(key)
-        while len(_PREPROCESS_CACHE) > _PREPROCESS_CACHE_MAX_ENTRIES:
-            _PREPROCESS_CACHE.popitem(last=False)
+    with lock:
+        cache[key] = cached
+        cache.move_to_end(key)
+        while len(cache) > _PREPROCESS_CACHE_MAX_ENTRIES:
+            cache.popitem(last=False)
 
 
 def _audio_source_from_payload(payload: StagePayload) -> Any:
@@ -225,6 +226,8 @@ def make_qwen3_asr_scheduler_adapters(
     eos_token_id = int(tokenizer.eos_token_id)
     vocab_size = int(tokenizer.vocab_size)
     asr_text_token_ids = _encode_literal(tokenizer, _ASR_TEXT)
+    preprocess_cache: _PreprocessCache = OrderedDict()
+    preprocess_cache_lock = threading.Lock()
 
     def _build_prompt_ids(num_audio_tokens: int, language: str) -> list[int]:
         prompt = (
@@ -244,7 +247,9 @@ def make_qwen3_asr_scheduler_adapters(
         params = payload.request.params or {}
         audio_source = _audio_source_from_payload(payload)
         cache_key = _audio_cache_key(audio_source)
-        preprocessed = _get_cached_preprocessed_audio(cache_key)
+        preprocessed = _get_cached_preprocessed_audio(
+            preprocess_cache, preprocess_cache_lock, cache_key
+        )
         if preprocessed is None:
             audio = load_audio(audio_source)
             audio_duration_s = float(len(audio) / _SAMPLE_RATE)
@@ -276,7 +281,9 @@ def make_qwen3_asr_scheduler_adapters(
                 num_mel_frames=num_mel_frames,
                 num_audio_tokens=num_audio_tokens,
             )
-            _put_cached_preprocessed_audio(cache_key, preprocessed)
+            _put_cached_preprocessed_audio(
+                preprocess_cache, preprocess_cache_lock, cache_key, preprocessed
+            )
 
         audio_duration_s = preprocessed.audio_duration_s
         fingerprint = preprocessed.fingerprint

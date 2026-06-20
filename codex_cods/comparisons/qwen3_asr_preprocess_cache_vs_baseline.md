@@ -39,4 +39,6 @@ The effect is expected because the benchmark sends the same 20 uploaded audio fi
 
 This is not evidence of the same gain for entirely unique ASR traffic. It is evidence that duplicate-input preprocessing caching improves the current checker-sized H100 dev workload.
 
+Provenance: the H100 candidate run used the measured diff preserved in `codex_cods/runs/20260620_qwen3_asr_h100_cache_c32_warmup/cache_candidate.diff`. The integrated implementation was subsequently narrowed to keep the cache per adapter, which prevents cross-feature-extractor reuse and leaves this single-adapter checker path unchanged.
+
 Decision: keep.

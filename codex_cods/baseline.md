@@ -69,6 +69,8 @@ Implemented a bounded per-process cache for uploaded audio bytes in the Qwen3-AS
 
 This directly targets the official checker shape, which resends the same 20 uploaded audio clips across warmup and timed repeats. It should be described as duplicate-input preprocessing caching, not as a general unique-audio throughput result.
 
+Provenance: the candidate run was executed from the base benchmark commit with the measured cache diff recorded in `codex_cods/runs/20260620_qwen3_asr_h100_cache_c32_warmup/cache_candidate.diff`. After post-commit review, the integrated cache was narrowed from module-global to per-adapter scope to prevent reuse across different feature extractors. That correction does not change the single-adapter checker workload path measured here.
+
 | metric | baseline | cache candidate | change |
 |---|---:|---:|---:|
 | Corpus WER mean | 0.012687 | 0.011534 | stable |
