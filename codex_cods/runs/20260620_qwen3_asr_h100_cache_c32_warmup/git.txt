@@ -1,0 +1,6 @@
+932f6fecc2244df03ff046c0cef77f237b318611
+ M sglang_omni/models/qwen3_asr/request_builders.py
+ M tests/unit_test/qwen3_asr/test_request_builders.py
+ sglang_omni/models/qwen3_asr/request_builders.py   | 137 +++++++++++++++++----
+ tests/unit_test/qwen3_asr/test_request_builders.py |  50 ++++++++
+ 2 files changed, 166 insertions(+), 21 deletions(-)

@@ -1,0 +1,12 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loaded 20 SeedTTS en samples; sweeping concurrency=[32] x 3 repeats against 127.0.0.1:8000 (Qwen/Qwen3-ASR-1.7B)
+[conc=32] warmup pass ...
+[conc=32 rep=1] wall=0.671s thrpt=29.800/s lat_mean=0.597s lat_p95=0.664s rtf_mean=0.1204 corpus_wer=0.0138 skipped=0
+[conc=32 rep=2] wall=0.667s thrpt=29.994/s lat_mean=0.591s lat_p95=0.658s rtf_mean=0.1190 corpus_wer=0.0138 skipped=0
+[conc=32 rep=3] wall=0.651s thrpt=30.720/s lat_mean=0.572s lat_p95=0.632s rtf_mean=0.1153 corpus_wer=0.0069 skipped=0
+
+| conc | reps | wall(s) mean | thrpt mean | thrpt best | lat mean(s) | lat p95(s) | rtf mean | rtf p95 | corpus WER | max WER |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 32 | 3 | 0.663 | 30.171 | 30.720 | 0.587 | 0.652 | 0.1183 | 0.1507 | 0.0138 | 0.0800 |
+
+Wrote results to /workspace/results/qwen3_asr_831/runs/20260620_qwen3_asr_h100_profile_c32_substage/qwen3_asr_results.json

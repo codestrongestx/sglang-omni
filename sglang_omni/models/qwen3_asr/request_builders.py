@@ -17,7 +17,9 @@ from __future__ import annotations
 import hashlib
 import io
 import logging
+import threading
 import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -44,6 +46,7 @@ _AUDIO_START = "<|audio_start|>"
 _AUDIO_PAD = "<|audio_pad|>"
 _AUDIO_END = "<|audio_end|>"
 _ASR_TEXT = "<asr_text>"
+_PREPROCESS_CACHE_MAX_ENTRIES = 128
 
 
 @dataclass
@@ -53,6 +56,78 @@ class Qwen3ASRRequestData(SGLangARRequestData):
     audio_duration_s: float = 0.0
     language: str = "en"
     engine_start_s: float = 0.0
+
+
+@dataclass
+class _PreprocessedAudio:
+    audio_duration_s: float
+    fingerprint: str
+    features: torch.Tensor
+    feature_attention_mask: torch.Tensor
+    num_mel_frames: int
+    num_audio_tokens: int
+
+
+_PREPROCESS_CACHE_LOCK = threading.Lock()
+_PREPROCESS_CACHE: OrderedDict[tuple[str, int, str], _PreprocessedAudio] = (
+    OrderedDict()
+)
+
+
+def _clone_preprocessed_audio(entry: _PreprocessedAudio) -> _PreprocessedAudio:
+    return _PreprocessedAudio(
+        audio_duration_s=entry.audio_duration_s,
+        fingerprint=entry.fingerprint,
+        features=entry.features.clone(),
+        feature_attention_mask=entry.feature_attention_mask.clone(),
+        num_mel_frames=entry.num_mel_frames,
+        num_audio_tokens=entry.num_audio_tokens,
+    )
+
+
+def _audio_cache_key(source: Any) -> tuple[str, int, str] | None:
+    if isinstance(source, memoryview):
+        source = source.tobytes()
+    if isinstance(source, bytearray):
+        source = bytes(source)
+    if not isinstance(source, bytes):
+        return None
+    digest = hashlib.blake2b(source, digest_size=16).hexdigest()
+    return ("bytes", len(source), digest)
+
+
+def _get_cached_preprocessed_audio(
+    key: tuple[str, int, str] | None,
+) -> _PreprocessedAudio | None:
+    if key is None:
+        return None
+    with _PREPROCESS_CACHE_LOCK:
+        entry = _PREPROCESS_CACHE.get(key)
+        if entry is None:
+            return None
+        _PREPROCESS_CACHE.move_to_end(key)
+        return _clone_preprocessed_audio(entry)
+
+
+def _put_cached_preprocessed_audio(
+    key: tuple[str, int, str] | None,
+    entry: _PreprocessedAudio,
+) -> None:
+    if key is None:
+        return
+    cached = _PreprocessedAudio(
+        audio_duration_s=entry.audio_duration_s,
+        fingerprint=entry.fingerprint,
+        features=entry.features.detach().cpu().clone(),
+        feature_attention_mask=entry.feature_attention_mask.detach().cpu().clone(),
+        num_mel_frames=entry.num_mel_frames,
+        num_audio_tokens=entry.num_audio_tokens,
+    )
+    with _PREPROCESS_CACHE_LOCK:
+        _PREPROCESS_CACHE[key] = cached
+        _PREPROCESS_CACHE.move_to_end(key)
+        while len(_PREPROCESS_CACHE) > _PREPROCESS_CACHE_MAX_ENTRIES:
+            _PREPROCESS_CACHE.popitem(last=False)
 
 
 def _audio_source_from_payload(payload: StagePayload) -> Any:
@@ -167,28 +242,48 @@ def make_qwen3_asr_scheduler_adapters(
 
     def request_builder(payload: StagePayload) -> Qwen3ASRRequestData:
         params = payload.request.params or {}
-        audio = load_audio(_audio_source_from_payload(payload))
-        audio_duration_s = float(len(audio) / _SAMPLE_RATE)
-        fingerprint = _audio_fingerprint(audio)
+        audio_source = _audio_source_from_payload(payload)
+        cache_key = _audio_cache_key(audio_source)
+        preprocessed = _get_cached_preprocessed_audio(cache_key)
+        if preprocessed is None:
+            audio = load_audio(audio_source)
+            audio_duration_s = float(len(audio) / _SAMPLE_RATE)
+            fingerprint = _audio_fingerprint(audio)
 
-        extracted = feature_extractor(
-            audio,
-            sampling_rate=_SAMPLE_RATE,
-            return_tensors="pt",
-            return_attention_mask=True,
-        )
-        features = extracted.input_features  # 128, 3000
-        feature_attention_mask = getattr(extracted, "attention_mask", None)
-        if feature_attention_mask is None:
-            # WhisperFeatureExtractor normally returns one; fall back to all-valid.
-            feature_attention_mask = torch.ones(
-                (features.shape[0], features.shape[-1]), dtype=torch.long
+            extracted = feature_extractor(
+                audio,
+                sampling_rate=_SAMPLE_RATE,
+                return_tensors="pt",
+                return_attention_mask=True,
             )
-        # Keep the full padded mel; the model's get_audio_feature uses the mask
-        # to select valid frames. Its no-mask branch transposes wrong, so the
-        # mask path must be taken.
-        num_mel_frames = int(feature_attention_mask.sum().item())
-        num_audio_tokens = int(qwen3_asr_num_audio_tokens(num_mel_frames))
+            features = extracted.input_features  # 128, 3000
+            feature_attention_mask = getattr(extracted, "attention_mask", None)
+            if feature_attention_mask is None:
+                # WhisperFeatureExtractor normally returns one; fall back to all-valid.
+                feature_attention_mask = torch.ones(
+                    (features.shape[0], features.shape[-1]), dtype=torch.long
+                )
+            # Keep the full padded mel; the model's get_audio_feature uses the mask
+            # to select valid frames. Its no-mask branch transposes wrong, so the
+            # mask path must be taken.
+            num_mel_frames = int(feature_attention_mask.sum().item())
+            num_audio_tokens = int(qwen3_asr_num_audio_tokens(num_mel_frames))
+            preprocessed = _PreprocessedAudio(
+                audio_duration_s=audio_duration_s,
+                fingerprint=fingerprint,
+                features=features,
+                feature_attention_mask=feature_attention_mask,
+                num_mel_frames=num_mel_frames,
+                num_audio_tokens=num_audio_tokens,
+            )
+            _put_cached_preprocessed_audio(cache_key, preprocessed)
+
+        audio_duration_s = preprocessed.audio_duration_s
+        fingerprint = preprocessed.fingerprint
+        features = preprocessed.features
+        feature_attention_mask = preprocessed.feature_attention_mask
+        num_mel_frames = preprocessed.num_mel_frames
+        num_audio_tokens = preprocessed.num_audio_tokens
         logger.debug(
             f"[qwen3-asr] mel_frames={num_mel_frames} "
             f"num_audio_tokens={num_audio_tokens} feat_shape={tuple(features.shape)}"

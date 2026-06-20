@@ -1,0 +1,10 @@
+# Requests: 80
+
+## Stage breakdown
+stage | interval                                                   | count | total_ms  | avg_ms  | p95_ms
+------+------------------------------------------------------------+-------+-----------+---------+--------
+asr   | stage_input_received->stage_complete                       | 80    | 71867.431 | 898.343 | 1959.61
+asr   | scheduler_request_build_start->scheduler_request_build_end | 80    | 1716.697  | 21.459  | 27.933
+
+## Hop breakdown
+(empty)

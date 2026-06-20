@@ -1,0 +1,193 @@
+{
+  "event_count": 1680,
+  "request_count": 80,
+  "intervals": [
+    {
+      "interval": "coordinator_e2e",
+      "start": "request_admission",
+      "end": "terminal_response",
+      "count": 80,
+      "total_ms": 72027.229,
+      "avg_ms": 900.34,
+      "p50_ms": 557.258,
+      "p95_ms": 1962.163,
+      "max_ms": 2009.6
+    },
+    {
+      "interval": "stage_total",
+      "start": "stage_input_received",
+      "end": "stage_complete",
+      "count": 80,
+      "total_ms": 71867.431,
+      "avg_ms": 898.343,
+      "p50_ms": 555.885,
+      "p95_ms": 1959.61,
+      "max_ms": 2006.831
+    },
+    {
+      "interval": "stage_dispatch_wait",
+      "start": "stage_input_received",
+      "end": "stage_dispatch",
+      "count": 80,
+      "total_ms": 34.864,
+      "avg_ms": 0.436,
+      "p50_ms": 0.295,
+      "p95_ms": 1.057,
+      "max_ms": 1.946
+    },
+    {
+      "interval": "stage_pre_build_wait",
+      "start": "stage_input_received",
+      "end": "scheduler_request_build_start",
+      "count": 80,
+      "total_ms": 35619.247,
+      "avg_ms": 445.241,
+      "p50_ms": 269.965,
+      "p95_ms": 1321.015,
+      "max_ms": 1408.371
+    },
+    {
+      "interval": "request_build_total",
+      "start": "scheduler_request_build_start",
+      "end": "scheduler_request_build_end",
+      "count": 80,
+      "total_ms": 1716.697,
+      "avg_ms": 21.459,
+      "p50_ms": 20.365,
+      "p95_ms": 27.933,
+      "max_ms": 34.895
+    },
+    {
+      "interval": "asr_audio_decode",
+      "start": "qwen3_asr_audio_decode_start",
+      "end": "qwen3_asr_audio_decode_end",
+      "count": 80,
+      "total_ms": 680.355,
+      "avg_ms": 8.504,
+      "p50_ms": 8.335,
+      "p95_ms": 9.22,
+      "max_ms": 16.285
+    },
+    {
+      "interval": "asr_feature_extract",
+      "start": "qwen3_asr_feature_extract_start",
+      "end": "qwen3_asr_feature_extract_end",
+      "count": 80,
+      "total_ms": 676.342,
+      "avg_ms": 8.454,
+      "p50_ms": 7.958,
+      "p95_ms": 13.005,
+      "max_ms": 17.381
+    },
+    {
+      "interval": "asr_prompt_build",
+      "start": "qwen3_asr_prompt_build_start",
+      "end": "qwen3_asr_prompt_build_end",
+      "count": 80,
+      "total_ms": 49.494,
+      "avg_ms": 0.619,
+      "p50_ms": 0.495,
+      "p95_ms": 1.292,
+      "max_ms": 1.36
+    },
+    {
+      "interval": "asr_multimodal_package",
+      "start": "qwen3_asr_multimodal_package_start",
+      "end": "qwen3_asr_multimodal_package_end",
+      "count": 80,
+      "total_ms": 30.562,
+      "avg_ms": 0.382,
+      "p50_ms": 0.324,
+      "p95_ms": 0.602,
+      "max_ms": 1.082
+    },
+    {
+      "interval": "asr_sampling_request",
+      "start": "qwen3_asr_sampling_request_start",
+      "end": "qwen3_asr_sampling_request_end",
+      "count": 80,
+      "total_ms": 29.496,
+      "avg_ms": 0.369,
+      "p50_ms": 0.297,
+      "p95_ms": 0.703,
+      "max_ms": 1.277
+    },
+    {
+      "interval": "post_build_to_queue_enter",
+      "start": "scheduler_request_build_end",
+      "end": "scheduler_queue_enter",
+      "count": 80,
+      "total_ms": 26.827,
+      "avg_ms": 0.335,
+      "p50_ms": 0.265,
+      "p95_ms": 0.821,
+      "max_ms": 1.111
+    },
+    {
+      "interval": "scheduler_queue_wait",
+      "start": "scheduler_queue_enter",
+      "end": "scheduler_prefill_start",
+      "count": 80,
+      "total_ms": 16178.326,
+      "avg_ms": 202.229,
+      "p50_ms": 196.963,
+      "p95_ms": 381.574,
+      "max_ms": 645.377
+    },
+    {
+      "interval": "model_to_result_adapter",
+      "start": "scheduler_prefill_start",
+      "end": "qwen3_asr_result_adapter_start",
+      "count": 80,
+      "total_ms": 18220.058,
+      "avg_ms": 227.751,
+      "p50_ms": 119.7,
+      "p95_ms": 514.287,
+      "max_ms": 1258.072
+    },
+    {
+      "interval": "scheduler_to_stage_complete",
+      "start": "scheduler_prefill_start",
+      "end": "stage_complete",
+      "count": 80,
+      "total_ms": 18326.335,
+      "avg_ms": 229.079,
+      "p50_ms": 120.691,
+      "p95_ms": 519.759,
+      "max_ms": 1258.764
+    },
+    {
+      "interval": "asr_result_adapter",
+      "start": "qwen3_asr_result_adapter_start",
+      "end": "qwen3_asr_result_adapter_end",
+      "count": 80,
+      "total_ms": 45.057,
+      "avg_ms": 0.563,
+      "p50_ms": 0.317,
+      "p95_ms": 1.229,
+      "max_ms": 5.987
+    },
+    {
+      "interval": "post_result_to_stage_complete",
+      "start": "qwen3_asr_result_adapter_end",
+      "end": "stage_complete",
+      "count": 80,
+      "total_ms": 61.219,
+      "avg_ms": 0.765,
+      "p50_ms": 0.655,
+      "p95_ms": 1.137,
+      "max_ms": 7.249
+    },
+    {
+      "interval": "request_build_misc",
+      "start": "request_build_total - ASR substages",
+      "end": "derived",
+      "count": 80,
+      "total_ms": 250.448,
+      "avg_ms": 3.131,
+      "p50_ms": 2.354,
+      "p95_ms": 8.261,
+      "max_ms": 10.644
+    }
+  ]
+}

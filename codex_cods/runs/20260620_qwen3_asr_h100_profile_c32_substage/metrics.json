@@ -1,0 +1,122 @@
+{
+  "config": {
+    "host": "127.0.0.1",
+    "port": 8000,
+    "meta": "zhaochenyang20/seed-tts-eval-arrow",
+    "lang": "en",
+    "model_path": "Qwen/Qwen3-ASR-1.7B",
+    "num_samples": 20,
+    "concurrencies": [
+      32
+    ],
+    "repeats": 3,
+    "warmup": true
+  },
+  "results": [
+    {
+      "concurrency": 32,
+      "repeats": 3,
+      "evaluated": 20,
+      "total": 20,
+      "skipped": 0,
+      "corpus_wer": {
+        "mean": 0.011534025374855825,
+        "min": 0.006920415224913495,
+        "max": 0.01384083044982699
+      },
+      "per_sample_wer_max": {
+        "mean": 0.07111111111111111,
+        "min": 0.06666666666666667,
+        "max": 0.08
+      },
+      "wall_clock_s": {
+        "mean": 0.6629994455724955,
+        "min": 0.6510420637205243,
+        "max": 0.6711461097002029
+      },
+      "throughput_samples_per_s": {
+        "mean": 30.17109858159273,
+        "min": 29.79977043886,
+        "max": 30.719981264659864
+      },
+      "latency_mean_s": {
+        "mean": 0.5865279120082657,
+        "min": 0.5718611672054976,
+        "max": 0.5969828943256289
+      },
+      "latency_p95_s": {
+        "mean": 0.6516169572249055,
+        "min": 0.6319314097054303,
+        "max": 0.6644793083891273
+      },
+      "latency_p99_s": {
+        "mean": 0.6536838171755274,
+        "min": 0.6370282650925219,
+        "max": 0.6648123675212264
+      },
+      "rtf_mean": {
+        "mean": 0.11825850016144718,
+        "min": 0.11533633245267354,
+        "max": 0.12040589475334613
+      },
+      "rtf_p95": {
+        "mean": 0.1507,
+        "min": 0.1476,
+        "max": 0.1541
+      },
+      "per_repeat": [
+        {
+          "concurrency": 32,
+          "repeat": 1,
+          "evaluated": 20,
+          "total": 20,
+          "skipped": 0,
+          "corpus_wer": 0.01384083044982699,
+          "per_sample_wer_max": 0.06666666666666667,
+          "wall_clock_s": 0.6711461097002029,
+          "throughput_samples_per_s": 29.79977043886,
+          "latency_mean_s": 0.5969828943256289,
+          "latency_p95_s": 0.6644793083891273,
+          "latency_p99_s": 0.6648123675212264,
+          "rtf_mean": 0.12040589475334613,
+          "rtf_p95": 0.1541,
+          "worker": {}
+        },
+        {
+          "concurrency": 32,
+          "repeat": 2,
+          "evaluated": 20,
+          "total": 20,
+          "skipped": 0,
+          "corpus_wer": 0.01384083044982699,
+          "per_sample_wer_max": 0.08,
+          "wall_clock_s": 0.6668101632967591,
+          "throughput_samples_per_s": 29.993544041258325,
+          "latency_mean_s": 0.5907396744936705,
+          "latency_p95_s": 0.658440153580159,
+          "latency_p99_s": 0.659210818912834,
+          "rtf_mean": 0.11903327327832185,
+          "rtf_p95": 0.1504,
+          "worker": {}
+        },
+        {
+          "concurrency": 32,
+          "repeat": 3,
+          "evaluated": 20,
+          "total": 20,
+          "skipped": 0,
+          "corpus_wer": 0.006920415224913495,
+          "per_sample_wer_max": 0.06666666666666667,
+          "wall_clock_s": 0.6510420637205243,
+          "throughput_samples_per_s": 30.719981264659864,
+          "latency_mean_s": 0.5718611672054976,
+          "latency_p95_s": 0.6319314097054303,
+          "latency_p99_s": 0.6370282650925219,
+          "rtf_mean": 0.11533633245267354,
+          "rtf_p95": 0.1476,
+          "worker": {}
+        }
+      ]
+    }
+  ]
+}

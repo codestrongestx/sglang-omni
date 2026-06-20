@@ -117,6 +117,56 @@ def test_qwen3_asr_request_builder_records_inclusive_audio_offsets(monkeypatch) 
     )
 
 
+def test_qwen3_asr_request_builder_caches_uploaded_audio_preprocessing(
+    monkeypatch,
+) -> None:
+    request_builders._PREPROCESS_CACHE.clear()
+    load_calls = 0
+    extract_calls = 0
+    num_mel_frames = 101
+
+    def fake_load_audio(source):
+        nonlocal load_calls
+        load_calls += 1
+        assert source == b"same-wav"
+        return np.zeros(1600, dtype=np.float32)
+
+    def fake_feature_extractor(*args, **kwargs):
+        nonlocal extract_calls
+        extract_calls += 1
+        return SimpleNamespace(
+            input_features=torch.full((1, 128, 3000), float(extract_calls)),
+            attention_mask=torch.ones((1, num_mel_frames), dtype=torch.long),
+        )
+
+    monkeypatch.setattr(request_builders, "load_audio", fake_load_audio)
+    request_builder, _ = make_qwen3_asr_scheduler_adapters(
+        tokenizer=_FakeTokenizer(),
+        max_new_tokens=32,
+        feature_extractor=fake_feature_extractor,
+    )
+    payload_1 = StagePayload(
+        request_id="req-asr-1",
+        request=OmniRequest(inputs={"audio_bytes": b"same-wav"}),
+        data={},
+    )
+    payload_2 = StagePayload(
+        request_id="req-asr-2",
+        request=OmniRequest(inputs={"audio_bytes": b"same-wav"}),
+        data={},
+    )
+
+    data_1 = request_builder(payload_1)
+    data_2 = request_builder(payload_2)
+
+    assert load_calls == 1
+    assert extract_calls == 1
+    feature_1 = data_1.req.multimodal_inputs.mm_items[0].feature
+    feature_2 = data_2.req.multimodal_inputs.mm_items[0].feature
+    assert torch.equal(feature_1, feature_2)
+    assert feature_1 is not feature_2
+
+
 def test_qwen3_asr_result_adapter_decodes_without_text_round_trip() -> None:
     tokenizer = _FakeTokenizer()
     _, result_adapter = make_qwen3_asr_scheduler_adapters(

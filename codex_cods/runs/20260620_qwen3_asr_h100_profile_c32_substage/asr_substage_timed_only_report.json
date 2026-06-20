@@ -1,0 +1,89 @@
+{
+  "event_count": 1680,
+  "request_count": 80,
+  "warmup_request_count": 20,
+  "timed_request_count": 60,
+  "intervals": [
+    {
+      "interval": "coordinator_e2e",
+      "count": 60,
+      "avg_ms": 553.196,
+      "p50_ms": 548.866,
+      "p95_ms": 610.065,
+      "max_ms": 613.594,
+      "total_ms": 33191.737
+    },
+    {
+      "interval": "stage_total",
+      "count": 60,
+      "avg_ms": 551.387,
+      "p50_ms": 545.85,
+      "p95_ms": 608.953,
+      "max_ms": 611.967,
+      "total_ms": 33083.192
+    },
+    {
+      "interval": "stage_pre_build_wait",
+      "count": 60,
+      "avg_ms": 208.065,
+      "p50_ms": 206.668,
+      "p95_ms": 392.352,
+      "max_ms": 416.167,
+      "total_ms": 12483.91
+    },
+    {
+      "interval": "request_build_total",
+      "count": 60,
+      "avg_ms": 20.989,
+      "p50_ms": 19.927,
+      "p95_ms": 27.378,
+      "max_ms": 29.719,
+      "total_ms": 1259.359
+    },
+    {
+      "interval": "asr_audio_decode",
+      "count": 60,
+      "avg_ms": 8.442,
+      "p50_ms": 8.335,
+      "p95_ms": 9.084,
+      "max_ms": 16.285,
+      "total_ms": 506.511
+    },
+    {
+      "interval": "asr_feature_extract",
+      "count": 60,
+      "avg_ms": 7.963,
+      "p50_ms": 7.407,
+      "p95_ms": 11.275,
+      "max_ms": 13.709,
+      "total_ms": 477.754
+    },
+    {
+      "interval": "scheduler_queue_wait",
+      "count": 60,
+      "avg_ms": 191.441,
+      "p50_ms": 194.804,
+      "p95_ms": 373.15,
+      "max_ms": 398.516,
+      "total_ms": 11486.445
+    },
+    {
+      "interval": "model_to_result_adapter",
+      "count": 60,
+      "avg_ms": 129.117,
+      "p50_ms": 98.014,
+      "p95_ms": 186.342,
+      "max_ms": 526.197,
+      "total_ms": 7746.997
+    },
+    {
+      "interval": "asr_result_adapter",
+      "count": 60,
+      "avg_ms": 0.618,
+      "p50_ms": 0.317,
+      "p95_ms": 1.715,
+      "max_ms": 5.987,
+      "total_ms": 37.051
+    }
+  ]
+}

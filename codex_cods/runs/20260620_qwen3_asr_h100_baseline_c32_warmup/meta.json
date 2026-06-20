@@ -1,0 +1,11 @@
+{
+  "run_name": "20260620_qwen3_asr_h100_baseline_c32_warmup",
+  "pod_id": "sckijjy1af4euh",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "workload": "Qwen3-ASR SeedTTS EN 20 samples",
+  "concurrency": 32,
+  "repeats": 3,
+  "warmup": true,
+  "model": "Qwen/Qwen3-ASR-1.7B",
+  "created_at_utc": "2026-06-20T14:38:50Z"
+}
