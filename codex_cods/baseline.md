@@ -65,7 +65,7 @@ Bottleneck hypothesis after reviewer critique:
 
 Run: `codex_cods/runs/20260620_qwen3_asr_h100_cache_c32_warmup/`
 
-Implemented a bounded per-process cache for uploaded audio bytes in the Qwen3-ASR request builder. The cache stores decoded duration/fingerprint plus CPU feature tensors and derived audio-token metadata. Cached entries are cloned per request before packaging into `MultimodalDataItem`.
+Implemented a bounded per-adapter cache for uploaded audio bytes in the Qwen3-ASR request builder. The cache stores decoded duration/fingerprint plus CPU feature tensors and derived audio-token metadata. Cached entries are cloned per request before packaging into `MultimodalDataItem`.
 
 This directly targets the official checker shape, which resends the same 20 uploaded audio clips across warmup and timed repeats. It should be described as duplicate-input preprocessing caching, not as a general unique-audio throughput result.
 

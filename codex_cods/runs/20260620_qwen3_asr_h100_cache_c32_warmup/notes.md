@@ -12,7 +12,7 @@ Official checker-sized workload:
 
 Candidate:
 
-- Bounded per-process cache keyed by raw uploaded audio bytes.
+- Bounded per-adapter cache keyed by raw uploaded audio bytes.
 - Caches decoded audio duration/fingerprint, feature-extractor output, feature mask, and derived audio-token counts.
 - Returns tensor clones for each request before building `MultimodalDataItem`.
 
