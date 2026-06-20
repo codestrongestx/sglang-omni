@@ -38,6 +38,25 @@ with:
 runpod_scripts/runpod_pull_results.sh <pod-id> <jupyter-password>
 ```
 
+## Meaningful Optimization Target
+
+Issue 831 is about making Qwen3-ASR faster on the TTS WER evaluation hot path.
+A candidate is meaningful only if it helps representative CI traffic, where ASR
+usually transcribes generated audio that is unique per sample.
+
+Do not count a win as meaningful when the only improvement comes from repeated
+benchmark inputs, warmup cache hits, or reusing the same uploaded audio across
+timed repeats. Such results may be kept as secondary evidence, but they do not
+satisfy the issue by themselves.
+
+A PR-worthy candidate must show:
+
+- final integrated commit, not only a dirty diff
+- before/after on a representative unique-audio workload
+- no cache-miss or cold-path regression
+- WER and failure count remain stable
+- exact command, hardware, sample count, concurrency, and environment
+
 ## Active Baseline
 
 For now, use **H100 as the baseline and development GPU**. The baseline is valid
@@ -50,6 +69,7 @@ The immediate development baseline is:
 - same GPU count for baseline and candidate runs
 - same benchmark command, dataset, concurrency, warmup, and environment
 - same metric set: WER, throughput, latency, RTF, and any profiler evidence
+- at least one unique-audio run, or actual generated-audio TTS WER run, before claiming a general speedup
 
 Do not spend time on final CI-shape verification yet. The 2-GPU CI checker shape
 is deferred until we have a candidate optimization worth validating.
@@ -99,6 +119,9 @@ A performance claim is valid only when it compares matched runs:
 - same dataset and sample count
 - same concurrency and warmup
 - same command and environment
+
+Cache-hit-only claims must be labeled as such. Do not describe them as general
+Qwen3-ASR speedups, and do not use them alone to justify a PR.
 
 For current optimization evidence, matched H100 before/after runs are the source
 of truth. For later CI-threshold claims, use the CI repro shape and label it
