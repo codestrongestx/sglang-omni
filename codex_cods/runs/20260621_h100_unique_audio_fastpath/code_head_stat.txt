@@ -1,0 +1,5 @@
+2441f70 RunPod add PCM WAV fast path candidate
+ .../agent_notes/20260621_audio_load_fastpath.md    |  33 +++++
+ sglang_omni/models/qwen3_asr/request_builders.py   |  66 +++++++++-
+ tests/unit_test/qwen3_asr/test_request_builders.py | 135 ++++++++++++++++++++-
+ 3 files changed, 231 insertions(+), 3 deletions(-)

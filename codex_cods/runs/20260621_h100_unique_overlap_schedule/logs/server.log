@@ -1,0 +1,944 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-06-21 04:05:44,333 [WARNING] huggingface_hub.utils._http: Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_interleaved', 'interleaved', 'mrope_section'}
+2026-06-21 04:05:44,356 [INFO] sglang.utils: thinker_config is None. Initializing Qwen3-ASR thinker with default values
+2026-06-21 04:05:44,799 [ERROR] sglang_omni.relay.mooncake: Failed to import mooncake: libibverbs.so.1: cannot open shared object file: No such file or directory. MooncakeRelay will not work. Install with: pip install mooncake-transfer-engine
+2026-06-21 04:05:44,808 [ERROR] sglang_omni.relay.nixl: Failed to import nixl: No module named 'nixl'. NixlRelay will not work.
+2026-06-21 04:05:44,996 [INFO] sglang_omni.pipeline.control_plane: Coordinator control plane started
+2026-06-21 04:05:44,996 [INFO] sglang_omni.pipeline.coordinator: Coordinator started
+2026-06-21 04:05:45,000 [INFO] sglang_omni.pipeline.stage_workers: StageGroup asr: spawned 1 process(es) (pids=[7575])
+Failed to import mooncake: libibverbs.so.1: cannot open shared object file: No such file or directory. MooncakeRelay will not work. Install with: pip install mooncake-transfer-engine
+Failed to import nixl: No module named 'nixl'. NixlRelay will not work.
+2026-06-21 04:06:40,380 [INFO] stage_workers.asr: Set current CUDA device to 0 for stage asr
+2026-06-21 04:06:40,380 [INFO] stage_workers.asr: Building scheduler for asr (tp_rank=0/1) ...
+2026-06-21 04:06:40,390 [INFO] stage_workers.asr: Acquired GPU startup lock for stage asr: /workspace/tmp/sglang_omni_gpu_0_startup.lock
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-06-21 04:06:40,545 [WARNING] huggingface_hub.utils._http: Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'interleaved', 'mrope_interleaved', 'mrope_section'}
+2026-06-21 04:06:40,568 [INFO] sglang.utils: thinker_config is None. Initializing Qwen3-ASR thinker with default values
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'interleaved', 'mrope_interleaved', 'mrope_section'}
+2026-06-21 04:06:41,687 [INFO] sglang.utils: thinker_config is None. Initializing Qwen3-ASR thinker with default values
+[transformers] The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+2026-06-21 04:06:41,787 [WARNING] sglang.srt.configs.model_config: Casting torch.bfloat16 to torch.float16.
+2026-06-21 04:06:41,887 [INFO] sglang.srt.server_args: Attention backend not specified. Use fa3 backend by default.
+2026-06-21 04:06:41,977 [WARNING] sglang.srt.configs.model_config: Casting torch.bfloat16 to torch.float16.
+2026-06-21 04:06:42,059 [INFO] sglang_omni.model_runner.model_worker: Configured SGLang backend policy: arch=Qwen3ASRForConditionalGeneration effective_quantization=None server_quantization=None moe_runner_backend=auto fp8_gemm_backend=auto
+2026-06-21 04:06:44,886 [INFO] sglang.srt.model_executor.model_runner: Init torch distributed begin.
+2026-06-21 04:06:44,956 [INFO] sglang.srt.model_executor.model_runner: Init torch distributed ends. elapsed=0.07 s, mem usage=0.09 GB
+2026-06-21 04:06:44,960 [INFO] sglang.srt.model_executor.model_runner: Load weight begin. avail mem=78.50 GB
+2026-06-21 04:06:45,008 [INFO] sglang.srt.utils.common: Multimodal attention backend not set. Use fa3.
+2026-06-21 04:06:45,008 [INFO] sglang.srt.utils.common: Using fa3 as multimodal attention backend.
+2026-06-21 04:06:45,118 [INFO] sglang.srt.model_loader.weight_utils: Found local HF snapshot for Qwen/Qwen3-ASR-1.7B at /workspace/caches/huggingface/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5; skipping download.
+Multi-thread loading shards:   0% Completed | 0/2 [00:00<?, ?it/s]Multi-thread loading shards:  50% Completed | 1/2 [00:01<00:01,  1.65s/it]Multi-thread loading shards: 100% Completed | 2/2 [00:01<00:00,  1.24it/s]Multi-thread loading shards: 100% Completed | 2/2 [00:01<00:00,  1.07it/s]
+2026-06-21 04:06:47,204 [INFO] sglang.srt.model_executor.model_runner: Load weight end. elapsed=2.24 s, type=Qwen3ASRForConditionalGeneration, avail mem=74.60 GB, mem usage=3.91 GB.
+2026-06-21 04:06:47,205 [INFO] sglang.srt.model_executor.model_runner: Using KV cache dtype: torch.float16
+2026-06-21 04:06:47,228 [INFO] sglang.srt.mem_cache.memory_pool: KV Cache is allocated. #tokens: 605700, K size: 32.35 GB, V size: 32.35 GB
+2026-06-21 04:06:47,229 [INFO] sglang.srt.model_executor.model_runner_kv_cache_mixin: Memory pool end. avail mem=9.85 GB
+2026-06-21 04:06:47,324 [INFO] sglang.srt.model_executor.model_runner: Disable piecewise CUDA graph because --disable-piecewise-cuda-graph is set
+2026-06-21 04:06:47,347 [INFO] sglang.srt.model_executor.model_runner: Capture cuda graph begin. This can take up to several minutes. avail mem=9.75 GB
+2026-06-21 04:06:47,347 [INFO] sglang.srt.model_executor.cuda_graph_runner: Capture cuda graph bs [1, 2, 4, 8, 12, 16, 24, 32]
+  0%|          | 0/8 [00:00<?, ?it/s]Capturing batches (bs=32 avail_mem=9.73 GB):   0%|          | 0/8 [00:00<?, ?it/s]Capturing batches (bs=32 avail_mem=9.73 GB):  12%|█▎        | 1/8 [00:02<00:19,  2.79s/it]Capturing batches (bs=24 avail_mem=9.67 GB):  12%|█▎        | 1/8 [00:02<00:19,  2.79s/it]Capturing batches (bs=24 avail_mem=9.67 GB):  25%|██▌       | 2/8 [00:02<00:07,  1.22s/it]Capturing batches (bs=16 avail_mem=9.67 GB):  25%|██▌       | 2/8 [00:02<00:07,  1.22s/it]Capturing batches (bs=12 avail_mem=9.66 GB):  25%|██▌       | 2/8 [00:03<00:07,  1.22s/it]Capturing batches (bs=12 avail_mem=9.66 GB):  50%|█████     | 4/8 [00:03<00:02,  1.99it/s]Capturing batches (bs=8 avail_mem=9.66 GB):  50%|█████     | 4/8 [00:03<00:02,  1.99it/s] Capturing batches (bs=4 avail_mem=9.66 GB):  50%|█████     | 4/8 [00:03<00:02,  1.99it/s]Capturing batches (bs=4 avail_mem=9.66 GB):  75%|███████▌  | 6/8 [00:03<00:00,  3.46it/s]Capturing batches (bs=2 avail_mem=9.65 GB):  75%|███████▌  | 6/8 [00:03<00:00,  3.46it/s]Capturing batches (bs=1 avail_mem=9.65 GB):  75%|███████▌  | 6/8 [00:03<00:00,  3.46it/s]Capturing batches (bs=1 avail_mem=9.65 GB): 100%|██████████| 8/8 [00:03<00:00,  5.13it/s]Capturing batches (bs=1 avail_mem=9.65 GB): 100%|██████████| 8/8 [00:03<00:00,  2.45it/s]
+2026-06-21 04:06:51,286 [INFO] sglang.srt.model_executor.model_runner: Capture cuda graph end. Time elapsed: 3.94 s. mem usage=0.10 GB. avail mem=9.64 GB.
+2026-06-21 04:06:51,309 [INFO] sglang_omni.pipeline.control_plane: Stage asr control plane started
+2026-06-21 04:06:51,309 [INFO] sglang_omni.pipeline.stage.runtime: Scheduler thread for stage asr set CUDA device to 0
+2026-06-21 04:06:51,309 [INFO] sglang_omni.pipeline.stage.runtime: Stage asr started
+2026-06-21 04:06:51,310 [INFO] stage_workers.asr: Process asr ready with stages=['asr']
+2026-06-21 04:06:51,310 [INFO] sglang_omni.pipeline.stage_workers: Process asr ready
+2026-06-21 04:06:51,310 [INFO] sglang_omni.pipeline.coordinator: Coordinator registered stage: asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:06:51,310 [INFO] sglang_omni.pipeline.mp_runner: MultiProcessPipelineRunner started: 1 stage(s), 1 process(es)
+2026-06-21 04:06:51,310 [INFO] sglang_omni.serve.launcher: Resolved placement/topology plan: placement={'topology': 'Qwen3ASRPipelineConfig', 'pipeline': 'Qwen/Qwen3-ASR-1.7B', 'process_groups': {'asr': {'stages': ['asr'], 'gpu': 0}}, 'tp_process_groups': {}, 'stage_runtime': {'asr': {'gpu': 0, 'total_gpu_memory_fraction': None, 'mem_fraction_static': None}}, 'gpus': {0: {'hardware': {'device_id': 0, 'name': 'NVIDIA H100 80GB HBM3', 'total_memory': '79.65GiB'}, 'stages': ['asr'], 'total_gpu_memory_fraction': 0.0, 'missing_fraction_stages': ['asr']}}}
+2026-06-21 04:06:51,310 [INFO] sglang_omni.serve.launcher: Pipeline 'Qwen/Qwen3-ASR-1.7B' started (1 GPU(s))
+INFO:     Started server process [7295]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:50708 - "GET /v1/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50716 - "GET /v1/models HTTP/1.1" 200 OK
+2026-06-21 04:07:15,554 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7e9787ab-92d1-47b3-a66f-b89cc39a2190 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,561 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f898abd7-2c5a-444e-b7b0-dd28b207e7c8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,562 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5282c24d-3e2d-41a9-bc4f-ae15adcdf0b6 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,563 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-de153e15-64f0-43f4-90c2-56e2276d7e20 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,563 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5cc06ed3-59ec-4860-819c-77a2f279c878 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,564 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-941ff0a1-827b-4780-8e5e-3c1b7bbf5e4f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,565 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-0f29c6ed-ff53-464b-b0aa-c2608e2c7170 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,566 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d20b51fa-2f36-4a6b-8236-24a73c2da74f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,567 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-871ffc5b-3cf9-4537-92c0-93735f4dc8dd to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,567 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ce382365-cfd4-4459-a3be-67981aafbbd4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,568 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-fcc1f45c-7219-4311-b86c-7a5233e4a60d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,569 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-1f39500f-6e57-48c6-ba75-8ca0ef2284b5 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,573 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-087d7be0-5ebd-4366-901f-edc0d793b6f8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,573 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a902e98d-51b7-40ee-a666-9c0beb1a6a44 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,574 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c3e2381b-dbb5-4b88-a997-f400b31b1bd9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,575 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-49ff0997-12c8-44e5-ab29-1aa98247352a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,576 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8bbec550-8e91-4262-b9a0-02c29bbda712 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,577 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-20026760-59d7-4fa9-a31e-33de53096ec9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,578 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-eafc8523-9ed8-400c-9a09-76af147c4590 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,580 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-309b98fb-7026-40d7-9f7e-e0a2eda8922f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,580 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c47ff729-b1ad-41ac-a6de-9d9c040b626d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,581 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2fd21394-91c7-4cdb-bceb-d2240c9fca5c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,581 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-fd8c74e5-f2ae-451d-b466-1f3131e3cd61 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,583 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b97fb29e-ef70-4771-bca3-e33b4062c37f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,583 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c334780a-31b7-4c22-be8a-b3cbbba8e1f6 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,584 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-03c55e69-25cc-40d4-a69e-ed6da9fec5c1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,585 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7a7b3e75-6ac2-45b7-8090-e4b1ad8ab2b4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,585 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-dbbfff71-ce41-40a4-8dd9-a8ead6b2760a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,586 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-114633d2-2632-4bb4-a8d8-6004fdfde4e8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,586 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-33857e54-d2aa-49ad-9fc9-24a4f5db00ad to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,587 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-09d3d01f-ef70-4375-845d-cb5a20d12f4c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:15,587 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-dbc7dfcc-e33f-4772-a918-c3c472be0682 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:17,659 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 64, #cached-token: 0, token usage: 0.00, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 2.43
+2026-06-21 04:07:17,731 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 31, #new-token: 2318, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 32213.31
+INFO:     127.0.0.1:42156 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42142 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:17,783 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ba9a062b-0c6d-4792-a18f-6646d9fdde16 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42234 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:17,787 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a3ca7a06-f966-48f8-9bb4-941238f0edef to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:17,792 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-57d44fe8-4399-42bd-a205-6fb51ad1ca89 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42052 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42126 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42140 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:17,890 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-74219d45-0ec1-4b9c-a5ab-3aeb7f87ec61 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:17,896 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-85fa986f-2db7-4e5b-aad6-331afa11288f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:17,899 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-918059d7-5882-4c73-804b-b2a8055982aa to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:17,929 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 89, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 1, #pending-token: 0, cuda graph: False, input throughput (token/s): 450.09
+2026-06-21 04:07:17,989 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 91, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 4, #pending-token: 70, cuda graph: False, input throughput (token/s): 1520.37
+INFO:     127.0.0.1:42172 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42224 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42246 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42272 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:18,062 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2d6e1651-cdcb-4f31-b2e1-06697c3423e7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,065 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-97bce496-387b-44d4-9394-37576c53f7f1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,070 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-67ec7246-eecb-4677-8f5d-95b728a9c236 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,074 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-0fa8835c-e9f2-43f7-a5ca-6ba2ae08c8ae to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,076 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 4, #new-token: 280, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3203.13
+INFO:     127.0.0.1:42006 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42068 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42082 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42098 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42110 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42292 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42318 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42048 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:18,226 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-42b89f3f-0bdd-43d3-a69a-a21071a72b5b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,230 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d914bdbe-710e-4d83-9e24-2743749768a3 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,235 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-0acad1b5-f518-4cd7-b09b-36de29bed7c0 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,240 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a02f1be1-22e6-466e-af35-e7c76ee6e1ed to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,244 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-17e7cee3-e29a-44be-95ce-0f8c9a11f312 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,246 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 4, #new-token: 331, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 1953.61
+2026-06-21 04:07:18,249 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2740b65e-68fc-450a-9c62-b2f489788ad0 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,253 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c6a88e8e-9585-45c1-a60c-966fe04d6448 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,257 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-46d01556-83fe-41c3-90fe-eacad33c115f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42170 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42188 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42304 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42118 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:18,411 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-585640c7-929e-4498-a75f-bc07dead7c95 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,414 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-093c5072-a400-4fe0-9924-cbd43ce32196 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,419 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-4b0d7e11-7001-4e07-90d6-f64c15b0b783 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,424 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-928380d8-009d-4b6a-8777-e0f17aa06e64 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,505 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 5, #new-token: 331, #cached-token: 0, token usage: 0.00, #running-req: 24, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 1274.96
+2026-06-21 04:07:18,579 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 199, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 4, #pending-token: 0, cuda graph: False, input throughput (token/s): 2711.44
+INFO:     127.0.0.1:42258 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:18,650 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-faaaa737-4ea1-4a90-b74a-29f45409a341 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,650 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 4, #new-token: 259, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3632.31
+INFO:     127.0.0.1:42164 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42198 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42214 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:18,721 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 71, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 1006.10
+2026-06-21 04:07:18,722 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c10aec2a-4ba1-47d0-a42b-9b7b61551517 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,725 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9a0bf6f6-16f0-4d2e-ac8f-763cbc023138 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42206 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:18,730 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ca8d0d2b-f490-4f5b-bdd8-58b03ea910a0 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,734 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-3bddbbc0-b763-4218-ad38-76c79fd5dae1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42056 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42282 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:18,812 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ab47eaca-dd7a-4ff6-bfe2-c662110c7d4f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,816 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b7a34eee-4b0c-4b93-b86d-1909a0340c3d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:18,876 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 127, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 1, #pending-token: 0, cuda graph: False, input throughput (token/s): 817.19
+2026-06-21 04:07:18,918 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 107, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 3, #pending-token: 58, cuda graph: False, input throughput (token/s): 2527.97
+2026-06-21 04:07:18,977 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 222, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3801.63
+INFO:     127.0.0.1:42034 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42234 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42068 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:18,997 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d0223f39-0a06-4079-aa08-406a19417d51 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,001 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-98f07f8b-493b-4658-b9d4-482571412967 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42298 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42246 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,012 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-3bd4ca31-9949-4370-9edf-c4db34d3a668 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,015 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-53d417e8-a3c1-45ea-b206-37618adbff88 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,019 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-08a9fa73-2be7-46bf-9d77-a65e2480c246 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42006 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,082 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c474fec3-a832-44ce-a218-4ffb642e3549 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,159 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 89, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 489.43
+2026-06-21 04:07:19,180 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 138, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 3, #pending-token: 132, cuda graph: False, input throughput (token/s): 6506.22
+INFO:     127.0.0.1:42022 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42318 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42304 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42258 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,236 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 202, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3621.51
+2026-06-21 04:07:19,236 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c97e993a-6950-4fcd-affa-c9e6f13dd497 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,240 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-06df797e-36e9-4629-90ce-3104b0eac8a0 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,243 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-473f7858-a050-4080-b77c-bbf200e04b45 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,248 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-38a9befa-0a82-4f08-acd5-8177ce65d1f2 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42272 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,325 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5418acfb-e4cd-4a96-b5c1-168e4014eeb3 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,393 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 117, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 744.01
+2026-06-21 04:07:19,419 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 156, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 1, #pending-token: 0, cuda graph: False, input throughput (token/s): 6089.90
+INFO:     127.0.0.1:42156 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42052 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42188 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42118 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,452 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 68, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 2032.61
+2026-06-21 04:07:19,452 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-78f9cc79-50f3-4458-ae36-0ecdd5cbb27a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,457 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a644e250-1649-461a-b741-0e7b79c15f7b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42224 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,460 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-73b84bfd-114b-4aed-8b46-ab850380b469 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,464 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8876d6a2-45f8-42c8-b48a-cdc9497c1085 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,467 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c18056ce-aa69-4041-bc48-2213580b3d94 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42126 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42292 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42048 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42282 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,512 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7efc941c-0f69-4012-a29e-12bb95152f6e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,517 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ce5b91c5-40e0-43f7-9a8a-7d6d0bb67af2 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,520 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-034257bb-720c-4b4c-b156-5e9f758a81b1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,524 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-0492a8d0-2390-4d6e-9823-5395edcb2714 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,629 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 54, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 1, #pending-token: 0, cuda graph: False, input throughput (token/s): 305.86
+2026-06-21 04:07:19,704 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 229, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 5, #pending-token: 92, cuda graph: False, input throughput (token/s): 3044.24
+INFO:     127.0.0.1:42142 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42140 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42172 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42082 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42170 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42198 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,782 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 5, #new-token: 345, #cached-token: 0, token usage: 0.00, #running-req: 27, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 4417.31
+2026-06-21 04:07:19,783 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-dfe3a2d9-6909-46b5-a056-390f77167a2b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,787 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-26e174a0-bb35-498c-b0f2-dd6c233dfa9a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42098 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,791 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-77ed01ae-b532-4da3-bf0c-9281e7057b6a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,794 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5b63a203-3005-4541-963d-03e426898d46 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,798 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-84a1354e-849a-47f3-b851-8127be1160c1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,807 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-dc4d0ede-9c7f-4d90-b5cb-931d8032f1ab to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:19,812 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c562c52d-b9b5-4ef5-9e97-127388cbc417 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42164 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:19,840 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b433d917-91f3-4eb1-a0ef-acb031d67f15 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,012 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 74, #cached-token: 0, token usage: 0.00, #running-req: 26, #queue-req: 1, #pending-token: 0, cuda graph: False, input throughput (token/s): 321.37
+2026-06-21 04:07:20,036 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 5, #new-token: 370, #cached-token: 0, token usage: 0.00, #running-req: 27, #queue-req: 2, #pending-token: 91, cuda graph: False, input throughput (token/s): 15661.21
+INFO:     127.0.0.1:42206 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42246 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:20,081 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 167, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3660.41
+2026-06-21 04:07:20,082 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-25aa122d-f73f-46aa-88ed-904a982f4fab to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42110 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42214 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:20,096 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-74b7144c-c2ff-4805-b226-6e4cad4b012d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,100 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e013d738-3fcf-47c9-ac40-bcb130b85e38 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,111 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-801e5fcb-a15e-4ba6-8ec0-954a16cc01b1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42056 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:20,137 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-65346078-a9d6-4658-85b5-3384d3de14ae to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,209 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 75, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 585.97
+2026-06-21 04:07:20,230 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 55, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 3, #pending-token: 153, cuda graph: False, input throughput (token/s): 2613.34
+2026-06-21 04:07:20,279 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Decode batch, #running-req: 29, #token: 2277, token usage: 0.00, cuda graph: True, gen throughput (token/s): 41.22, #queue-req: 0
+INFO:     127.0.0.1:42298 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42318 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42304 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:20,284 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 208, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3852.88
+2026-06-21 04:07:20,285 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-3e97c98f-225c-4919-9aa4-288733bc4a3e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,289 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-507ac47e-be7c-4bf8-b556-f9f48f2ab9df to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:42234 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42272 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42156 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:20,379 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 62, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 653.64
+2026-06-21 04:07:20,384 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 58, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 11908.63
+INFO:     127.0.0.1:42282 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42034 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42068 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42022 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42048 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42006 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42126 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42082 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42258 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42052 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42188 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42292 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42246 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42172 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42198 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42098 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42142 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42170 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42164 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42056 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42298 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42118 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42206 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42110 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42318 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42224 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42214 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42140 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35850 - "GET /workers HTTP/1.1" 404 Not Found
+2026-06-21 04:07:20,671 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c37252ad-26a0-4f49-9428-fcf47afeb81d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,673 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-37a48d9c-a1d4-4676-9715-fda5008bc4af to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,673 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d464fa1b-f4a2-4526-9b59-36376d8819d6 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,674 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c1fc60cb-8f8e-43f1-bf69-13eb3151e3fb to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,676 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-510d9148-cfad-45d8-900f-8ad86a7e038c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,676 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-cd4e4e3e-6473-42ed-8850-2c957e2ecf0a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,677 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f9534d71-c86c-431b-bf16-3cea5c12294b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,678 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-69f02317-bce7-4cbe-8242-e30fe5fa65d6 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,678 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d781468e-be94-4437-bbfa-18d51a9fc992 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,679 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5a77ff20-c318-4348-bc74-5ce6960ea2a9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,680 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2f16b628-bff5-4cea-8326-85dc287dfc4b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,683 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8a70455d-e8b3-4e0d-9921-e05dd6d00ffe to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,684 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-963290aa-fbc8-42da-922b-4de87531e869 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,685 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9bccd300-cd1e-408b-8787-0cf466aa5797 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,686 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d3df763c-dbfa-4223-95bb-101bd8a5bc5b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,687 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2f1adc4a-7697-4bd0-ab09-7b9a9c49778e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,687 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5268a7df-d0c7-4e15-bd75-2357a5094c8c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,688 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c7cfc29c-56d3-43d1-96ac-666dec4f738b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,689 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-14df508a-f19d-4657-92d2-996e72a0c82c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,690 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8e825949-9fd7-4c64-a833-0d8b0dce5ac8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,691 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e7d52db4-7a89-41e3-85ca-a0ac8ec5110b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,691 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f19711ad-07e7-4df9-84b3-7cc998677e12 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,694 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ed244082-3966-43cf-adc8-964f7c82fc4d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,694 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a7b2d301-bf6b-4c9e-8375-dc46f72f8774 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,695 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b9824bff-3f02-406f-852b-a3cf7f4651f5 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,696 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-04f84776-d1b4-4eb2-b0d4-bf0ba3d87ef2 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,697 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-4b5f2db1-16ed-48fd-bfa2-2d3b724b2ae8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,697 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b28abada-a05c-45fc-b362-e722fdcea63f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,698 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-dddd751b-0952-4086-9c7a-f767dad949d9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,698 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9e20232d-e43f-4bc8-89dd-ae06f70c76f4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,699 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-22cf929a-c279-47ec-828a-f38c8d0e68a0 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:20,699 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-457c35ac-414e-4c3b-a703-548db5509588 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,618 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 65, #cached-token: 0, token usage: 0.00, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 52.68
+2026-06-21 04:07:21,626 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 31, #new-token: 2268, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 296639.27
+INFO:     127.0.0.1:36054 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35866 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:21,664 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-4a2811bf-99d6-4d60-8ec3-3fdc741de712 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:35910 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35994 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:21,668 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7b8904ef-fa8e-44d1-8ff9-b63e39ac20c6 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,671 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-6022e0e1-933e-4d26-9cd1-32586b083206 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,675 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-cb9d1a7b-d0fa-43c1-b9f5-18055d533810 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:35936 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:21,717 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7019aadc-74f8-4d11-8135-d438aaf35653 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,796 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 72, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 423.01
+2026-06-21 04:07:21,821 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 82, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 3, #pending-token: 128, cuda graph: False, input throughput (token/s): 3241.83
+INFO:     127.0.0.1:35872 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35892 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35920 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36044 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35940 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36148 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:21,876 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5d5ccc8e-092d-46c2-b83e-ec1d738c98a2 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,876 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 201, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3649.18
+2026-06-21 04:07:21,880 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b9784ee2-20ef-47c9-a754-31a9938e6b7e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,884 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f91b9c64-8732-44cf-a463-8567c3c621d2 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,887 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5bb502de-a1cf-4ddb-adf1-5f7bd2d92aa5 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,890 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7ca7c056-2f32-4ff1-a30e-c250c42a0235 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,895 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-16ce6edb-e5b1-47be-80ba-cfb01ab43751 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:35878 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35978 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36032 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36034 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:21,927 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5813980a-b558-4ebe-818c-7c9cde1c25c8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,932 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-daec5508-e7d1-43b1-a52b-6c93f39d2f6d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,935 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-fb05b9b5-898a-441e-8d08-81a319b46f6d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:21,940 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d1077685-311f-43f9-bf97-19ae9f843d29 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,076 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 77, #cached-token: 0, token usage: 0.00, #running-req: 26, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 385.82
+2026-06-21 04:07:22,150 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 5, #new-token: 358, #cached-token: 0, token usage: 0.00, #running-req: 27, #queue-req: 4, #pending-token: 0, cuda graph: False, input throughput (token/s): 4829.14
+INFO:     127.0.0.1:35950 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36010 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36066 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36092 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35968 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,225 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2d36c8f5-61f4-460f-b390-0f7ea2a37bc9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,226 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 4, #new-token: 282, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3708.19
+2026-06-21 04:07:22,230 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8344f724-10c0-41f9-9577-3188e12355bb to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,235 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-3a10592a-65d8-452b-8b8e-cd6f28844615 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,238 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-44c4c06b-0c7c-4722-8602-0938a9490794 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,241 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-44ea1ec5-3871-4ff6-9319-63f03c521349 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:35966 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36082 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36104 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,277 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-08e1ef0a-6c36-444c-a786-fb8026727778 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,280 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-991786a3-ace7-4897-8899-a574524f255f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,284 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f571e55e-8a30-42ee-a38a-b9ee8de2ba0b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,412 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 60, #cached-token: 0, token usage: 0.00, #running-req: 27, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 322.97
+2026-06-21 04:07:22,471 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 4, #new-token: 314, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 3, #pending-token: 0, cuda graph: False, input throughput (token/s): 5324.54
+INFO:     127.0.0.1:35902 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36086 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36150 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36084 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,531 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 187, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3085.72
+2026-06-21 04:07:22,532 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7eec6868-51c4-4762-b88b-cee589276d8f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:35874 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36118 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,538 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-6ecfdf2c-6f5b-48fd-a118-e04ef1c75489 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36134 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,542 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-13d0128d-4352-48e0-9e98-e3aa077832de to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,545 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e3a273b2-6bf1-4325-ac69-2a9f8767d00c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,549 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-78968e19-e283-4eb7-807c-3cf43ecbbaac to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,553 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-27e55e1c-97d2-4336-9961-142844f45e97 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,558 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-348b7af5-44b7-4603-95b9-bf22a696916b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,581 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Decode batch, #running-req: 28, #token: 1914, token usage: 0.00, cuda graph: True, gen throughput (token/s): 354.88, #queue-req: 0
+INFO:     127.0.0.1:35996 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,588 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e383c3a4-8998-4459-8394-ef2500b67522 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,733 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 72, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 3, #pending-token: 0, cuda graph: False, input throughput (token/s): 356.99
+2026-06-21 04:07:22,755 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 216, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 4, #pending-token: 223, cuda graph: False, input throughput (token/s): 9827.47
+INFO:     127.0.0.1:36016 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,821 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 4, #new-token: 302, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 4566.87
+2026-06-21 04:07:22,823 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5d2d20d9-481a-4d57-8dc1-d9138c610f3e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,874 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 67, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 1256.49
+INFO:     127.0.0.1:35950 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,889 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a4f0a63c-43e5-4483-babb-6041cf268ac3 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:35866 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35994 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35978 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35966 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,895 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8f59aea2-f92d-4bdd-be4a-c239be3f346a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,899 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b2f94dc9-5e01-4c81-abcc-10e9ccaaae1e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,908 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-21596c51-7682-4abe-8fe4-97295a52d8ff to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,912 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9386da3e-c323-4427-8edd-fe6dd5848e96 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36054 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35910 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35920 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36148 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36082 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:22,944 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-0dddc4a0-d3f4-4275-ada0-27d25e65fd3a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,948 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-27f93562-434e-4625-8386-1e8682075412 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,952 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-aa27fbc0-dfe8-4ba2-be18-a8ce08373343 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,955 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-41ffb26e-243c-42ca-981e-9fbc57ef1026 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:22,959 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8fc35b3f-8758-414d-95c8-69897a578991 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,048 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 75, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 433.13
+2026-06-21 04:07:23,144 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 146, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 7, #pending-token: 119, cuda graph: False, input throughput (token/s): 1514.26
+INFO:     127.0.0.1:35892 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36044 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:23,241 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 7, #new-token: 477, #cached-token: 0, token usage: 0.00, #running-req: 25, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 4889.20
+2026-06-21 04:07:23,242 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8786c049-20ef-43f1-afff-65c7efb0eb21 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,247 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-399b33c3-b97a-4157-991a-1a59db062e48 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36032 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36034 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36092 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:23,253 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5344edcd-1f97-456f-a65a-8ec536444bf4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,257 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7d41a9ee-5f84-4eaf-9ad3-2a513b7255c7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,262 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9aff3324-3a36-4d52-b938-56cb6868498b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:35872 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36010 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35968 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35902 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:23,299 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8469c1be-fde4-4036-94d5-7b7a8d3cbb43 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,317 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-35282823-5e7f-4386-a7e3-248bbf57a2dd to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,320 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a42b19ab-49f1-4e7f-80f3-194c69aa2354 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,325 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-482e0436-9026-4871-b363-bf70eed56d71 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,392 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 80, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 3, #pending-token: 0, cuda graph: False, input throughput (token/s): 530.88
+2026-06-21 04:07:23,464 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 95, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 7, #pending-token: 267, cuda graph: False, input throughput (token/s): 1316.79
+INFO:     127.0.0.1:35940 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35878 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:23,566 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 7, #new-token: 570, #cached-token: 0, token usage: 0.00, #running-req: 25, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 5612.46
+2026-06-21 04:07:23,567 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-6f003ba3-0e51-479b-8e5a-a87dd1cd3853 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,570 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-05ef84fb-8371-43f3-b4ea-1d188d831bdd to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36066 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36104 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36086 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36150 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:23,577 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9d6b4201-6b6f-4ae0-a977-c589e8a6f25d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,582 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f541b19e-4437-4493-bce4-317e4595dcd1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,587 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8c89ddaa-7bca-4700-8374-67c88d4f6040 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,590 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5da64028-137a-418e-8658-a62d9c43d3a9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:35874 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:23,650 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e4b09785-2f09-4f5c-b8dd-bc119fceccec to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,714 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 163, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 4, #pending-token: 0, cuda graph: False, input throughput (token/s): 1099.46
+INFO:     127.0.0.1:35936 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36016 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:23,808 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 5, #new-token: 356, #cached-token: 0, token usage: 0.00, #running-req: 27, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3795.23
+2026-06-21 04:07:23,812 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ec540485-d8cc-4b17-b981-baa50002d722 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36084 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35996 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:23,816 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-49768eb5-6de1-4172-bac9-0f8582589bde to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,820 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-70027b5a-632d-45b1-85e5-4a44bf71085e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,825 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8a876ce5-d65f-4c05-95fa-18a4c968ba30 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36118 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36134 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:23,864 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-6c88b4a7-f21f-43c9-b9cb-87ad28286b5d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,869 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9c1a7692-dd12-4a71-b7d5-848286cbe257 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:23,938 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 81, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 625.06
+2026-06-21 04:07:23,977 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 82, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 4, #pending-token: 139, cuda graph: False, input throughput (token/s): 2074.02
+2026-06-21 04:07:24,044 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 4, #new-token: 295, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 4405.37
+INFO:     127.0.0.1:35866 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35978 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36054 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35950 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35920 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35966 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35910 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36148 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35872 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35968 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35994 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36082 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35874 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36034 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36010 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35878 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35996 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35892 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36032 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36044 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36092 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36066 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36104 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36086 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36150 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36118 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36134 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35940 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36084 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35902 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35936 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36016 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36158 - "GET /workers HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36172 - "GET /workers HTTP/1.1" 404 Not Found
+2026-06-21 04:07:25,245 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-526e7054-e981-41c4-a5d5-5cd329713f4c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,247 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d468d802-cb1f-4bd8-83c4-8d958fd790ea to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,248 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2bca01a2-e2d7-47f2-b1ca-82e751292ad1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,249 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b9b94c4c-4dad-4d69-ad59-302fadab12ea to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,250 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-6245bfa7-a20b-4e30-9636-3b83e5da4e8d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,251 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a7a21843-2f6a-44f1-8351-5883a70a48f4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,252 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-baba8f48-e790-4e45-b4c0-1931f71d57cf to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,253 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-83ea0dea-32f3-4d83-b59c-ee2da2d25279 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,254 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8217cc03-8fd0-4978-94f9-ebe00dca7ad0 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,257 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b270eb26-5884-46c4-b98d-bd92f47c16aa to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,258 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-946bf209-686c-45fc-9693-d31410fac11a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,259 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8008474b-8a30-4310-b447-8775ef375b6b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,260 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-cacb8435-55c6-4f5b-8aa7-062e2d07db87 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,261 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d7caa250-2589-4a86-a12c-4840dd7cfe76 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,262 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-fe1cbe9c-6f51-4deb-b8c1-c796bf7045e4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,262 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f3da2719-1b83-4614-b1d1-dcd5c12d0597 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,263 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f62a44b8-8486-46de-bed6-27d60930c4a3 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,264 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5848600b-4767-4092-8507-618f710a782c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,265 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-59e12e06-d78c-464d-9a56-970b50d52d49 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,266 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-09b153b5-a01a-46de-8a84-20fbdcf08408 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,267 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a345eba0-5b0b-49ef-84a4-7e4aa6abe3a0 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,268 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-6e53ef8e-9ff0-406b-97d9-1ba7b63ff873 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,269 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-68841f3a-4bd9-447b-bc10-8fa92f6171ad to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,269 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ed565b2b-cad1-4617-a28a-442af9c71a0e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,270 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-164eff0c-9890-4438-a8fe-685fcf70077e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,270 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-743bae38-1549-4ba2-90bb-05ce55267319 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,271 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7ddbd137-ef4b-4d48-9b11-07ac04085713 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,272 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-3a9a1d88-1ac4-4dae-b8d0-2c346e1ce20f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,272 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d31abd35-0a5d-4cca-be41-6deb426cb841 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,273 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f230b326-217e-4417-adec-150c2a8a6975 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,273 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c5bf5381-e886-49f7-9b9e-14ecaaeca19a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:25,274 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-15359a1d-d1e9-4cdd-b0d9-b6ae453c7161 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,163 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 68, #cached-token: 0, token usage: 0.00, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 32.09
+2026-06-21 04:07:26,171 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 31, #new-token: 2305, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 281446.56
+2026-06-21 04:07:26,193 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Decode batch, #running-req: 32, #token: 2565, token usage: 0.00, cuda graph: True, gen throughput (token/s): 280.47, #queue-req: 0
+INFO:     127.0.0.1:36220 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36414 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36204 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36370 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:26,222 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b6e0a445-1b82-4dd3-ae96-cdf72c42d95f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36226 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36446 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:26,227 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-1e49222b-d88a-4358-94fb-6cbcb1fde670 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,232 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-4a982d2c-f789-4f77-a40f-f35cc3dd3053 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,235 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-37b9ecaf-b658-4dd4-a5a3-a49686164da4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,239 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ecfd0e6b-ff3b-4d09-b208-2f7130a032aa to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,243 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f9fe4923-e3aa-40ce-84f8-2ff3277c3be6 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36186 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36310 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36332 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36392 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36458 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:26,277 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d3a11367-8f3d-4a8d-8421-af65d98c8a9d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,281 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-25d6382c-d3f5-427b-89dc-d170c2472cf9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,285 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-86a4a258-b717-417a-a3e4-c01cbbad1c91 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,290 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-93e77696-0030-47ae-b3a8-864e957f1067 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,293 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-100d8b4d-0cb1-44ab-88c6-2c25a047f203 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,417 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 54, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 220.03
+2026-06-21 04:07:26,502 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 230, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 7, #pending-token: 135, cuda graph: False, input throughput (token/s): 2687.82
+INFO:     127.0.0.1:36284 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36298 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36364 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36432 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:26,604 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 7, #new-token: 501, #cached-token: 0, token usage: 0.00, #running-req: 25, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 4926.79
+INFO:     127.0.0.1:36198 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36228 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:26,611 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d90ff046-8680-440d-adcd-b43125da2ea2 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36260 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36274 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36378 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36430 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36436 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36246 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36308 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36344 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36410 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:26,618 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2ceeec38-1a9e-443a-a233-407a0cefc9e1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,620 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-59aa2368-75ae-4cec-b518-5dd205db9cb8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,624 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c6007de4-8a16-4477-bdc8-f016513d5abc to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,628 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-aa0b6d65-7e7a-47d7-a27a-6083864acbbe to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,630 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a0b4fd36-48e2-42b5-98f6-34a777b34d0e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,635 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-768ba6c8-c8c4-4cf7-bae2-f2b950e75ab8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,639 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-88f7248f-1e24-4829-822f-c398a97900fd to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,643 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-195c3e4d-afae-4fbc-a14b-d4c25c36979f to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,646 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-4da78215-292f-4355-a6c8-3a783e458557 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,649 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-689efd5a-709a-41d8-83a7-c96b5f6b8486 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,652 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7ff2ea98-6496-4be1-9453-fa7f7e7bb9ab to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,656 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5b7745cb-c8df-4b89-92dd-a051a4d84031 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,660 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e21168a5-dd75-4714-85d6-11ac065ff2e7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,662 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-eb31c37c-0f74-469b-aa53-d0cabb235697 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36192 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36242 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36406 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:26,667 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e6912f74-5687-42e6-ac2d-d58490ca0180 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,672 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b9b576bc-24bf-4e48-8dee-14ac037c5610 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,675 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f7c74683-2a95-423f-b0f7-059959f017ae to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:26,955 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 66, #cached-token: 0, token usage: 0.00, #running-req: 26, #queue-req: 8, #pending-token: 0, cuda graph: False, input throughput (token/s): 187.88
+2026-06-21 04:07:27,031 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 5, #new-token: 354, #cached-token: 0, token usage: 0.00, #running-req: 27, #queue-req: 12, #pending-token: 647, cuda graph: False, input throughput (token/s): 4667.78
+INFO:     127.0.0.1:36282 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,182 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 12, #new-token: 975, #cached-token: 0, token usage: 0.00, #running-req: 20, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 6477.91
+2026-06-21 04:07:27,182 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e457aa83-d916-4ebb-b480-2bb564e71266 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36326 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,241 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 97, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 1639.10
+INFO:     127.0.0.1:36358 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,248 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2de632b5-72bd-4394-aeff-f4fcc4c677f7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,252 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5a6bca31-ec60-44d9-9079-5b98b1c8e71a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,338 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 91, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 937.61
+2026-06-21 04:07:27,342 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 72, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 15233.45
+INFO:     127.0.0.1:36220 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,353 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-84ada262-ea3c-4dbd-ab94-a6378acb4d7c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36228 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,358 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-79f068e2-428f-45eb-bebc-fa71bda437e5 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36204 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36332 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,363 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f10c45dd-0a6a-4abb-b46c-f6164f0ec03a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,368 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e860efa5-626d-4d26-b095-1fb945ce6bf7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,479 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 69, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 504.09
+2026-06-21 04:07:27,484 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 100, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 2, #pending-token: 152, cuda graph: False, input throughput (token/s): 19851.84
+INFO:     127.0.0.1:36446 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36186 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36458 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,528 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 152, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3459.85
+2026-06-21 04:07:27,529 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a90e97d6-4797-4301-8d08-d1ba721e886b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,532 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f2319b51-f57e-4c37-81b5-400ceefebea7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,537 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-179b5f35-d79d-4023-9ffa-3138afcd2904 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36414 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36370 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36310 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36392 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36284 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36198 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36344 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36406 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,613 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-3d5c6356-9cb4-432e-aacc-be7d8763c162 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,617 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-37e26ddb-ba69-4ce3-a238-812b87be159c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,620 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7f97fb42-5640-491a-9304-d9e93ed12af3 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,624 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-62c1516f-c8da-4b47-a03c-9f6ee338875c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,627 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ee32e92d-efee-4d4f-b2a9-6dcbe7dc5a7a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,630 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ac23d05e-2f55-493b-9480-03a60d8fcefd to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,635 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d68b5e75-e67b-4e74-a461-6e5bd4230d6a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,638 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d8b16129-aee3-4ec0-9457-5dbc5e3687a9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,654 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 134, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 1064.82
+2026-06-21 04:07:27,797 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 96, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 8, #pending-token: 0, cuda graph: False, input throughput (token/s): 671.37
+INFO:     127.0.0.1:36364 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36260 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36430 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36436 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36242 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,908 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 8, #new-token: 690, #cached-token: 0, token usage: 0.00, #running-req: 24, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 6202.65
+2026-06-21 04:07:27,911 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7efbcb6e-54fd-48e8-8c4f-454f3f78b2fa to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36226 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36298 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,915 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-bf4da2c6-de63-4dbb-ba3e-51418c057d0c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36432 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36410 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,919 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-463b6c24-cf90-4642-91dd-d36564aaf3f7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,923 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-595914ba-8418-43f9-8d4f-1d81b9282363 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,927 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-72945599-e5a3-4760-9c87-23c45e5577f5 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,931 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-51424bf6-f559-4bb7-a888-d2e555a49dea to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,935 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-6720ff0c-8e47-47b6-adcd-99438c0e28d9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,939 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-cb88692b-466e-42ab-a3d3-1ef96711332c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:27,943 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-971e5079-fcaa-4360-9e92-514015be83c8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36378 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:27,966 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-be4cccec-5f36-428e-a788-f915416f87cd to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,161 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 59, #cached-token: 0, token usage: 0.00, #running-req: 27, #queue-req: 4, #pending-token: 0, cuda graph: False, input throughput (token/s): 233.35
+2026-06-21 04:07:28,184 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 4, #new-token: 307, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 5, #pending-token: 319, cuda graph: False, input throughput (token/s): 13460.99
+INFO:     127.0.0.1:36308 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:28,259 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 5, #new-token: 383, #cached-token: 0, token usage: 0.00, #running-req: 27, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 5092.22
+2026-06-21 04:07:28,263 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-765e96a2-0af5-4240-a5cc-060c037b7d9c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36274 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36246 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:28,270 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-0ba392f5-b4dc-426e-984b-e5d3db30a003 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,274 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c42b070f-def0-4953-b66b-037047ceb32a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36282 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36358 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:28,317 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9e0dd107-7609-411d-9a7f-028f96f22a52 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,320 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-6ca9e15a-e5f9-411d-b2f2-6fe964d33072 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,352 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 90, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 975.42
+INFO:     127.0.0.1:36192 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:28,449 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 4, #new-token: 246, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 2531.85
+2026-06-21 04:07:28,450 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e9c394a1-341a-4d32-a90f-2d8fc19efd0c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:36326 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:28,460 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-171e07bb-3a15-4245-bc89-929c63eecdae to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,519 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 70, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 1, #pending-token: 0, cuda graph: False, input throughput (token/s): 1002.41
+2026-06-21 04:07:28,551 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 76, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 2342.95
+INFO:     127.0.0.1:36220 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36204 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36228 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36446 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36344 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:28,575 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Decode batch, #running-req: 30, #token: 1972, token usage: 0.00, cuda graph: True, gen throughput (token/s): 498.68, #queue-req: 0
+INFO:     127.0.0.1:36332 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36186 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36198 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36436 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36242 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36414 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36310 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36406 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36260 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36370 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36392 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36364 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36458 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36284 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36410 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36274 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36432 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36378 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36358 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36226 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36308 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36246 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36282 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36430 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36192 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36326 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36298 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46304 - "GET /workers HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:46316 - "GET /workers HTTP/1.1" 404 Not Found
+2026-06-21 04:07:28,891 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-28eebce4-7166-4593-9741-5b502efb68d7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,892 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d5a8625c-1d01-4590-b83b-8347b8f20ad7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,893 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-235d693e-0e0f-492f-b500-f7cff05d479a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,895 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-62541c6c-e202-4e5c-b9fe-a52bab7d4d38 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,896 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-1f131b3c-cffa-49c6-beb7-6b666b919254 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,897 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-07ffcf60-ee20-47f0-a053-d4b297b4463e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,898 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d8f27adc-a6f7-43e0-a646-f82605ab8f77 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,899 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c135688e-35d0-4941-9b30-bb9c117a50fd to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,899 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-02e89542-60cc-4bdc-8447-f248592f1fbe to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,903 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-35aa8865-87f3-42fe-904b-ea1588efb558 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,904 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-474c2050-d0f8-41e2-8279-a20e7a3d65d4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,905 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-222e60b4-5eb4-4a11-a082-6ed5c7744d44 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,905 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7cbb72d7-b893-47be-8a4d-4fe7a7549b28 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,906 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-de41b412-cb60-4228-9d73-c9258d65dd50 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,907 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-bc9af2f5-4009-4aeb-82c4-6df82142b507 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,908 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b04787c2-7a2b-4275-8cd9-60310094b4b8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,908 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-08b23f55-984d-425f-b9f9-77ea557e490a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,909 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-44df8e37-3706-48cd-9073-16549f440fa7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,910 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-377a61e6-0cf2-4994-806e-479f3904a5a4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,911 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-812670a6-8acf-4140-b476-ab129118c9b1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,911 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-38b2f3d3-c887-4173-8618-8fc7d3b82985 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,912 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d25a443f-8ac3-4c4b-b0a6-d6c2888c2575 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,913 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e9789bb5-3af2-4597-a278-8dcbc09e9bd7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,914 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ae05ae31-ced6-4bf2-8f6a-e86e32adc172 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,915 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c99e1b10-ff65-4447-98c8-c304b5f0acde to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,916 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-3142890d-e2f1-47cc-b0e4-be16ae76fa41 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,916 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7e7a6b30-b789-49be-9982-a6748cbde163 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,917 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-22a35d73-566f-4dac-9b7d-8c121c95c0b5 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,918 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-cb75c788-3773-4e0f-becb-4456815dc0fa to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,918 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-21db5727-60ea-4ed4-b5be-0b1a2248a698 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,919 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-fa98af31-c972-45ed-b1bf-d86c507f8b38 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:28,919 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2a262748-0cf9-406b-adf8-d189c25b7bcb to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:29,811 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 77, #cached-token: 0, token usage: 0.00, #running-req: 0, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 61.10
+2026-06-21 04:07:29,819 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 31, #new-token: 2233, #cached-token: 0, token usage: 0.00, #running-req: 1, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 292283.67
+INFO:     127.0.0.1:46524 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46552 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:29,863 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-337c2963-ae10-465a-964b-0565b177492b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46436 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:29,867 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7828af6a-ea31-4b5f-9f55-1f9dc8697f1d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:29,872 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-eab70ec8-e872-41c8-a99e-fc010923526a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46318 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46594 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:29,915 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f6bce3cd-e6f1-4038-9deb-1cfb16d41d47 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:29,920 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-02bbf998-f5df-4f6b-910a-6e83d028f2bb to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:29,970 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 90, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 1, #pending-token: 0, cuda graph: False, input throughput (token/s): 593.26
+2026-06-21 04:07:30,007 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 68, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 3, #pending-token: 75, cuda graph: False, input throughput (token/s): 1880.84
+INFO:     127.0.0.1:46324 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46446 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46460 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:30,061 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 3, #new-token: 205, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3734.61
+2026-06-21 04:07:30,062 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-84e6fa2e-a1cc-447f-bd59-aa640d7167e8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,066 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-50c39ac3-6c7b-4f08-8453-a95fa37b7757 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46396 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46490 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46566 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46588 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:30,070 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a84cda52-4542-4ab4-b4ed-e7ec15da4ff9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,075 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a104f163-1755-4bc5-9f79-53e1e7d09147 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,081 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-6d9ee89e-db98-456f-a416-9c47c0be2eff to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,085 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-3683e7b5-35de-402f-a6d8-dfd77179e700 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,090 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f4589c81-1fad-495e-a77e-866825b0f65d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46384 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46408 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46610 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:30,145 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a1a84794-58f1-4d2a-9482-4eed6b86694d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,150 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e8391ff3-d207-4fdc-acd9-5f6ada05483b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,154 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2fc41db8-0466-4bc7-8316-75461cc7a21b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,249 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 153, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 4, #pending-token: 0, cuda graph: False, input throughput (token/s): 816.36
+2026-06-21 04:07:30,302 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 75, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 7, #pending-token: 280, cuda graph: False, input throughput (token/s): 1425.63
+INFO:     127.0.0.1:46320 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46374 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46414 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46472 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46474 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46514 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46536 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46346 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46422 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:30,398 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 7, #new-token: 477, #cached-token: 0, token usage: 0.00, #running-req: 25, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 4933.71
+2026-06-21 04:07:30,398 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-a882611b-62b9-451d-b2a2-641e880ab5d8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46336 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46440 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46442 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46582 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46360 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:30,408 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-46eec015-5fb0-49a1-88c1-1f37e3fda8a2 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,412 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-2124a69a-1fc9-4492-8c55-0ec3bb3647b9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,415 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-dade7761-d1f4-4830-9248-e3303a634b0b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,420 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8ae595ab-6809-4f53-9633-ffa186b8a655 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,424 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e6d2f0bd-5624-4032-82f4-0b037344c4c7 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,428 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-06dfaaad-5c16-49ca-8cab-1eb25562ab45 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,431 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9efa403d-d1e7-4482-9479-ae8783be6e2d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,435 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-e0a2df4e-4277-40b5-ad1b-b77547ad85c8 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,440 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-3492602b-2eb4-4cc5-9da4-18ea4d80bccf to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,444 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5db11035-362f-4a78-9b90-165c62c0776e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,447 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-1ac52d8a-9d33-4567-a5f2-58bc6fb56c1e to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,451 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c047ff15-c1bf-4e61-a1aa-1f996a25dcaf to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46438 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46504 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:30,455 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9e32b8b1-f754-4777-b96d-e64a05cc9348 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,460 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-988f0ad6-8e65-47b4-af10-087a05d7b039 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,465 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-fb04ca7d-0db1-4818-99d1-605c1e0a0441 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,754 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 92, #cached-token: 0, token usage: 0.00, #running-req: 23, #queue-req: 4, #pending-token: 0, cuda graph: False, input throughput (token/s): 258.55
+2026-06-21 04:07:30,810 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 8, #new-token: 593, #cached-token: 0, token usage: 0.00, #running-req: 24, #queue-req: 7, #pending-token: 313, cuda graph: False, input throughput (token/s): 10670.99
+2026-06-21 04:07:30,908 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 7, #new-token: 524, #cached-token: 0, token usage: 0.00, #running-req: 25, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 5299.46
+INFO:     127.0.0.1:46606 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46552 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46384 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:30,926 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9552fe67-5768-4bf7-b58d-c734faaf4869 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,930 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-40283a2b-8424-4fc6-a0ad-f4b5af1204bb to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:30,935 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-88f85758-2151-4bac-ae4f-2343080115c6 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,045 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 57, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 417.14
+2026-06-21 04:07:31,050 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 151, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 30351.82
+INFO:     127.0.0.1:46318 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46436 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46610 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:31,066 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-0a9ef2af-d08a-49c7-924a-4d3813145992 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46594 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46588 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:31,071 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-27f67adc-0ed6-4e53-ba53-fd33f7861927 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,077 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-df4f14df-9a9c-443f-ac16-77bbedec2fb6 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,083 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-be9ad56f-9c6e-4a26-852f-124b01bf7bf1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,087 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b97058cc-6495-4983-a591-f6e0fe42af24 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,115 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Decode batch, #running-req: 29, #token: 1818, token usage: 0.00, cuda graph: True, gen throughput (token/s): 377.98, #queue-req: 0
+INFO:     127.0.0.1:46524 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46446 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46460 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46396 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46566 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46472 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46360 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:31,121 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-0322024a-7851-4e3b-a829-cae636a69323 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,125 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-329e9a1d-5715-42b3-be1a-0729cdee0988 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,130 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-04b1d30e-8b87-45db-9611-f74f21f22cc3 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,137 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-24496ddb-be85-4fd6-8f7b-c3cf46aab3fb to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,141 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d63f90f6-1c77-4bba-b781-9b6d10c01e36 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,145 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-fa552563-880c-4c2c-9d74-b7a1d5762467 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,150 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f8ee17ef-782d-49f1-b02f-4fe82d720446 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,222 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 67, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 389.01
+2026-06-21 04:07:31,340 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 133, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 9, #pending-token: 154, cuda graph: False, input throughput (token/s): 1133.84
+INFO:     127.0.0.1:46324 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46490 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46414 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:31,457 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-14f8e4c1-e52c-478a-8f1f-790ad79367fa to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,459 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 9, #new-token: 700, #cached-token: 0, token usage: 0.00, #running-req: 23, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 5869.03
+2026-06-21 04:07:31,461 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-751d5dfc-0dbf-453e-beb9-09b6bd0d02a2 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,465 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-9fb51d39-e76f-40e7-91d1-16ea5348d7c0 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46408 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46374 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46514 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46422 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46504 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:31,517 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7d08cdbb-d705-4bd8-95f4-91f7ef30d7e4 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,522 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-8feb5ed3-5d0b-430f-bb64-a2454d25d72d to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,526 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c8ceb56f-ce46-45ff-bae0-42cac96a8582 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,530 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-f46838ba-4115-4a11-9f48-86cd4adf402c to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,535 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d29039cd-0ca0-4fd6-bad4-d7040cdf1ae0 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,584 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 71, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 568.72
+2026-06-21 04:07:31,680 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 188, #cached-token: 0, token usage: 0.00, #running-req: 30, #queue-req: 5, #pending-token: 0, cuda graph: False, input throughput (token/s): 1957.64
+INFO:     127.0.0.1:46442 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:31,761 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 5, #new-token: 425, #cached-token: 0, token usage: 0.00, #running-req: 27, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 5214.23
+2026-06-21 04:07:31,762 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-ad23ff0d-7d40-49c9-94cc-47ceb2c8d10b to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46320 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46336 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:31,772 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-5bc549a7-91a3-41be-bcba-f9d7d0c1f85a to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,776 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-d414c1a3-b81d-495a-81d5-9e29263b8211 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+INFO:     127.0.0.1:46474 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46440 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46582 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46438 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:31,818 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-b594756a-0328-4f19-9576-60d43e9f4743 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,822 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-03b3296e-c402-45b8-a4bd-ae13fe342ab2 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,827 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-39f8dbbf-121b-4d34-83a1-03d871589a76 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,831 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-7210459c-8fb0-45ab-a08e-1a34e93d6b90 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:31,850 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 83, #cached-token: 0, token usage: 0.00, #running-req: 31, #queue-req: 2, #pending-token: 0, cuda graph: False, input throughput (token/s): 933.73
+INFO:     127.0.0.1:46346 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46606 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46552 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:32,000 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 6, #new-token: 461, #cached-token: 0, token usage: 0.00, #running-req: 26, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 3075.51
+INFO:     127.0.0.1:46536 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+2026-06-21 04:07:32,008 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-0319fb70-31de-4c57-b2dc-476e7c681ab1 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:32,012 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-c5b8c3c8-bf11-4969-b56f-c841a05bde70 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:32,017 [INFO] sglang_omni.pipeline.coordinator: Coordinator submitted req=transcription-bfa58a9f-d77a-424e-8b6f-1475f749ace9 to asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-c_p9ptw0/stage_asr.sock
+2026-06-21 04:07:32,131 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 1, #new-token: 76, #cached-token: 0, token usage: 0.00, #running-req: 28, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 580.27
+2026-06-21 04:07:32,136 [INFO] sglang.srt.observability.scheduler_metrics_mixin: Prefill batch, #new-seq: 2, #new-token: 166, #cached-token: 0, token usage: 0.00, #running-req: 29, #queue-req: 0, #pending-token: 0, cuda graph: False, input throughput (token/s): 33868.97
+INFO:     127.0.0.1:46384 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46318 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46460 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46610 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46396 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46588 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46594 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46566 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46324 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46504 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46436 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46524 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46446 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46490 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46408 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46472 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46360 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46422 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46514 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46320 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46474 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46440 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46336 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46414 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46374 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46442 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46438 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46582 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46606 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46552 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46346 - "POST /v1/audio/transcriptions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46618 - "GET /workers HTTP/1.1" 404 Not Found
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7295]
+/usr/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 9 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

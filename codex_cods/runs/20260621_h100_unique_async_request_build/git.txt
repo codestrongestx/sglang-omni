@@ -1,0 +1,7 @@
+HEAD: e332193e566077aa8d5d0e0526f732fbd8d2b9c2
+Remote worktree branch: runpod/issue831-async_request_build
+Remote worktree path: /workspace/tmp/issue831_wt/async_request_build
+Diff stat: clean
+Local audit ref: refs/heads/runpod/issue831-async_request_build
+Exact-head patch: code_head.patch.b64
+Exact-head stat: code_head_stat.txt

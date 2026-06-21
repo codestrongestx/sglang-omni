@@ -1,0 +1,20 @@
+{
+  "label": "h100_unique_async_request_build",
+  "pod_id": "28xh4e0kd3aomf",
+  "source_artifact": "results/runpod/28xh4e0kd3aomf/results/qwen3_asr_831/experiments/20260621T035935Z_async_request_build_1088",
+  "hardware": "RunPod H100 SXM 80GB",
+  "region": "US-CA-2",
+  "gpu_count": 1,
+  "workload": "Qwen3-ASR unique-audio concurrency benchmark",
+  "benchmark_module": "benchmarks.eval.benchmark_qwen3_asr_concurrency",
+  "optimization_direction": "parallel async request construction",
+  "concurrency": 32,
+  "repeats": 3,
+  "warmup": true,
+  "max_samples": 1088,
+  "unique_timed_samples": true,
+  "unique_samples_per_repeat": 96,
+  "evaluated_timed_samples": 288,
+  "skipped": 0,
+  "git_head": "e332193e566077aa8d5d0e0526f732fbd8d2b9c2"
+}

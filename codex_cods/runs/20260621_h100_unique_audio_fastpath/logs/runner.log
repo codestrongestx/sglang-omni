@@ -1,0 +1,34 @@
+run_dir=/workspace/results/qwen3_asr_831/experiments/20260621T040448Z_audio_fastpath_1088b
+label=audio_fastpath_1088b
+worktree=/workspace/tmp/issue831_wt/audio_fastpath
+model_path=Qwen/Qwen3-ASR-1.7B
+max_samples=1088
+unique_samples_per_repeat=96
+concurrencies=32
+repeats=3
+serve_extra_args=
++ git -C /workspace/tmp/issue831_wt/audio_fastpath rev-parse HEAD
++ git -C /workspace/tmp/issue831_wt/audio_fastpath status --short --branch
++ git -C /workspace/tmp/issue831_wt/audio_fastpath diff --stat
++ nvidia-smi
++ /workspace/repos/sglang-omni/.venv/bin/python --version
++ /workspace/repos/sglang-omni/.venv/bin/python -m pip freeze
+acquired_gpu_lock=2026-06-21T04:07:35Z
+starting_server=2026-06-21T04:07:35Z
+server_ready=2026-06-21T04:09:40Z
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loaded 1088 SeedTTS en samples; sweeping concurrency=[32] x 3 repeats against 127.0.0.1:8000 (Qwen/Qwen3-ASR-1.7B)
+Using disjoint sample windows: 96 samples/window x 4 windows (704 loaded samples unused).
+[conc=32] warmup pass ...
+[conc=32 rep=1] samples=96 wall=3.002s thrpt=31.981/s lat_mean=0.965s lat_p95=1.529s rtf_mean=0.2138 corpus_wer=0.0157 skipped=0
+[conc=32 rep=2] samples=96 wall=2.953s thrpt=32.513/s lat_mean=0.930s lat_p95=1.502s rtf_mean=0.1943 corpus_wer=0.0172 skipped=0
+[conc=32 rep=3] samples=96 wall=2.785s thrpt=34.474/s lat_mean=0.882s lat_p95=1.374s rtf_mean=0.1906 corpus_wer=0.0132 skipped=0
+
+| conc | reps | wall(s) mean | thrpt mean | thrpt best | lat mean(s) | lat p95(s) | rtf mean | rtf p95 | corpus WER | max WER |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 32 | 3 | 2.913 | 32.989 | 34.474 | 0.925 | 1.468 | 0.1996 | 0.3095 | 0.0172 | 0.1538 |
+
+Wrote results to /workspace/results/qwen3_asr_831/experiments/20260621T040448Z_audio_fastpath_1088b/results.json
+concurrency=32 wall_mean=2.913s throughput_mean=32.989samples/s wer_max=0.0172 evaluated=288/288 skipped=0
+completed=2026-06-21T04:10:16Z
+stopping_server=8209

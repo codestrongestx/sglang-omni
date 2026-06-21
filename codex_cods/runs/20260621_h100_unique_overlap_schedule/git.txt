@@ -1,0 +1,7 @@
+HEAD: eed0ef94e125d2df6c5e35ccdecbed38055f748c
+Remote worktree branch: runpod/issue831-overlap_schedule
+Remote worktree path: /workspace/tmp/issue831_wt/overlap_schedule
+Diff stat: clean
+Local audit ref: refs/heads/runpod/issue831-overlap_schedule
+Exact-head patch: code_head.patch.b64
+Exact-head stat: code_head_stat.txt

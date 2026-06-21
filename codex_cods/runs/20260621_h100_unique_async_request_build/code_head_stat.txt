@@ -1,0 +1,7 @@
+e332193 RunPod add async request build candidate
+ .../agent_notes/20260621_async_request_build.md    |  19 +++
+ sglang_omni/models/qwen3_asr/stages.py             |   2 +
+ sglang_omni/scheduling/omni_scheduler.py           | 140 +++++++++++----
+ tests/unit_test/pipeline/test_scheduler.py         | 188 +++++++++++++++++++++
+ tests/unit_test/qwen3_asr/test_pipeline.py         |  89 ++++++++++
+ 5 files changed, 406 insertions(+), 32 deletions(-)

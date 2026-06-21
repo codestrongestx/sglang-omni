@@ -1,0 +1,7 @@
+HEAD: fdd10c4231b79803a8afb9f37823230f6fe9e9bb
+Remote worktree branch: runpod/issue831-baseline_unique
+Remote worktree path: /workspace/tmp/issue831_wt/baseline_unique
+Diff stat: clean
+Local audit ref: refs/heads/runpod/issue831-baseline_unique
+Exact-head patch: code_head.patch.b64
+Exact-head stat: code_head_stat.txt

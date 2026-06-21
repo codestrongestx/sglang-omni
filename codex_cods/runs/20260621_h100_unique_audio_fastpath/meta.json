@@ -1,0 +1,20 @@
+{
+  "label": "h100_unique_audio_fastpath",
+  "pod_id": "28xh4e0kd3aomf",
+  "source_artifact": "results/runpod/28xh4e0kd3aomf/results/qwen3_asr_831/experiments/20260621T040448Z_audio_fastpath_1088b",
+  "hardware": "RunPod H100 SXM 80GB",
+  "region": "US-CA-2",
+  "gpu_count": 1,
+  "workload": "Qwen3-ASR unique-audio concurrency benchmark",
+  "benchmark_module": "benchmarks.eval.benchmark_qwen3_asr_concurrency",
+  "optimization_direction": "PCM WAV load fast path",
+  "concurrency": 32,
+  "repeats": 3,
+  "warmup": true,
+  "max_samples": 1088,
+  "unique_timed_samples": true,
+  "unique_samples_per_repeat": 96,
+  "evaluated_timed_samples": 288,
+  "skipped": 0,
+  "git_head": "2441f704836bddfaf3ea080be3a5d53a097a6789"
+}

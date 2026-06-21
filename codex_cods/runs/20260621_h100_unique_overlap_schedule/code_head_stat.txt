@@ -1,0 +1,5 @@
+eed0ef9 RunPod add overlap schedule candidate
+ .../20260621_qwen3_asr_overlap_schedule_knob.md    |  45 +++++++
+ sglang_omni/models/qwen3_asr/stages.py             |  68 +++++++---
+ tests/unit_test/qwen3_asr/test_pipeline.py         | 150 +++++++++++++++++++++
+ 3 files changed, 242 insertions(+), 21 deletions(-)

@@ -1,0 +1,7 @@
+HEAD: 2441f704836bddfaf3ea080be3a5d53a097a6789
+Remote worktree branch: runpod/issue831-audio_fastpath
+Remote worktree path: /workspace/tmp/issue831_wt/audio_fastpath
+Diff stat: clean
+Local audit ref: refs/heads/runpod/issue831-audio_fastpath
+Exact-head patch: code_head.patch.b64
+Exact-head stat: code_head_stat.txt

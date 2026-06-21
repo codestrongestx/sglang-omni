@@ -1,0 +1,34 @@
+run_dir=/workspace/results/qwen3_asr_831/experiments/20260621T035858Z_baseline_unique_1088
+label=baseline_unique_1088
+worktree=/workspace/tmp/issue831_wt/baseline_unique
+model_path=Qwen/Qwen3-ASR-1.7B
+max_samples=1088
+unique_samples_per_repeat=96
+concurrencies=32
+repeats=3
+serve_extra_args=
++ git -C /workspace/tmp/issue831_wt/baseline_unique rev-parse HEAD
++ git -C /workspace/tmp/issue831_wt/baseline_unique status --short --branch
++ git -C /workspace/tmp/issue831_wt/baseline_unique diff --stat
++ nvidia-smi
++ /workspace/repos/sglang-omni/.venv/bin/python --version
++ /workspace/repos/sglang-omni/.venv/bin/python -m pip freeze
+acquired_gpu_lock=2026-06-21T03:58:59Z
+starting_server=2026-06-21T03:58:59Z
+server_ready=2026-06-21T04:01:04Z
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loaded 1088 SeedTTS en samples; sweeping concurrency=[32] x 3 repeats against 127.0.0.1:8000 (Qwen/Qwen3-ASR-1.7B)
+Using disjoint sample windows: 96 samples/window x 4 windows (704 loaded samples unused).
+[conc=32] warmup pass ...
+[conc=32 rep=1] samples=96 wall=3.643s thrpt=26.354/s lat_mean=1.179s lat_p95=1.923s rtf_mean=0.2614 corpus_wer=0.0157 skipped=0
+[conc=32 rep=2] samples=96 wall=3.750s thrpt=25.598/s lat_mean=1.207s lat_p95=1.919s rtf_mean=0.2525 corpus_wer=0.0189 skipped=0
+[conc=32 rep=3] samples=96 wall=3.621s thrpt=26.509/s lat_mean=1.166s lat_p95=1.843s rtf_mean=0.2528 corpus_wer=0.0141 skipped=0
+
+| conc | reps | wall(s) mean | thrpt mean | thrpt best | lat mean(s) | lat p95(s) | rtf mean | rtf p95 | corpus WER | max WER |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 32 | 3 | 3.671 | 26.154 | 26.509 | 1.184 | 1.895 | 0.2555 | 0.4058 | 0.0189 | 0.1538 |
+
+Wrote results to /workspace/results/qwen3_asr_831/experiments/20260621T035858Z_baseline_unique_1088/results.json
+concurrency=32 wall_mean=3.671s throughput_mean=26.154samples/s wer_max=0.0189 evaluated=288/288 skipped=0
+completed=2026-06-21T04:01:53Z
+stopping_server=5317
