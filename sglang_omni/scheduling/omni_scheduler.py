@@ -146,6 +146,10 @@ class OmniScheduler:
                 else int(request_build_max_pending)
             )
             self.request_build_max_pending = max(1, max_pending)
+            self.request_build_max_backlog = max(
+                self.request_build_max_pending,
+                int(getattr(server_args, "max_queued_requests", 0) or 0),
+            )
             self._request_build_executor: ThreadPoolExecutor | None = (
                 ThreadPoolExecutor(
                     max_workers=self.request_build_max_workers,
@@ -154,6 +158,7 @@ class OmniScheduler:
             )
         else:
             self.request_build_max_pending = 0
+            self.request_build_max_backlog = 0
             self._request_build_executor = None
         self._pending_request_builds: dict[str, tuple[Any, bool, Future]] = {}
         self._backlogged_request_build_payloads: deque[Any] = deque()
@@ -510,13 +515,22 @@ class OmniScheduler:
     def process_input_requests(self, recv_reqs):
         """Convert incoming payloads to SGLang Reqs and enqueue."""
         self._drain_request_build_results()
-        recv_reqs = self._merge_request_build_backlog(recv_reqs)
-        pending_builds = self.__dict__.setdefault("_pending_request_builds", {})
+        recv_reqs, rejected_reqs = self._stage_request_build_payloads(recv_reqs)
+        for payload in rejected_reqs:
+            self._reject_request_build_backlog_overflow(payload)
         for payload_idx, payload in enumerate(recv_reqs):
             req_id = payload.request_id
-            if req_id in pending_builds:
-                continue
-            if not self._can_submit_request_build():
+            with self._get_request_admission_lock():
+                pending_builds = self.__dict__.setdefault(
+                    "_pending_request_builds", {}
+                )
+                if req_id in self._aborted_request_ids or req_id in pending_builds:
+                    continue
+                if not self._can_submit_request_build(lock_held=True):
+                    should_backlog = True
+                else:
+                    should_backlog = False
+            if should_backlog:
                 self._backlog_request_build_payloads(recv_reqs[payload_idx:])
                 break
             buffered_chunks = self._pending_stream_chunks.pop(req_id, [])
@@ -541,12 +555,30 @@ class OmniScheduler:
             )
             request_build_executor = getattr(self, "_request_build_executor", None)
             if request_build_executor is not None:
-                future = request_build_executor.submit(self._request_builder, payload)
-                pending_builds[req_id] = (payload, pending_stream_done, future)
-                self._request_build_max_pending_observed = max(
-                    getattr(self, "_request_build_max_pending_observed", 0),
-                    len(pending_builds),
-                )
+                backlog_payloads = None
+                with self._get_request_admission_lock():
+                    pending_builds = self.__dict__.setdefault(
+                        "_pending_request_builds", {}
+                    )
+                    if (
+                        req_id in self._aborted_request_ids
+                        or req_id in pending_builds
+                    ):
+                        continue
+                    if not self._can_submit_request_build(lock_held=True):
+                        backlog_payloads = recv_reqs[payload_idx:]
+                    else:
+                        future = request_build_executor.submit(
+                            self._request_builder, payload
+                        )
+                        pending_builds[req_id] = (payload, pending_stream_done, future)
+                        self._request_build_max_pending_observed = max(
+                            getattr(self, "_request_build_max_pending_observed", 0),
+                            len(pending_builds),
+                        )
+                if backlog_payloads is not None:
+                    self._backlog_request_build_payloads(backlog_payloads)
+                    break
                 continue
             try:
                 req_data = self._request_builder(payload)
@@ -565,6 +597,49 @@ class OmniScheduler:
             self.__dict__["_request_admission_lock"] = lock
         return lock
 
+    def _stage_request_build_payloads(
+        self, recv_reqs: list[Any]
+    ) -> tuple[list[Any], list[Any]]:
+        if getattr(self, "_request_build_executor", None) is None:
+            return self._merge_request_build_backlog(recv_reqs), []
+
+        with self._get_request_admission_lock():
+            backlog = self.__dict__.setdefault(
+                "_backlogged_request_build_payloads", deque()
+            )
+            pending_builds = self.__dict__.setdefault("_pending_request_builds", {})
+            rejected: list[Any] = []
+            backlog_ids = {payload.request_id for payload in backlog}
+            for payload in recv_reqs:
+                req_id = payload.request_id
+                if (
+                    req_id in self._aborted_request_ids
+                    or req_id in pending_builds
+                    or req_id in backlog_ids
+                ):
+                    continue
+                if len(backlog) >= self._request_build_backlog_capacity():
+                    rejected.append(payload)
+                    continue
+                backlog.append(payload)
+                backlog_ids.add(req_id)
+
+            capacity = max(
+                0,
+                int(getattr(self, "request_build_max_pending", 0) or 0)
+                - len(pending_builds),
+            )
+            selected: list[Any] = []
+            while capacity > 0 and backlog:
+                payload = backlog.popleft()
+                req_id = payload.request_id
+                backlog_ids.discard(req_id)
+                if req_id in self._aborted_request_ids or req_id in pending_builds:
+                    continue
+                selected.append(payload)
+                capacity -= 1
+            return selected, rejected
+
     def _merge_request_build_backlog(self, recv_reqs: list[Any]) -> list[Any]:
         with self._get_request_admission_lock():
             backlog = self.__dict__.setdefault(
@@ -577,41 +652,92 @@ class OmniScheduler:
         merged.extend(recv_reqs)
         return merged
 
-    def _backlog_request_build_payloads(self, payloads: list[Any]) -> None:
-        with self._get_request_admission_lock():
+    def _request_build_backlog_capacity(self) -> int:
+        return max(
+            1,
+            int(
+                getattr(self, "request_build_max_backlog", 0)
+                or getattr(self, "request_build_max_pending", 1)
+                or 1
+            ),
+        )
+
+    def _backlog_request_build_payloads(
+        self, payloads: list[Any], *, lock_held: bool = False
+    ) -> None:
+        def add_to_backlog() -> list[Any]:
             backlog = self.__dict__.setdefault(
                 "_backlogged_request_build_payloads", deque()
             )
             aborted = getattr(self, "_aborted_request_ids", set())
             pending_builds = getattr(self, "_pending_request_builds", {})
+            backlog_ids = {payload.request_id for payload in backlog}
+            rejected: list[Any] = []
             for payload in payloads:
+                req_id = payload.request_id
                 if (
-                    payload.request_id not in aborted
-                    and payload.request_id not in pending_builds
+                    req_id in aborted
+                    or req_id in pending_builds
+                    or req_id in backlog_ids
                 ):
-                    backlog.append(payload)
+                    continue
+                if len(backlog) >= self._request_build_backlog_capacity():
+                    rejected.append(payload)
+                    continue
+                backlog.append(payload)
+                backlog_ids.add(req_id)
+            return rejected
 
-    def _can_submit_request_build(self) -> bool:
+        if lock_held:
+            rejected_reqs = add_to_backlog()
+        else:
+            with self._get_request_admission_lock():
+                rejected_reqs = add_to_backlog()
+        for payload in rejected_reqs:
+            self._reject_request_build_backlog_overflow(payload)
+
+    def _reject_request_build_backlog_overflow(self, payload: Any) -> None:
+        req_id = payload.request_id
+        error = RuntimeError(
+            "request-build backlog is full "
+            f"(max_backlog={self._request_build_backlog_capacity()})"
+        )
+        logger.warning("Rejecting request %s before build: %s", req_id, error)
+        self._emit_request_error(req_id, error)
+        self.abort(req_id)
+
+    def _can_submit_request_build(self, *, lock_held: bool = False) -> bool:
         if getattr(self, "_request_build_executor", None) is None:
             return True
-        pending_builds = getattr(self, "_pending_request_builds", {})
-        max_pending = int(getattr(self, "request_build_max_pending", 0) or 0)
-        return len(pending_builds) < max_pending
+        def has_capacity() -> bool:
+            pending_builds = getattr(self, "_pending_request_builds", {})
+            max_pending = int(getattr(self, "request_build_max_pending", 0) or 0)
+            return len(pending_builds) < max_pending
+
+        if lock_held:
+            return has_capacity()
+        with self._get_request_admission_lock():
+            return has_capacity()
 
     def _drain_request_build_results(self) -> None:
-        pending_builds = getattr(self, "_pending_request_builds", None)
-        if not pending_builds:
-            return
-        for req_id, (payload, pending_stream_done, future) in list(
-            pending_builds.items()
-        ):
+        while True:
+            with self._get_request_admission_lock():
+                pending_builds = getattr(self, "_pending_request_builds", None)
+                if not pending_builds:
+                    return
+                req_id, (payload, pending_stream_done, future) = next(
+                    iter(pending_builds.items())
+                )
             if not future.done():
-                break
+                return
             try:
                 req_data = future.result()
             except Exception as exc:
                 with self._get_request_admission_lock():
-                    pending = pending_builds.pop(req_id, None)
+                    pending_builds = getattr(self, "_pending_request_builds", {})
+                    pending = pending_builds.get(req_id)
+                    if pending is not None and pending[2] is future:
+                        pending_builds.pop(req_id, None)
                     if pending is None or req_id in self._aborted_request_ids:
                         continue
                 logger.exception(f"OmniScheduler: request builder failed for {req_id}")
@@ -619,7 +745,10 @@ class OmniScheduler:
                 self.abort(req_id)
                 continue
             with self._get_request_admission_lock():
-                pending = pending_builds.pop(req_id, None)
+                pending_builds = getattr(self, "_pending_request_builds", {})
+                pending = pending_builds.get(req_id)
+                if pending is not None and pending[2] is future:
+                    pending_builds.pop(req_id, None)
                 if pending is None or req_id in self._aborted_request_ids:
                     continue
                 self._enqueue_built_request(
@@ -1131,24 +1260,31 @@ class OmniScheduler:
         info = {}
         if hasattr(self.model_worker, "model_info"):
             info.update(self.model_worker.model_info())
+        with self._get_request_admission_lock():
+            request_build_pending = len(
+                getattr(self, "_pending_request_builds", {}) or {}
+            )
+            request_build_backlog = len(
+                getattr(self, "_backlogged_request_build_payloads", ()) or ()
+            )
+            waiting_queue_size = len(self.waiting_queue)
         info.update(
             {
                 "stage_tp_rank": self.tp_rank,
                 "stage_tp_size": self.tp_size,
                 "engine_paused": self._engine_paused,
-                "waiting_queue_size": len(self.waiting_queue),
+                "waiting_queue_size": waiting_queue_size,
                 "request_build_workers": getattr(
                     self, "request_build_max_workers", 1
                 ),
-                "request_build_pending": len(
-                    getattr(self, "_pending_request_builds", {}) or {}
-                ),
+                "request_build_pending": request_build_pending,
                 "request_build_max_pending": getattr(
                     self, "request_build_max_pending", 0
                 ),
-                "request_build_backlog": len(
-                    getattr(self, "_backlogged_request_build_payloads", ()) or ()
+                "request_build_max_backlog": getattr(
+                    self, "request_build_max_backlog", 0
                 ),
+                "request_build_backlog": request_build_backlog,
                 "request_build_max_pending_observed": getattr(
                     self, "_request_build_max_pending_observed", 0
                 ),
@@ -1338,20 +1474,21 @@ class OmniScheduler:
 
     def _active_request_ids(self) -> list[str]:
         request_ids: set[str] = set()
-        pending_builds = getattr(self, "_pending_request_builds", None)
-        if pending_builds:
-            request_ids.update(pending_builds.keys())
-        backlog = getattr(self, "_backlogged_request_build_payloads", None)
-        if backlog:
-            request_ids.update(
-                payload.request_id
-                for payload in backlog
-                if payload.request_id not in self._aborted_request_ids
-            )
-        for req in self.waiting_queue:
-            rid = getattr(req, "rid", None)
-            if rid is not None:
-                request_ids.add(rid)
+        with self._get_request_admission_lock():
+            pending_builds = getattr(self, "_pending_request_builds", None)
+            if pending_builds:
+                request_ids.update(pending_builds.keys())
+            backlog = getattr(self, "_backlogged_request_build_payloads", None)
+            if backlog:
+                request_ids.update(
+                    payload.request_id
+                    for payload in backlog
+                    if payload.request_id not in self._aborted_request_ids
+                )
+            for req in self.waiting_queue:
+                rid = getattr(req, "rid", None)
+                if rid is not None:
+                    request_ids.add(rid)
         for batch in (
             self.running_batch,
             self.cur_batch,
