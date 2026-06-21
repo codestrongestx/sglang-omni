@@ -1,0 +1,7 @@
+ sglang_omni/models/qwen3_asr/request_builders.py   |  74 ++-
+ sglang_omni/models/qwen3_asr/stages.py             |  65 +++
+ sglang_omni/scheduling/omni_scheduler.py           | 409 +++++++++++--
+ tests/unit_test/pipeline/test_scheduler.py         | 638 +++++++++++++++++++++
+ tests/unit_test/qwen3_asr/test_pipeline.py         | 172 ++++++
+ tests/unit_test/qwen3_asr/test_request_builders.py |  76 +++
+ 6 files changed, 1389 insertions(+), 45 deletions(-)

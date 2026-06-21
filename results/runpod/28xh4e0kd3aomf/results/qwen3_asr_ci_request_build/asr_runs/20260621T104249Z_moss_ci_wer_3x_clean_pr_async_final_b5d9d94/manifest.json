@@ -1,0 +1,15 @@
+{
+  "artifact_dir": "/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16",
+  "asr_concurrency": 32,
+  "asr_model": "Qwen/Qwen3-ASR-1.7B",
+  "audio_file_count": 1088,
+  "created_utc": "2026-06-21T10:42:49Z",
+  "generated_count": 1088,
+  "generated_json": "/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16/generated.json",
+  "hardware": "NVIDIA H100 80GB HBM3, 81559 MiB",
+  "meta": "zhaochenyang20/seed-tts-eval-arrow",
+  "repeats": 3,
+  "speed_results_json": "/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16/speed_results.json",
+  "tts_concurrency": 16,
+  "tts_model": "OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5"
+}

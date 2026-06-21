@@ -1,0 +1,13 @@
+command_start_utc=2026-06-21T10:52:45Z
+repo=/workspace/repos/sglang-omni-pr-async-final
+sha=b5d9d946fa07c402f86dff1a5bf7c231298a356b
+port=8502
+workers=4
+max_pending=16
+artifact_dir=/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16
+QWEN3_ASR_REQUEST_BUILD_WORKERS=4
+QWEN3_ASR_REQUEST_BUILD_MAX_PENDING=16
+QWEN3_ASR_REQUEST_BUILD_ISOLATE_PROCESSORS=1
+command=/workspace/repos/sglang-omni/.venv/bin/python -m benchmarks.eval.benchmark_tts_seedtts --transcribe-only --use-existing-server --meta zhaochenyang20/seed-tts-eval-arrow --model OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5 --output-dir /workspace/results/qwen3_asr_ci_request_build/asr_runs/20260621T104249Z_moss_ci_wer_3x_clean_pr_async_final_b5d9d94/candidate_b5d9d94_workers4_pending16/repeat_1 --lang en --port 8502 --asr-model-path Qwen/Qwen3-ASR-1.7B --asr-concurrency 32 --concurrency 16 --ref-format references --token-count auto
+command_end_utc=2026-06-21T10:53:21Z
+exit_code=0

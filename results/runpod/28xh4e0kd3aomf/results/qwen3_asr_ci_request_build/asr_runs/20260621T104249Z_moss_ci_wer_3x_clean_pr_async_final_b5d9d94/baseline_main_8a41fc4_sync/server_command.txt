@@ -1,0 +1,10 @@
+command_start_utc=2026-06-21T10:42:49Z
+repo=/workspace/repos/sglang-omni-ci-baseline-8a41fc4
+sha=8a41fc4da31f68e0515cc81475af1feeaa9c8929
+port=8500
+workers=none
+max_pending=none
+QWEN3_ASR_REQUEST_BUILD_WORKERS=unset
+QWEN3_ASR_REQUEST_BUILD_MAX_PENDING=unset
+QWEN3_ASR_REQUEST_BUILD_ISOLATE_PROCESSORS=unset
+command=/workspace/repos/sglang-omni/.venv/bin/python -m sglang_omni.cli serve --model-path Qwen/Qwen3-ASR-1.7B --port 8500 --host localhost

@@ -1,0 +1,11 @@
+performance_tested_candidate_sha=b5d9d946fa07c402f86dff1a5bf7c231298a356b
+baseline_sha=8a41fc4da31f68e0515cc81475af1feeaa9c8929
+evidence_commit_note=This run tested the candidate code SHA above; later commits may add only evidence/docs.
+
+current_branch_head_at_capture=b5d9d946fa07c402f86dff1a5bf7c231298a356b
+
+git_log_from_baseline_to_tested_candidate:
+b5d9d94 (HEAD -> pr/831-async-request-build-clean, origin/pr/831-async-request-build-clean, pr/831-async-request-build-clean-pod) Avoid false request-build backlog overflow
+9c2dc44 Size request-build backlog for admission bursts
+418beac Fix request-build admission races
+0eff693 Parallelize Qwen3-ASR request construction safely

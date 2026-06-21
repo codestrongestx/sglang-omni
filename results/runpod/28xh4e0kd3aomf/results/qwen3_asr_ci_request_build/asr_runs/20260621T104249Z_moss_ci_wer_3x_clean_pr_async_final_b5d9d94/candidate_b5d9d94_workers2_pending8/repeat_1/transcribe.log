@@ -1,0 +1,78 @@
+2026-06-21 10:49:24,929 benchmarks.tasks.tts INFO Loaded 1088 entries from /workspace/results/qwen3_asr_ci_request_build/asr_runs/20260621T104249Z_moss_ci_wer_3x_clean_pr_async_final_b5d9d94/candidate_b5d9d94_workers2_pending8/repeat_1/generated.json
+WER transcribe:   0%|          | 0/1088 [00:00<?, ?it/s]WER transcribe:   0%|          | 1/1088 [00:03<1:06:45,  3.69s/it]WER transcribe:   3%|▎         | 33/1088 [00:04<01:43, 10.22it/s] WER transcribe:   4%|▍         | 41/1088 [00:04<01:21, 12.92it/s]WER transcribe:   5%|▍         | 54/1088 [00:04<00:58, 17.57it/s]WER transcribe:   6%|▌         | 61/1088 [00:04<00:51, 20.09it/s]WER transcribe:   7%|▋         | 71/1088 [00:05<00:41, 24.80it/s]WER transcribe:   7%|▋         | 76/1088 [00:05<00:40, 24.89it/s]WER transcribe:   8%|▊         | 85/1088 [00:05<00:34, 29.22it/s]WER transcribe:   9%|▉         | 98/1088 [00:05<00:27, 35.62it/s]WER transcribe:  10%|▉         | 105/1088 [00:05<00:24, 39.99it/s]WER transcribe:  11%|█         | 115/1088 [00:06<00:24, 40.43it/s]WER transcribe:  11%|█▏        | 125/1088 [00:06<00:24, 39.79it/s]WER transcribe:  13%|█▎        | 145/1088 [00:06<00:20, 46.78it/s]WER transcribe:  14%|█▍        | 153/1088 [00:06<00:20, 45.91it/s]WER transcribe:  15%|█▍        | 159/1088 [00:07<00:19, 47.65it/s]WER transcribe:  15%|█▌        | 165/1088 [00:07<00:20, 45.25it/s]WER transcribe:  16%|█▌        | 172/1088 [00:07<00:22, 40.55it/s]WER transcribe:  16%|█▋        | 179/1088 [00:07<00:22, 39.84it/s]WER transcribe:  18%|█▊        | 192/1088 [00:07<00:19, 45.06it/s]WER transcribe:  19%|█▊        | 202/1088 [00:08<00:19, 45.88it/s]WER transcribe:  19%|█▉        | 211/1088 [00:08<00:16, 53.40it/s]WER transcribe:  20%|█▉        | 217/1088 [00:08<00:19, 43.79it/s]WER transcribe:  20%|██        | 223/1088 [00:08<00:20, 42.48it/s]WER transcribe:  22%|██▏       | 235/1088 [00:08<00:19, 43.31it/s]WER transcribe:  22%|██▏       | 242/1088 [00:08<00:17, 47.39it/s]WER transcribe:  23%|██▎       | 251/1088 [00:09<00:18, 46.22it/s]WER transcribe:  24%|██▍       | 261/1088 [00:09<00:15, 55.05it/s]WER transcribe:  25%|██▍       | 268/1088 [00:09<00:18, 43.98it/s]WER transcribe:  25%|██▌       | 274/1088 [00:09<00:17, 45.30it/s]WER transcribe:  27%|██▋       | 292/1088 [00:09<00:16, 48.47it/s]WER transcribe:  27%|██▋       | 298/1088 [00:10<00:17, 45.71it/s]WER transcribe:  28%|██▊       | 305/1088 [00:10<00:18, 41.28it/s]WER transcribe:  30%|███       | 327/1088 [00:10<00:15, 48.56it/s]WER transcribe:  31%|███       | 333/1088 [00:10<00:16, 45.61it/s]WER transcribe:  32%|███▏      | 347/1088 [00:11<00:14, 52.09it/s]WER transcribe:  33%|███▎      | 357/1088 [00:11<00:15, 48.37it/s]WER transcribe:  33%|███▎      | 364/1088 [00:11<00:14, 51.44it/s]WER transcribe:  34%|███▍      | 370/1088 [00:11<00:16, 44.34it/s]WER transcribe:  36%|███▌      | 388/1088 [00:11<00:14, 49.19it/s]WER transcribe:  36%|███▌      | 393/1088 [00:12<00:14, 48.95it/s]WER transcribe:  37%|███▋      | 398/1088 [00:12<00:15, 44.53it/s]WER transcribe:  37%|███▋      | 403/1088 [00:12<00:16, 40.55it/s]WER transcribe:  39%|███▊      | 420/1088 [00:12<00:13, 49.11it/s]WER transcribe:  39%|███▉      | 425/1088 [00:12<00:14, 45.73it/s]WER transcribe:  40%|███▉      | 430/1088 [00:12<00:16, 40.44it/s]WER transcribe:  40%|████      | 438/1088 [00:13<00:15, 40.81it/s]WER transcribe:  41%|████▏     | 451/1088 [00:13<00:11, 56.88it/s]WER transcribe:  42%|████▏     | 459/1088 [00:13<00:13, 45.84it/s]WER transcribe:  43%|████▎     | 465/1088 [00:13<00:14, 42.66it/s]WER transcribe:  44%|████▍     | 477/1088 [00:13<00:13, 45.51it/s]WER transcribe:  45%|████▍     | 487/1088 [00:14<00:12, 49.55it/s]WER transcribe:  45%|████▌     | 493/1088 [00:14<00:13, 42.85it/s]WER transcribe:  47%|████▋     | 508/1088 [00:14<00:12, 47.87it/s]WER transcribe:  47%|████▋     | 513/1088 [00:14<00:12, 47.06it/s]WER transcribe:  48%|████▊     | 525/1088 [00:14<00:12, 44.05it/s]WER transcribe:  50%|████▉     | 539/1088 [00:15<00:11, 49.26it/s]WER transcribe:  50%|█████     | 546/1088 [00:15<00:11, 47.62it/s]WER transcribe:  51%|█████     | 551/1088 [00:15<00:11, 45.23it/s]WER transcribe:  51%|█████▏    | 558/1088 [00:15<00:13, 39.70it/s]WER transcribe:  53%|█████▎    | 573/1088 [00:15<00:10, 48.32it/s]WER transcribe:  53%|█████▎    | 578/1088 [00:16<00:11, 43.06it/s]WER transcribe:  54%|█████▍    | 586/1088 [00:16<00:11, 43.16it/s]WER transcribe:  54%|█████▍    | 591/1088 [00:16<00:12, 40.74it/s]WER transcribe:  55%|█████▍    | 596/1088 [00:16<00:12, 39.15it/s]WER transcribe:  57%|█████▋    | 618/1088 [00:16<00:09, 48.92it/s]WER transcribe:  57%|█████▋    | 623/1088 [00:17<00:09, 48.43it/s]WER transcribe:  58%|█████▊    | 630/1088 [00:17<00:10, 45.60it/s]WER transcribe:  59%|█████▉    | 640/1088 [00:17<00:10, 44.74it/s]WER transcribe:  60%|█████▉    | 648/1088 [00:17<00:08, 50.39it/s]WER transcribe:  60%|██████    | 654/1088 [00:17<00:09, 44.83it/s]WER transcribe:  61%|██████    | 659/1088 [00:17<00:10, 42.02it/s]WER transcribe:  61%|██████▏   | 668/1088 [00:18<00:11, 37.44it/s]WER transcribe:  63%|██████▎   | 684/1088 [00:18<00:09, 41.47it/s]WER transcribe:  64%|██████▍   | 699/1088 [00:18<00:08, 46.90it/s]WER transcribe:  65%|██████▍   | 704/1088 [00:18<00:08, 45.81it/s]WER transcribe:  65%|██████▌   | 709/1088 [00:19<00:09, 41.44it/s]WER transcribe:  66%|██████▌   | 714/1088 [00:19<00:09, 39.56it/s]WER transcribe:  66%|██████▋   | 721/1088 [00:19<00:08, 42.02it/s]WER transcribe:  67%|██████▋   | 730/1088 [00:19<00:08, 41.68it/s]WER transcribe:  68%|██████▊   | 740/1088 [00:19<00:08, 42.81it/s]WER transcribe:  69%|██████▉   | 752/1088 [00:20<00:07, 47.12it/s]WER transcribe:  70%|██████▉   | 759/1088 [00:20<00:07, 43.03it/s]WER transcribe:  71%|███████   | 775/1088 [00:20<00:07, 44.20it/s]WER transcribe:  73%|███████▎  | 789/1088 [00:20<00:06, 46.07it/s]WER transcribe:  74%|███████▎  | 802/1088 [00:21<00:05, 52.07it/s]WER transcribe:  74%|███████▍  | 810/1088 [00:21<00:05, 53.12it/s]WER transcribe:  75%|███████▌  | 816/1088 [00:21<00:05, 45.45it/s]WER transcribe:  76%|███████▌  | 825/1088 [00:21<00:05, 48.70it/s]WER transcribe:  76%|███████▋  | 831/1088 [00:21<00:06, 42.63it/s]WER transcribe:  77%|███████▋  | 843/1088 [00:22<00:05, 45.77it/s]WER transcribe:  78%|███████▊  | 852/1088 [00:22<00:05, 46.91it/s]WER transcribe:  79%|███████▉  | 862/1088 [00:22<00:05, 43.01it/s]WER transcribe:  80%|████████  | 875/1088 [00:22<00:04, 47.19it/s]WER transcribe:  82%|████████▏ | 887/1088 [00:22<00:04, 47.54it/s]WER transcribe:  82%|████████▏ | 894/1088 [00:23<00:04, 45.06it/s]WER transcribe:  83%|████████▎ | 903/1088 [00:23<00:04, 44.86it/s]WER transcribe:  84%|████████▍ | 917/1088 [00:23<00:02, 58.07it/s]WER transcribe:  85%|████████▍ | 924/1088 [00:23<00:03, 44.48it/s]WER transcribe:  85%|████████▌ | 930/1088 [00:23<00:03, 42.19it/s]WER transcribe:  87%|████████▋ | 946/1088 [00:24<00:03, 43.96it/s]WER transcribe:  88%|████████▊ | 958/1088 [00:24<00:02, 54.98it/s]WER transcribe:  89%|████████▊ | 965/1088 [00:24<00:02, 46.48it/s]WER transcribe:  90%|████████▉ | 976/1088 [00:24<00:02, 43.55it/s]WER transcribe:  92%|█████████▏| 999/1088 [00:25<00:01, 49.68it/s]WER transcribe:  93%|█████████▎| 1013/1088 [00:25<00:01, 51.89it/s]WER transcribe:  94%|█████████▍| 1024/1088 [00:25<00:01, 51.14it/s]WER transcribe:  95%|█████████▍| 1030/1088 [00:25<00:01, 46.82it/s]WER transcribe:  96%|█████████▌| 1040/1088 [00:26<00:00, 54.27it/s]WER transcribe:  97%|█████████▋| 1052/1088 [00:26<00:00, 45.57it/s]WER transcribe:  97%|█████████▋| 1058/1088 [00:26<00:00, 47.15it/s]WER transcribe:  98%|█████████▊| 1065/1088 [00:26<00:00, 51.12it/s]WER transcribe: 100%|██████████| 1088/1088 [00:26<00:00, 40.73it/s]
+
+============================================================
+         TTS Speed Benchmark Result (non-streaming)         
+============================================================
+  Model:                         OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5
+  Concurrency:                   16
+  Completed requests:            1088
+  Failed requests:               0
+------------------------------------------------------------
+  Latency mean (s):              3.553
+  Latency median (s):            3.363
+  Latency p95 (s):               5.053
+  Latency p99 (s):               6.845
+  RTF mean:                      0.8582
+  RTF median:                    0.7716
+  RTF p95:                       1.4089
+  RTF p99:                       1.9181
+  Audio duration mean (s):       4.401
+  Audio throughput (s/s):        19.756
+  Output throughput (tok/s):     246.9
+  Output tokens/request-s:       80.0
+  Output tokens (mean):          55
+  Output tokens (total):         59858
+  Prompt tokens (mean):          132
+  Prompt tokens (total):         144051
+  Throughput (req/s):            4.489
+============================================================
+
+============================================================
+          TTS WER Benchmark Result (non-streaming)          
+============================================================
+  TTS model:                     OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5
+  Generation mode:               non-streaming
+  Language:                      en
+  Evaluated / Total:             1088/1088
+  Skipped:                       0
+------------------------------------------------------------
+  WER (corpus, micro-avg):       0.0250 (2.50%)
+------------------------------------------------------------
+  WER per-sample mean:           0.0259 (2.59%)
+  WER per-sample median:         0.0000
+  WER per-sample std:            0.0938
+  WER per-sample p95:            0.1429
+  WER per-sample max:            1.1667 (116.67%)
+  WER corpus (excl >50%):        0.0194 (1.94%)
+  >50% WER samples:              7 (0.6%)
+------------------------------------------------------------
+  Latency mean (s):              3.5528056066176474
+  Latency p95 (s):               5.05296
+  RTF mean:                      0.8621299644693313
+  Throughput (req/s):            4.489
+  Audio duration mean (s):       4.401323529411764
+============================================================
+
+
+============================================================
+                 ASR Speed Benchmark Result                 
+============================================================
+  ASR model:                     Qwen/Qwen3-ASR-1.7B
+  Evaluated / Total:             1088/1088
+  ASR concurrency:               32
+  Skipped:                       0
+------------------------------------------------------------
+  ASR latency mean (s):          0.7848369015940561
+  ASR latency median (s):        0.6957619423046708
+  ASR latency p95 (s):           1.0718709389679129
+  ASR latency p99 (s):           3.75321337018162
+  ASR RTF mean:                  0.18582420239008718
+  ASR RTF median:                0.161652469193086
+  ASR total time (s):            26.768825591541827
+  ASR latency sum (s):           853.902548934333
+  ASR throughput (samples/s):    40.6442933508363
+  Audio processed (s):           4788.64
+============================================================
+2026-06-21 10:49:51,765 benchmarks.benchmarker.utils INFO Results saved to /workspace/results/qwen3_asr_ci_request_build/asr_runs/20260621T104249Z_moss_ci_wer_3x_clean_pr_async_final_b5d9d94/candidate_b5d9d94_workers2_pending8/repeat_1/wer_results.json
+2026-06-21 10:49:51,811 benchmarks.benchmarker.utils INFO Results saved to /workspace/results/qwen3_asr_ci_request_build/asr_runs/20260621T104249Z_moss_ci_wer_3x_clean_pr_async_final_b5d9d94/candidate_b5d9d94_workers2_pending8/repeat_1/asr_speed_results.json
