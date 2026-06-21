@@ -51,15 +51,19 @@ def test_qwen3_asr_stage_default_disables_torch_compile() -> None:
     assert signature.parameters["enable_torch_compile"].default is False
 
 
-def test_qwen3_asr_stage_default_parallelizes_request_builds() -> None:
+def test_qwen3_asr_stage_request_build_workers_default_to_env_opt_in() -> None:
     signature = inspect.signature(create_sglang_qwen3_asr_executor)
 
-    assert signature.parameters["request_build_max_workers"].default == 4
+    assert signature.parameters["request_build_max_workers"].default is None
+    assert signature.parameters["request_build_max_pending"].default is None
+    assert signature.parameters["request_build_isolate_processors"].default is None
 
 
-def test_qwen3_asr_stage_forwards_request_build_workers(monkeypatch) -> None:
+def test_qwen3_asr_stage_forwards_request_build_config(monkeypatch) -> None:
     scheduler_kwargs: dict = {}
+    adapter_kwargs: dict = {}
 
+    monkeypatch.setattr(qwen3_asr_stages, "get_visible_gpu_sm_version", lambda _gpu: 90)
     monkeypatch.setattr(
         qwen3_asr_stages.AutoTokenizer,
         "from_pretrained",
@@ -113,10 +117,15 @@ def test_qwen3_asr_stage_forwards_request_build_workers(monkeypatch) -> None:
         "SGLangOutputProcessor",
         lambda **kwargs: SimpleNamespace(**kwargs),
     )
+
+    def fake_make_qwen3_asr_scheduler_adapters(**kwargs):
+        adapter_kwargs.update(kwargs)
+        return lambda payload: payload, lambda data: data
+
     monkeypatch.setattr(
         qwen3_asr_stages,
         "make_qwen3_asr_scheduler_adapters",
-        lambda **kwargs: (lambda payload: payload, lambda data: data),
+        fake_make_qwen3_asr_scheduler_adapters,
     )
     monkeypatch.setattr(
         qwen3_asr_stages,
@@ -133,6 +142,81 @@ def test_qwen3_asr_stage_forwards_request_build_workers(monkeypatch) -> None:
     create_sglang_qwen3_asr_executor(
         "Qwen/Qwen3-ASR-1.7B",
         request_build_max_workers=8,
+        request_build_max_pending=6,
+        request_build_isolate_processors=True,
     )
 
     assert scheduler_kwargs["request_build_max_workers"] == 8
+    assert scheduler_kwargs["request_build_max_pending"] == 6
+    assert callable(adapter_kwargs["tokenizer_factory"])
+    assert callable(adapter_kwargs["feature_extractor_factory"])
+
+
+def test_qwen3_asr_stage_can_disable_request_build_processor_isolation(
+    monkeypatch,
+) -> None:
+    adapter_kwargs: dict = {}
+
+    monkeypatch.setattr(qwen3_asr_stages, "get_visible_gpu_sm_version", lambda _gpu: 90)
+    monkeypatch.setattr(
+        qwen3_asr_stages.AutoTokenizer,
+        "from_pretrained",
+        staticmethod(lambda *args, **kwargs: object()),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages.AutoFeatureExtractor,
+        "from_pretrained",
+        staticmethod(lambda *args, **kwargs: SimpleNamespace(nb_max_frames=3000)),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "build_sglang_server_args",
+        lambda *args, **kwargs: SimpleNamespace(
+            disable_cuda_graph=True,
+            disable_overlap_schedule=True,
+        ),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "create_sglang_infrastructure",
+        lambda *args, **kwargs: (
+            SimpleNamespace(model_runner=SimpleNamespace(model=object())),
+            object(),
+            object(),
+            object(),
+            object(),
+            object(),
+            SimpleNamespace(),
+        ),
+    )
+    monkeypatch.setattr(qwen3_asr_stages, "init_mm_embedding_cache", lambda *a: None)
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "SGLangOutputProcessor",
+        lambda **kwargs: SimpleNamespace(**kwargs),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "make_qwen3_asr_scheduler_adapters",
+        lambda **kwargs: adapter_kwargs.update(kwargs)
+        or (lambda payload: payload, lambda data: data),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "ModelRunner",
+        lambda *args, **kwargs: SimpleNamespace(args=args, kwargs=kwargs),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "OmniScheduler",
+        lambda **kwargs: SimpleNamespace(**kwargs),
+    )
+
+    create_sglang_qwen3_asr_executor(
+        "Qwen/Qwen3-ASR-1.7B",
+        request_build_max_workers=4,
+        request_build_isolate_processors=False,
+    )
+
+    assert adapter_kwargs["tokenizer_factory"] is None
+    assert adapter_kwargs["feature_extractor_factory"] is None

@@ -68,6 +68,15 @@ class _PreprocessedAudio:
     num_audio_tokens: int
 
 
+@dataclass
+class _ProcessorContext:
+    tokenizer: Any
+    feature_extractor: Any
+    audio_pad_token_id: int
+    eos_token_id: int
+    vocab_size: int
+
+
 _PreprocessCache = OrderedDict[tuple[str, int, str], _PreprocessedAudio]
 
 
@@ -222,20 +231,51 @@ def make_qwen3_asr_scheduler_adapters(
     tokenizer: Any,
     max_new_tokens: int,
     feature_extractor: Any = None,
+    tokenizer_factory: Callable[[], Any] | None = None,
+    feature_extractor_factory: Callable[[], Any] | None = None,
 ) -> tuple[
     Callable[[StagePayload], Qwen3ASRRequestData], Callable[[Any], StagePayload]
 ]:
-    if feature_extractor is None:
+    if feature_extractor is None and feature_extractor_factory is None:
         raise ValueError("Qwen3-ASR processor is missing a feature_extractor")
 
-    audio_pad_token_id = int(tokenizer.convert_tokens_to_ids(_AUDIO_PAD))
-    eos_token_id = int(tokenizer.eos_token_id)
-    vocab_size = int(tokenizer.vocab_size)
     asr_text_token_ids = _encode_literal(tokenizer, _ASR_TEXT)
+    request_build_processor_local = threading.local()
     preprocess_cache: _PreprocessCache = OrderedDict()
     preprocess_cache_lock = threading.Lock()
 
-    def _build_prompt_ids(num_audio_tokens: int, language: str) -> list[int]:
+    def _make_processor_context(
+        local_tokenizer: Any,
+        local_feature_extractor: Any,
+    ) -> _ProcessorContext:
+        return _ProcessorContext(
+            tokenizer=local_tokenizer,
+            feature_extractor=local_feature_extractor,
+            audio_pad_token_id=int(local_tokenizer.convert_tokens_to_ids(_AUDIO_PAD)),
+            eos_token_id=int(local_tokenizer.eos_token_id),
+            vocab_size=int(local_tokenizer.vocab_size),
+        )
+
+    shared_processor_context = _make_processor_context(tokenizer, feature_extractor)
+
+    def _request_build_processor_context() -> _ProcessorContext:
+        if tokenizer_factory is None and feature_extractor_factory is None:
+            return shared_processor_context
+        context = getattr(request_build_processor_local, "context", None)
+        if context is None:
+            local_tokenizer = tokenizer_factory() if tokenizer_factory else tokenizer
+            local_feature_extractor = (
+                feature_extractor_factory()
+                if feature_extractor_factory
+                else feature_extractor
+            )
+            context = _make_processor_context(local_tokenizer, local_feature_extractor)
+            request_build_processor_local.context = context
+        return context
+
+    def _build_prompt_ids(
+        prompt_tokenizer: Any, num_audio_tokens: int, language: str
+    ) -> list[int]:
         prompt = (
             f"<|im_start|>user\n"
             f"{_AUDIO_START}{_AUDIO_PAD * num_audio_tokens}{_AUDIO_END}"
@@ -247,9 +287,12 @@ def make_qwen3_asr_scheduler_adapters(
         # <asr_text>. Without it the (small) model emits the language tag then
         # stops. Upstream qwen_asr does the same (_build_text_prompt).
         prompt = prompt + f"language {language}<asr_text>"
-        return tokenizer(prompt, add_special_tokens=False).input_ids
+        return prompt_tokenizer(prompt, add_special_tokens=False).input_ids
 
     def request_builder(payload: StagePayload) -> Qwen3ASRRequestData:
+        processor_context = _request_build_processor_context()
+        local_tokenizer = processor_context.tokenizer
+        local_feature_extractor = processor_context.feature_extractor
         params = payload.request.params or {}
         audio_source = _audio_source_from_payload(payload)
         audio_source, cache_key = _normalize_cacheable_audio_source(audio_source)
@@ -261,7 +304,7 @@ def make_qwen3_asr_scheduler_adapters(
             audio_duration_s = float(len(audio) / _SAMPLE_RATE)
             fingerprint = _audio_fingerprint(audio)
 
-            extracted = feature_extractor(
+            extracted = local_feature_extractor(
                 audio,
                 sampling_rate=_SAMPLE_RATE,
                 return_tensors="pt",
@@ -306,7 +349,9 @@ def make_qwen3_asr_scheduler_adapters(
         forced_language = {"zh": "Chinese", "cn": "Chinese"}.get(
             lang_raw, "Chinese" if lang_raw.startswith("zh") else "English"
         )
-        input_ids = _build_prompt_ids(num_audio_tokens, forced_language)
+        input_ids = _build_prompt_ids(
+            local_tokenizer, num_audio_tokens, forced_language
+        )
 
         audio_item = MultimodalDataItem(
             modality=Modality.AUDIO,
@@ -322,9 +367,9 @@ def make_qwen3_asr_scheduler_adapters(
         # <|audio_pad|> placeholders with it, and record the placeholder span as
         # item.offsets. SGLang treats offsets as inclusive.
         audio_item.set_pad_value()
-        audio_start = input_ids.index(audio_pad_token_id)
+        audio_start = input_ids.index(processor_context.audio_pad_token_id)
         input_ids = [
-            audio_item.pad_value if tok == audio_pad_token_id else tok
+            audio_item.pad_value if tok == processor_context.audio_pad_token_id else tok
             for tok in input_ids
         ]
         audio_item.offsets = [(audio_start, audio_start + num_audio_tokens - 1)]
@@ -333,7 +378,7 @@ def make_qwen3_asr_scheduler_adapters(
             mm_items=[audio_item],
             num_image_tokens=num_audio_tokens,
         )
-        mm_inputs.audio_token_id = audio_pad_token_id
+        mm_inputs.audio_token_id = processor_context.audio_pad_token_id
         # sglang indexes mm_input.mrope_positions[:, start:end] during prefill and
         # does not compute a default, so we must supply it. Qwen3-ASR's MRoPE is
         # degenerate for ASR (all 3 sections share the text position), i.e. plain
@@ -357,7 +402,7 @@ def make_qwen3_asr_scheduler_adapters(
             max_new_tokens=request_max_new_tokens,
             temperature=temperature,
             top_p=1.0,
-            stop_token_ids=[eos_token_id],
+            stop_token_ids=[processor_context.eos_token_id],
         )
         sampling_params.normalize(tokenizer=None)
 
@@ -366,7 +411,7 @@ def make_qwen3_asr_scheduler_adapters(
             origin_input_text="",
             origin_input_ids=input_ids,
             sampling_params=sampling_params,
-            vocab_size=vocab_size,
+            vocab_size=processor_context.vocab_size,
             extra_key=fingerprint,
         )
         req.multimodal_inputs = mm_inputs
