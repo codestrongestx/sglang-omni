@@ -50,6 +50,13 @@ logger = logging.getLogger(__name__)
 _FAILED_BATCH_RESULT = object()
 
 
+def _default_request_build_backlog_capacity(
+    max_pending: int, server_args: Any
+) -> int:
+    queued_limit = int(getattr(server_args, "max_queued_requests", 0) or 0)
+    return max(max_pending, max_pending * 4, 64, queued_limit)
+
+
 class _NoOpSender:
     """Stub for send_to_detokenizer — stream_output handles emission."""
 
@@ -116,6 +123,7 @@ class OmniScheduler:
         async_decode_min_batch_size: int = 2,
         request_build_max_workers: int = 1,
         request_build_max_pending: int | None = None,
+        request_build_max_backlog: int | None = None,
     ):
         self.inbox: _queue_mod.Queue[IncomingMessage] = _queue_mod.Queue()
         self.outbox: _queue_mod.Queue[OutgoingMessage] = _queue_mod.Queue()
@@ -148,10 +156,13 @@ class OmniScheduler:
                 else int(request_build_max_pending)
             )
             self.request_build_max_pending = max(1, max_pending)
-            self.request_build_max_backlog = max(
-                self.request_build_max_pending,
-                int(getattr(server_args, "max_queued_requests", 0) or 0),
-            )
+            if request_build_max_backlog is None:
+                default_backlog = _default_request_build_backlog_capacity(
+                    self.request_build_max_pending, server_args
+                )
+            else:
+                default_backlog = int(request_build_max_backlog)
+            self.request_build_max_backlog = max(1, default_backlog)
             self._request_build_executor: ThreadPoolExecutor | None = (
                 ThreadPoolExecutor(
                     max_workers=self.request_build_max_workers,

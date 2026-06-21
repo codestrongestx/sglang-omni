@@ -715,6 +715,23 @@ def test_omni_scheduler_request_build_backpressure_bounds_futures() -> None:
         scheduler._shutdown_request_build_executor()
 
 
+def test_omni_scheduler_request_build_default_backlog_allows_admission_burst() -> None:
+    server_args = SimpleNamespace(max_queued_requests=0)
+
+    assert (
+        omni_scheduler_module._default_request_build_backlog_capacity(
+            8, server_args
+        )
+        == 64
+    )
+    assert (
+        omni_scheduler_module._default_request_build_backlog_capacity(
+            8, SimpleNamespace(max_queued_requests=256)
+        )
+        == 256
+    )
+
+
 def test_omni_scheduler_request_build_backlog_is_bounded() -> None:
     scheduler = object.__new__(OmniScheduler)
     scheduler.outbox = Queue()
