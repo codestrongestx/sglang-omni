@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from concurrent.futures import Future, ThreadPoolExecutor
 from queue import Queue
 from types import SimpleNamespace
 
@@ -523,6 +524,193 @@ def test_omni_scheduler_distinguishes_queue_enter_from_prefill_start(
     names = [event["event_name"] for event in events]
     assert names.count("scheduler_prefill_start") == 1
     assert names.index("scheduler_queue_enter") < names.index("scheduler_prefill_start")
+
+
+def test_omni_scheduler_parallel_request_builds_queue_when_ready(monkeypatch) -> None:
+    """Opt-in request building can run off the scheduler thread."""
+    events: list[dict] = []
+    monkeypatch.setattr(
+        "sglang_omni.scheduling.omni_scheduler._emit_event",
+        lambda **kwargs: events.append(kwargs),
+    )
+    scheduler = object.__new__(OmniScheduler)
+    scheduler.outbox = Queue()
+    scheduler.waiting_queue = []
+    scheduler._pending_stream_chunks = {}
+    scheduler._pending_stream_done = set()
+    scheduler._deferred_request_payloads = {}
+    scheduler._dirty_deferred_request_ids = set()
+    scheduler._aborted_request_ids = set()
+    scheduler._prefill_start_done = set()
+    scheduler._first_emit_done = set()
+    scheduler.max_req_len = 16
+    scheduler.max_req_input_len = 16
+    scheduler._request_build_executor = ThreadPoolExecutor(max_workers=2)
+    scheduler._pending_request_builds = {}
+
+    started: list[str] = []
+    lock = threading.Lock()
+    both_started = threading.Event()
+    release = threading.Event()
+
+    def request_builder(payload: SimpleNamespace) -> SimpleNamespace:
+        with lock:
+            started.append(payload.request_id)
+            if len(started) == 2:
+                both_started.set()
+        assert release.wait(timeout=2.0)
+        req = SimpleNamespace(
+            rid=payload.request_id,
+            origin_input_ids=[1],
+            sampling_params=SimpleNamespace(max_new_tokens=1),
+            output_ids=[],
+        )
+        return SimpleNamespace(req=req)
+
+    scheduler._request_builder = request_builder
+
+    try:
+        scheduler.process_input_requests(
+            [
+                SimpleNamespace(request_id="req-a"),
+                SimpleNamespace(request_id="req-b"),
+            ]
+        )
+
+        assert scheduler.waiting_queue == []
+        assert both_started.wait(timeout=2.0)
+        release.set()
+        for _, _, future in list(scheduler._pending_request_builds.values()):
+            future.result(timeout=2.0)
+
+        scheduler.process_input_requests([])
+
+        assert {req.rid for req in scheduler.waiting_queue} == {"req-a", "req-b"}
+        names = [event["event_name"] for event in events]
+        assert names.count("scheduler_request_build_start") == 2
+        assert names.count("scheduler_request_build_end") == 2
+        assert names.count("scheduler_queue_enter") == 2
+    finally:
+        scheduler._shutdown_request_build_executor()
+
+
+def test_omni_scheduler_parallel_request_builds_preserve_arrival_order() -> None:
+    """Later ready builds wait behind earlier unfinished builds."""
+    scheduler = object.__new__(OmniScheduler)
+    scheduler.outbox = Queue()
+    scheduler.waiting_queue = []
+    scheduler._pending_stream_chunks = {}
+    scheduler._pending_stream_done = set()
+    scheduler._deferred_request_payloads = {}
+    scheduler._dirty_deferred_request_ids = set()
+    scheduler._aborted_request_ids = set()
+    scheduler._prefill_start_done = set()
+    scheduler._first_emit_done = set()
+    scheduler.max_req_len = 16
+    scheduler.max_req_input_len = 16
+    scheduler.server_args = SimpleNamespace(mem_fraction_static=None)
+
+    def built_req(req_id: str) -> SimpleNamespace:
+        req = SimpleNamespace(
+            rid=req_id,
+            origin_input_ids=[1],
+            sampling_params=SimpleNamespace(max_new_tokens=1),
+            output_ids=[],
+        )
+        return SimpleNamespace(req=req)
+
+    future_a: Future = Future()
+    future_b: Future = Future()
+    future_b.set_result(built_req("req-b"))
+    scheduler._pending_request_builds = {
+        "req-a": (SimpleNamespace(request_id="req-a"), False, future_a),
+        "req-b": (SimpleNamespace(request_id="req-b"), False, future_b),
+    }
+
+    scheduler._drain_request_build_results()
+
+    assert scheduler.waiting_queue == []
+    assert list(scheduler._pending_request_builds) == ["req-a", "req-b"]
+
+    future_a.set_result(built_req("req-a"))
+    scheduler._drain_request_build_results()
+
+    assert [req.rid for req in scheduler.waiting_queue] == ["req-a", "req-b"]
+
+
+def test_omni_scheduler_abort_all_cancels_pending_request_builds() -> None:
+    scheduler = object.__new__(OmniScheduler)
+    scheduler.inbox = Queue()
+    scheduler.waiting_queue = []
+    scheduler.running_batch = SimpleNamespace(reqs=[], batch_is_full=False)
+    scheduler.cur_batch = None
+    scheduler.last_batch = None
+    scheduler.tree_cache = None
+    scheduler._abort_callback = None
+    scheduler._pending_stream_chunks = {}
+    scheduler._pending_stream_done = set()
+    scheduler._deferred_request_payloads = {}
+    scheduler._dirty_deferred_request_ids = set()
+    scheduler._aborted_request_ids = set()
+    scheduler._prefill_start_done = set()
+    scheduler._first_emit_done = set()
+
+    pending_future: Future = Future()
+    scheduler._pending_request_builds = {
+        "req-pending": (
+            SimpleNamespace(request_id="req-pending"),
+            False,
+            pending_future,
+        )
+    }
+
+    assert scheduler._abort_all_requests() == 1
+
+    assert pending_future.cancelled()
+    assert scheduler._pending_request_builds == {}
+    assert "req-pending" in scheduler._aborted_request_ids
+
+
+def test_omni_scheduler_parallel_request_builder_errors_emit() -> None:
+    """Async request-builder failures stay request-local."""
+    scheduler = object.__new__(OmniScheduler)
+    scheduler.outbox = Queue()
+    scheduler.waiting_queue = []
+    scheduler._pending_stream_chunks = {}
+    scheduler._pending_stream_done = set()
+    scheduler._deferred_request_payloads = {}
+    scheduler._dirty_deferred_request_ids = set()
+    scheduler._aborted_request_ids = set()
+    scheduler.running_batch = SimpleNamespace(reqs=[], batch_is_full=False)
+    scheduler.cur_batch = None
+    scheduler.last_batch = None
+    scheduler._abort_callback = None
+    scheduler._first_emit_done = set()
+    scheduler._prefill_start_done = set()
+    scheduler.inbox = Queue()
+    scheduler.tree_cache = None
+    scheduler._request_build_executor = ThreadPoolExecutor(max_workers=1)
+    scheduler._pending_request_builds = {}
+
+    def request_builder(payload: SimpleNamespace) -> None:
+        raise ValueError(payload.request_id)
+
+    scheduler._request_builder = request_builder
+
+    try:
+        scheduler.process_input_requests([SimpleNamespace(request_id="req-err")])
+        for _, _, future in list(scheduler._pending_request_builds.values()):
+            future.exception(timeout=2.0)
+
+        scheduler.process_input_requests([])
+
+        output = scheduler.outbox.get_nowait()
+        assert output.request_id == "req-err"
+        assert output.type == "error"
+        assert isinstance(output.data, ValueError)
+        assert scheduler.waiting_queue == []
+    finally:
+        scheduler._shutdown_request_build_executor()
 
 
 def test_omni_scheduler_initializes_upstream_queue_limit(monkeypatch) -> None:

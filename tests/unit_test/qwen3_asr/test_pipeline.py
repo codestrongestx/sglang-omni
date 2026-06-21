@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import inspect
+from types import SimpleNamespace
 
+import sglang_omni.models.qwen3_asr.stages as qwen3_asr_stages
 from sglang_omni.models.qwen3_asr.config import Qwen3ASRPipelineConfig
 from sglang_omni.models.qwen3_asr.stages import create_sglang_qwen3_asr_executor
 from sglang_omni.models.registry import PIPELINE_CONFIG_REGISTRY
@@ -47,3 +49,90 @@ def test_qwen3_asr_stage_default_disables_torch_compile() -> None:
     signature = inspect.signature(create_sglang_qwen3_asr_executor)
 
     assert signature.parameters["enable_torch_compile"].default is False
+
+
+def test_qwen3_asr_stage_default_parallelizes_request_builds() -> None:
+    signature = inspect.signature(create_sglang_qwen3_asr_executor)
+
+    assert signature.parameters["request_build_max_workers"].default == 4
+
+
+def test_qwen3_asr_stage_forwards_request_build_workers(monkeypatch) -> None:
+    scheduler_kwargs: dict = {}
+
+    monkeypatch.setattr(
+        qwen3_asr_stages.AutoTokenizer,
+        "from_pretrained",
+        staticmethod(lambda *args, **kwargs: object()),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages.AutoFeatureExtractor,
+        "from_pretrained",
+        staticmethod(lambda *args, **kwargs: SimpleNamespace(nb_max_frames=3000)),
+    )
+
+    def fake_build_sglang_server_args(model_path, context_length, **kwargs):
+        del model_path, context_length
+        return SimpleNamespace(
+            disable_cuda_graph=kwargs["disable_cuda_graph"],
+            disable_overlap_schedule=kwargs["disable_overlap_schedule"],
+        )
+
+    class FakeWorker:
+        def __init__(self):
+            self.model_runner = SimpleNamespace(
+                model=object(),
+                init_device_graphs=lambda: None,
+            )
+
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "build_sglang_server_args",
+        fake_build_sglang_server_args,
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "create_sglang_infrastructure",
+        lambda *args, **kwargs: (
+            FakeWorker(),
+            object(),
+            object(),
+            object(),
+            object(),
+            object(),
+            SimpleNamespace(),
+        ),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "init_mm_embedding_cache",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "SGLangOutputProcessor",
+        lambda **kwargs: SimpleNamespace(**kwargs),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "make_qwen3_asr_scheduler_adapters",
+        lambda **kwargs: (lambda payload: payload, lambda data: data),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "ModelRunner",
+        lambda *args, **kwargs: SimpleNamespace(args=args, kwargs=kwargs),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "OmniScheduler",
+        lambda **kwargs: scheduler_kwargs.update(kwargs)
+        or SimpleNamespace(**kwargs),
+    )
+
+    create_sglang_qwen3_asr_executor(
+        "Qwen/Qwen3-ASR-1.7B",
+        request_build_max_workers=8,
+    )
+
+    assert scheduler_kwargs["request_build_max_workers"] == 8
