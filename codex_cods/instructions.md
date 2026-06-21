@@ -15,7 +15,7 @@ codex_cods/
     <candidate>_vs_<baseline>.md
 ```
 
-Track compact RunPod evidence and logs under the pulled remote mirror path:
+Store RunPod evidence and logs under the pulled remote mirror path:
 
 ```text
 results/
@@ -37,7 +37,21 @@ Example:
 results/runpod/kjrl6b2adbofl9/results/day13_dreamzero_warm_dit_attribution_h100_nsys_2026_nccl_followup/
 ```
 
-Prefer these standard file names for compact evidence:
+Git ignores the RunPod mirror by default so a full pod pull does not create a
+large untracked working tree. These tiny summary markers are auto-visible:
+
+```text
+manifest.json
+summary.txt
+summary.json
+summary.jsonl
+status.code
+*.status
+```
+
+Prefer these standard file names for compact evidence. Commit only the files
+needed to audit a claim; use `git add -f` for ignored evidence files when they
+are intentionally part of a PR:
 
 ```text
 summary.txt
@@ -80,8 +94,7 @@ ncu/
   *.status
 ```
 
-Track compact evidence and logs under `results/runpod/...`. Do not track by
-default:
+Do not track by default:
 
 ```text
 generated_videos/
@@ -101,6 +114,8 @@ mirror. This includes exact commands, hardware/config metadata, SHAs, logs,
 metrics, WER outputs, model-info snapshots, and resource/backpressure samples.
 Large generated media may stay out of Git when the committed metadata records
 the immutable source artifact path and sample manifest needed to audit it.
+Because the mirror is ignored by default, intentionally add non-summary evidence
+with `git add -f <path>` instead of staging the whole pulled tree.
 
 Use `runpod_scripts/runpod_jupyter_exec.py` for pod commands. Pull `/workspace/results`
 with:
@@ -174,10 +189,10 @@ Also save:
 - launch manifest and per-config server command files for multi-config sweeps
 - short notes on workload shape, GPU type/count, concurrency, samples, and known anomalies
 
-When a run is used as PR evidence, commit the tracked `results/runpod/...`
-evidence bundle in the same PR branch as the code. A PR description may
-summarize the results, but the raw evidence needed to audit the claim should be
-available from Git.
+When a run is used as PR evidence, commit the selected `results/runpod/...`
+evidence files in the same PR branch as the code. A PR description may summarize
+the results, but the raw evidence needed to audit the claim should be available
+from Git.
 
 ## Iteration Loop
 

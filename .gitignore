@@ -37,15 +37,18 @@ output.wav
 Thumbs.db
 .ruff_cache/
 uv.lock
-# Track compact RunPod evidence mirrors; keep unrelated result output local.
+# Keep raw result pulls local by default. Only tiny RunPod summary markers
+# are auto-visible; force-add selected evidence files when a PR needs them.
 results/*
 !results/runpod/
-!results/runpod/**
-results/runpod/**/generated_videos/
-results/runpod/**/torch_profiler/profiler/*_trace.json
-results/runpod/**/nsight/*.sqlite
-results/runpod/**/*.tar.gz
-results/runpod/**/*.pid
+results/runpod/**/*
+!results/runpod/**/
+!results/runpod/**/manifest.json
+!results/runpod/**/summary.txt
+!results/runpod/**/summary.json
+!results/runpod/**/summary.jsonl
+!results/runpod/**/status.code
+!results/runpod/**/*.status
 .humanize/
 .benchmark-data/
 
