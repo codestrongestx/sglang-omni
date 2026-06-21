@@ -11,25 +11,96 @@ codex_cods/
   plan.md
   instructions.md
   baseline.md
-  runs/
-    <timestamp>_<label>_<gpu>_<mode>/
-      meta.json
-      command.sh
-      git.txt
-      env.txt
-      nvidia-smi.txt
-      logs/
-      metrics.json
-      notes.md
   comparisons/
     <candidate>_vs_<baseline>.md
 ```
 
-Keep raw pod pulls under the existing result path:
+Track compact RunPod evidence and logs under the pulled remote mirror path:
 
 ```text
-results/runpod/<pod-id>/
+results/
+  runpod/
+    <pod-id>/
+      results/
+        <experiment-name>/
+          <evidence files>
 ```
+
+`<pod-id>` is always the RunPod pod ID. Do not rename it to a human label; the
+pod ID is part of the audit trail. Inside each pod folder, keep the pulled
+remote path under `results/runpod/<pod-id>/results/`, mirroring
+`/workspace/results` from the pod. The pull script preserves this shape.
+
+Example:
+
+```text
+results/runpod/kjrl6b2adbofl9/results/day13_dreamzero_warm_dit_attribution_h100_nsys_2026_nccl_followup/
+```
+
+Prefer these standard file names for compact evidence:
+
+```text
+summary.txt
+status.code
+*.status
+preflight.txt
+env.txt
+env_and_permissions.txt
+repo_revisions.txt
+latency.json
+server_breakdown.json
+trace_summary.json
+correctness_comparison.json
+action_summary.json
+action_hashes.json
+server_trace.jsonl
+server.log
+client.log
+launcher.log
+day<N>_run.log
+```
+
+Use profiler-specific subfolders:
+
+```text
+torch_profiler/
+  profiler/
+    *_table.txt
+    *_operators.json
+
+nsys/
+  nsight/
+    *.nsys-rep
+  nsys_stats.txt
+
+ncu/
+  nsight/
+    *.ncu-rep
+  ncu_*_stdout.txt
+  *.status
+```
+
+Track compact evidence and logs under `results/runpod/...`. Do not track by
+default:
+
+```text
+generated_videos/
+torch_profiler/profiler/*_trace.json
+nsight/*.sqlite
+*.tar.gz
+*.pid
+```
+
+Same pod plus same experiment name means refresh or complete the same evidence
+record. A new question, hardware, backend, rank, profiler, or meaningful config
+means creating a new experiment folder with a variant suffix.
+
+Any hard-to-reproduce artifact needed to verify a performance or correctness
+claim must be committed under this `results/runpod/<pod-id>/results/...`
+mirror. This includes exact commands, hardware/config metadata, SHAs, logs,
+metrics, WER outputs, model-info snapshots, and resource/backpressure samples.
+Large generated media may stay out of Git when the committed metadata records
+the immutable source artifact path and sample manifest needed to audit it.
 
 Use `runpod_scripts/runpod_jupyter_exec.py` for pod commands. Pull `/workspace/results`
 with:
@@ -97,7 +168,16 @@ Also save:
 - exact benchmark command
 - full server, router, and client logs
 - `qwen3_asr_results.json` or equivalent metrics JSON
+- WER output JSON/CSV for runs that make WER claims
+- resource samples and model-info snapshots for runs that make bounded-memory,
+  queue-depth, pending-future, or backpressure claims
+- launch manifest and per-config server command files for multi-config sweeps
 - short notes on workload shape, GPU type/count, concurrency, samples, and known anomalies
+
+When a run is used as PR evidence, commit the tracked `results/runpod/...`
+evidence bundle in the same PR branch as the code. A PR description may
+summarize the results, but the raw evidence needed to audit the claim should be
+available from Git.
 
 ## Iteration Loop
 
