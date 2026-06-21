@@ -47,6 +47,8 @@ _AUDIO_PAD = "<|audio_pad|>"
 _AUDIO_END = "<|audio_end|>"
 _ASR_TEXT = "<asr_text>"
 _PREPROCESS_CACHE_MAX_ENTRIES = 128
+_WHISPER_MAX_SAMPLES = 480000
+_WHISPER_MAX_FRAMES = 3000
 
 
 @dataclass
@@ -183,6 +185,149 @@ def _audio_fingerprint_int(fingerprint: str) -> int:
     return int(fingerprint[:16], 16)
 
 
+def _is_qwen3_asr_whisper_feature_extractor(feature_extractor: Any) -> bool:
+    if feature_extractor.__class__.__name__ != "WhisperFeatureExtractor":
+        return False
+    if not callable(getattr(feature_extractor, "_torch_extract_fbank_features", None)):
+        return False
+
+    expected_int_attrs = {
+        "feature_size": 128,
+        "sampling_rate": _SAMPLE_RATE,
+        "hop_length": 160,
+        "chunk_length": 30,
+        "n_fft": 400,
+        "n_samples": _WHISPER_MAX_SAMPLES,
+        "nb_max_frames": _WHISPER_MAX_FRAMES,
+    }
+    for attr, expected in expected_int_attrs.items():
+        try:
+            actual = int(getattr(feature_extractor, attr))
+        except (TypeError, ValueError):
+            return False
+        if actual != expected:
+            return False
+
+    try:
+        padding_value = float(getattr(feature_extractor, "padding_value"))
+        dither = float(getattr(feature_extractor, "dither"))
+    except (TypeError, ValueError):
+        return False
+
+    if padding_value != 0.0:
+        return False
+    if dither != 0.0:
+        return False
+    return True
+
+
+def _extract_qwen3_asr_whisper_features_fast(
+    feature_extractor: Any, audio: np.ndarray
+) -> tuple[torch.Tensor, torch.Tensor] | None:
+    if not _is_qwen3_asr_whisper_feature_extractor(feature_extractor):
+        return None
+    if not isinstance(audio, np.ndarray) or audio.ndim != 1:
+        return None
+
+    try:
+        n_fft = int(feature_extractor.n_fft)
+        if audio.size <= n_fft // 2:
+            return None
+        audio = np.ascontiguousarray(
+            audio[: int(feature_extractor.n_samples)],
+            dtype=np.float32,
+        )
+        # Match Qwen3-ASR's true-length Whisper preprocessing path; padding
+        # below is only for SGLang's dense multimodal batching.
+        features_np = feature_extractor._torch_extract_fbank_features(
+            audio[None, :],
+            device="cpu",
+        )
+    except Exception:
+        logger.debug("Qwen3-ASR direct Whisper fbank fast path failed", exc_info=True)
+        return None
+
+    if not isinstance(features_np, np.ndarray) or features_np.ndim != 3:
+        return None
+    features = torch.from_numpy(features_np)
+    feature_attention_mask = torch.ones(
+        (features.shape[0], features.shape[-1]),
+        dtype=torch.long,
+    )
+    return _pad_qwen3_asr_features(
+        feature_extractor, features, feature_attention_mask
+    )
+
+
+def _pad_qwen3_asr_features(
+    feature_extractor: Any,
+    features: torch.Tensor,
+    feature_attention_mask: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    try:
+        target_frames = int(getattr(feature_extractor, "nb_max_frames"))
+    except (AttributeError, TypeError, ValueError):
+        return features, feature_attention_mask
+
+    num_frames = int(features.shape[-1])
+    if num_frames >= target_frames:
+        return features, feature_attention_mask
+
+    padded_features = features.new_zeros((*features.shape[:-1], target_frames))
+    padded_features[..., :num_frames] = features
+
+    mask_frames = int(feature_attention_mask.shape[-1])
+    padded_mask = feature_attention_mask.new_zeros(
+        (*feature_attention_mask.shape[:-1], target_frames)
+    )
+    padded_mask[..., :mask_frames] = feature_attention_mask
+    return padded_features, padded_mask
+
+
+def _extract_qwen3_asr_features(
+    feature_extractor: Any, audio: np.ndarray
+) -> tuple[torch.Tensor, torch.Tensor]:
+    fast_features = _extract_qwen3_asr_whisper_features_fast(feature_extractor, audio)
+    if fast_features is not None:
+        return fast_features
+    padding = (
+        "max_length"
+        if _needs_whisper_max_length_padding(feature_extractor, audio)
+        else "longest"
+    )
+
+    extracted = feature_extractor(
+        audio,
+        sampling_rate=_SAMPLE_RATE,
+        return_tensors="pt",
+        return_attention_mask=True,
+        padding=padding,
+        truncation=True,
+    )
+    features = extracted.input_features
+    feature_attention_mask = getattr(extracted, "attention_mask", None)
+    if feature_attention_mask is None:
+        # WhisperFeatureExtractor normally returns one; fall back to all-valid.
+        feature_attention_mask = torch.ones(
+            (features.shape[0], features.shape[-1]), dtype=torch.long
+        )
+    return _pad_qwen3_asr_features(
+        feature_extractor, features, feature_attention_mask
+    )
+
+
+def _needs_whisper_max_length_padding(
+    feature_extractor: Any, audio: np.ndarray
+) -> bool:
+    if not _is_qwen3_asr_whisper_feature_extractor(feature_extractor):
+        return False
+    try:
+        n_fft = int(feature_extractor.n_fft)
+    except (TypeError, ValueError):
+        return False
+    return isinstance(audio, np.ndarray) and audio.ndim == 1 and audio.size <= n_fft // 2
+
+
 def _decode_token_ids(
     tokenizer: Any, token_ids: list[int], *, skip_special_tokens: bool
 ) -> str:
@@ -261,22 +406,11 @@ def make_qwen3_asr_scheduler_adapters(
             audio_duration_s = float(len(audio) / _SAMPLE_RATE)
             fingerprint = _audio_fingerprint(audio)
 
-            extracted = feature_extractor(
-                audio,
-                sampling_rate=_SAMPLE_RATE,
-                return_tensors="pt",
-                return_attention_mask=True,
+            features, feature_attention_mask = _extract_qwen3_asr_features(
+                feature_extractor, audio
             )
-            features = extracted.input_features  # 128, 3000
-            feature_attention_mask = getattr(extracted, "attention_mask", None)
-            if feature_attention_mask is None:
-                # WhisperFeatureExtractor normally returns one; fall back to all-valid.
-                feature_attention_mask = torch.ones(
-                    (features.shape[0], features.shape[-1]), dtype=torch.long
-                )
-            # Keep the full padded mel; the model's get_audio_feature uses the mask
-            # to select valid frames. Its no-mask branch transposes wrong, so the
-            # mask path must be taken.
+            # get_audio_feature uses the mask to select valid frames; its no-mask
+            # branch transposes wrong, so the mask path must be taken.
             num_mel_frames = int(feature_attention_mask.sum().item())
             num_audio_tokens = int(qwen3_asr_num_audio_tokens(num_mel_frames))
             preprocessed = _PreprocessedAudio(

@@ -72,6 +72,70 @@ class _FakeTokenizer:
         return text
 
 
+class WhisperFeatureExtractor:
+    def __init__(
+        self,
+        *,
+        feature_size: int = 128,
+        sampling_rate: int = 16000,
+        hop_length: int = 160,
+        chunk_length: int = 30,
+        n_fft: int = 400,
+        n_samples: int = 480000,
+        nb_max_frames: int = 3000,
+        padding_value: float = 0.0,
+        dither: float = 0.0,
+        fail_fast_path: bool = False,
+    ) -> None:
+        self.feature_size = feature_size
+        self.sampling_rate = sampling_rate
+        self.hop_length = hop_length
+        self.chunk_length = chunk_length
+        self.n_fft = n_fft
+        self.n_samples = n_samples
+        self.nb_max_frames = nb_max_frames
+        self.padding_value = padding_value
+        self.dither = dither
+        self.fail_fast_path = fail_fast_path
+        self.fast_calls: list[dict] = []
+        self.public_calls: list[dict] = []
+
+    def _torch_extract_fbank_features(self, waveform, device="cpu"):
+        self.fast_calls.append(
+            {
+                "waveform": waveform.copy(),
+                "device": device,
+                "is_contiguous": waveform.flags["C_CONTIGUOUS"],
+            }
+        )
+        if self.fail_fast_path:
+            raise RuntimeError("fast path unavailable")
+        num_frames = waveform.shape[-1] // self.hop_length
+        return np.ones(
+            (waveform.shape[0], self.feature_size, num_frames),
+            dtype=np.float32,
+        )
+
+    def __call__(self, audio, **kwargs):
+        self.public_calls.append({"audio": audio, "kwargs": kwargs})
+        return SimpleNamespace(
+            input_features=torch.full((1, 128, 17), 2.0),
+            attention_mask=torch.ones((1, 17), dtype=torch.long),
+        )
+
+
+class _MinimalFeatureExtractor:
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    def __call__(self, audio, **kwargs):
+        self.calls.append({"audio": audio, "kwargs": kwargs})
+        return SimpleNamespace(
+            input_features=torch.full((1, 128, 17), 3.0),
+            attention_mask=torch.ones((1, 17), dtype=torch.long),
+        )
+
+
 def test_qwen3_asr_audio_token_length_formula_is_shared() -> None:
     lengths = torch.tensor([0, 1, 99, 100, 101, 3000], dtype=torch.long)
     expected = torch.tensor([0, 1, 13, 13, 14, 390], dtype=torch.long)
@@ -81,6 +145,148 @@ def test_qwen3_asr_audio_token_length_formula_is_shared() -> None:
     assert torch.equal(qwen3_asr_audio_token_lengths(lengths), expected)
     assert torch.equal(processor._get_feat_extract_output_lengths(lengths), expected)
     assert qwen3_asr_num_audio_tokens(3000) == 390
+
+
+def test_qwen3_asr_direct_whisper_feature_path_truncates_and_skips_public_call() -> None:
+    feature_extractor = WhisperFeatureExtractor()
+    audio = np.arange(480005, dtype=np.float64)
+
+    features, feature_attention_mask = request_builders._extract_qwen3_asr_features(
+        feature_extractor,
+        audio,
+    )
+
+    assert feature_extractor.public_calls == []
+    assert len(feature_extractor.fast_calls) == 1
+    fast_call = feature_extractor.fast_calls[0]
+    waveform = fast_call["waveform"]
+    assert fast_call["device"] == "cpu"
+    assert fast_call["is_contiguous"]
+    assert waveform.dtype == np.float32
+    assert waveform.shape == (1, 480000)
+    assert waveform[0, 0] == 0.0
+    assert waveform[0, -1] == 479999.0
+    assert features.shape == (1, 128, 3000)
+    assert features.dtype == torch.float32
+    assert feature_attention_mask.shape == (1, 3000)
+    assert feature_attention_mask.dtype == torch.long
+    assert int(feature_attention_mask.sum().item()) == 3000
+
+
+def test_qwen3_asr_direct_whisper_feature_path_pads_storage_for_batching() -> None:
+    feature_extractor = WhisperFeatureExtractor()
+    audio = np.zeros(1600, dtype=np.float32)
+
+    features, feature_attention_mask = request_builders._extract_qwen3_asr_features(
+        feature_extractor,
+        audio,
+    )
+
+    assert feature_extractor.public_calls == []
+    assert features.shape == (1, 128, 3000)
+    assert feature_attention_mask.shape == (1, 3000)
+    assert int(feature_attention_mask.sum().item()) == 10
+    assert torch.equal(features[:, :, :10], torch.ones((1, 128, 10)))
+    assert torch.equal(features[:, :, 10:], torch.zeros((1, 128, 2990)))
+    assert torch.equal(
+        feature_attention_mask[:, :10],
+        torch.ones((1, 10), dtype=torch.long),
+    )
+    assert torch.equal(
+        feature_attention_mask[:, 10:],
+        torch.zeros((1, 2990), dtype=torch.long),
+    )
+
+
+def test_qwen3_asr_direct_whisper_feature_path_keeps_true_length_frame_count() -> None:
+    feature_extractor = WhisperFeatureExtractor()
+    audio = np.zeros(1601, dtype=np.float32)
+
+    features, feature_attention_mask = request_builders._extract_qwen3_asr_features(
+        feature_extractor,
+        audio,
+    )
+
+    assert feature_extractor.public_calls == []
+    assert feature_extractor.fast_calls[0]["waveform"].shape == (1, 1601)
+    assert features.shape == (1, 128, 3000)
+    assert feature_attention_mask.shape == (1, 3000)
+    assert int(feature_attention_mask.sum().item()) == 10
+
+
+def test_qwen3_asr_tiny_whisper_audio_falls_back_to_max_length_padding() -> None:
+    feature_extractor = WhisperFeatureExtractor()
+    audio = np.zeros(100, dtype=np.float32)
+
+    features, feature_attention_mask = request_builders._extract_qwen3_asr_features(
+        feature_extractor,
+        audio,
+    )
+
+    assert feature_extractor.fast_calls == []
+    assert len(feature_extractor.public_calls) == 1
+    assert feature_extractor.public_calls[0]["kwargs"]["padding"] == "max_length"
+    assert features.shape == (1, 128, 3000)
+    assert feature_attention_mask.shape == (1, 3000)
+
+
+def test_qwen3_asr_feature_path_falls_back_for_non_qwen3_whisper_config() -> None:
+    feature_extractor = WhisperFeatureExtractor(feature_size=80)
+    audio = np.zeros(1600, dtype=np.float32)
+
+    features, feature_attention_mask = request_builders._extract_qwen3_asr_features(
+        feature_extractor,
+        audio,
+    )
+
+    assert feature_extractor.fast_calls == []
+    assert len(feature_extractor.public_calls) == 1
+    public_call = feature_extractor.public_calls[0]
+    assert public_call["kwargs"] == {
+        "sampling_rate": 16000,
+        "return_tensors": "pt",
+        "return_attention_mask": True,
+        "padding": "longest",
+        "truncation": True,
+    }
+    assert features.shape == (1, 128, 3000)
+    assert feature_attention_mask.shape == (1, 3000)
+    assert torch.equal(features[:, :, :17], torch.full((1, 128, 17), 2.0))
+    assert torch.equal(features[:, :, 17:], torch.zeros((1, 128, 2983)))
+    assert int(feature_attention_mask.sum().item()) == 17
+
+
+def test_qwen3_asr_feature_path_accepts_extractors_without_nb_max_frames() -> None:
+    feature_extractor = _MinimalFeatureExtractor()
+    audio = np.zeros(1600, dtype=np.float32)
+
+    features, feature_attention_mask = request_builders._extract_qwen3_asr_features(
+        feature_extractor,
+        audio,
+    )
+
+    assert len(feature_extractor.calls) == 1
+    assert feature_extractor.calls[0]["kwargs"]["padding"] == "longest"
+    assert torch.equal(features, torch.full((1, 128, 17), 3.0))
+    assert torch.equal(feature_attention_mask, torch.ones((1, 17), dtype=torch.long))
+
+
+def test_qwen3_asr_feature_path_falls_back_when_direct_whisper_call_fails() -> None:
+    feature_extractor = WhisperFeatureExtractor(fail_fast_path=True)
+    audio = np.zeros(1600, dtype=np.float32)
+
+    features, feature_attention_mask = request_builders._extract_qwen3_asr_features(
+        feature_extractor,
+        audio,
+    )
+
+    assert len(feature_extractor.fast_calls) == 1
+    assert len(feature_extractor.public_calls) == 1
+    assert features.shape == (1, 128, 3000)
+    assert feature_attention_mask.shape == (1, 3000)
+    assert torch.equal(features[:, :, :17], torch.full((1, 128, 17), 2.0))
+    assert torch.equal(features[:, :, 17:], torch.zeros((1, 128, 2983)))
+    assert int(feature_attention_mask.sum().item()) == 17
 
 
 def test_qwen3_asr_request_builder_records_inclusive_audio_offsets(monkeypatch) -> None:
