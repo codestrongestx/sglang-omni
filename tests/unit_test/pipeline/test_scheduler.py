@@ -784,18 +784,38 @@ def test_omni_scheduler_request_build_backlog_is_bounded() -> None:
         assert [
             payload.request_id
             for payload in scheduler._backlogged_request_build_payloads
-        ] == ["req-b"]
-        output_1 = scheduler.outbox.get_nowait()
-        output_2 = scheduler.outbox.get_nowait()
-        assert {output_1.request_id, output_2.request_id} == {"req-c", "req-d"}
-        assert output_1.type == "error"
-        assert output_2.type == "error"
-        assert "request-build backlog is full" in str(output_1.data)
-        assert "request-build backlog is full" in str(output_2.data)
-        assert {"req-c", "req-d"} <= scheduler._aborted_request_ids
+        ] == ["req-b", "req-c"]
+        output = scheduler.outbox.get_nowait()
+        assert output.request_id == "req-d"
+        assert output.type == "error"
+        assert "request-build backlog is full" in str(output.data)
+        assert scheduler.outbox.empty()
+        assert {"req-d"} <= scheduler._aborted_request_ids
     finally:
         never_release.set()
         scheduler._shutdown_request_build_executor()
+
+
+def test_omni_scheduler_request_build_drains_backlog_before_rejecting_new_arrivals() -> None:
+    scheduler = object.__new__(OmniScheduler)
+    scheduler._request_build_executor = object()
+    scheduler.request_build_max_pending = 1
+    scheduler.request_build_max_backlog = 1
+    scheduler._pending_request_builds = {}
+    scheduler._backlogged_request_build_payloads = deque(
+        [SimpleNamespace(request_id="req-backlog")]
+    )
+    scheduler._aborted_request_ids = set()
+
+    selected, rejected = scheduler._stage_request_build_payloads(
+        [SimpleNamespace(request_id="req-new")]
+    )
+
+    assert [payload.request_id for payload in selected] == ["req-backlog"]
+    assert rejected == []
+    assert [
+        payload.request_id for payload in scheduler._backlogged_request_build_payloads
+    ] == ["req-new"]
 
 
 def test_omni_scheduler_abort_all_cancels_pending_and_backlogged_builds() -> None:

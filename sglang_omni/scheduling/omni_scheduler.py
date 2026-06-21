@@ -623,26 +623,13 @@ class OmniScheduler:
             pending_builds = self.__dict__.setdefault("_pending_request_builds", {})
             rejected: list[Any] = []
             backlog_ids = {payload.request_id for payload in backlog}
-            for payload in recv_reqs:
-                req_id = payload.request_id
-                if (
-                    req_id in self._aborted_request_ids
-                    or req_id in pending_builds
-                    or req_id in backlog_ids
-                ):
-                    continue
-                if len(backlog) >= self._request_build_backlog_capacity():
-                    rejected.append(payload)
-                    continue
-                backlog.append(payload)
-                backlog_ids.add(req_id)
-
             capacity = max(
                 0,
                 int(getattr(self, "request_build_max_pending", 0) or 0)
                 - len(pending_builds),
             )
             selected: list[Any] = []
+            selected_ids: set[str] = set()
             while capacity > 0 and backlog:
                 payload = backlog.popleft()
                 req_id = payload.request_id
@@ -650,7 +637,28 @@ class OmniScheduler:
                 if req_id in self._aborted_request_ids or req_id in pending_builds:
                     continue
                 selected.append(payload)
+                selected_ids.add(req_id)
                 capacity -= 1
+
+            for payload in recv_reqs:
+                req_id = payload.request_id
+                if (
+                    req_id in self._aborted_request_ids
+                    or req_id in pending_builds
+                    or req_id in backlog_ids
+                    or req_id in selected_ids
+                ):
+                    continue
+                if capacity > 0:
+                    selected.append(payload)
+                    selected_ids.add(req_id)
+                    capacity -= 1
+                    continue
+                if len(backlog) >= self._request_build_backlog_capacity():
+                    rejected.append(payload)
+                    continue
+                backlog.append(payload)
+                backlog_ids.add(req_id)
             return selected, rejected
 
     def _merge_request_build_backlog(self, recv_reqs: list[Any]) -> list[Any]:
