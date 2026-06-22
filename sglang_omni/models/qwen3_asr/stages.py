@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import logging
+import os
 from typing import Any
 
 from sglang.srt.managers.mm_utils import init_mm_embedding_cache
@@ -20,6 +22,22 @@ from sglang_omni.scheduling.sglang_backend import (
 )
 from sglang_omni.utils.gpu_compat import get_visible_gpu_sm_version
 
+logger = logging.getLogger(__name__)
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None or raw == "":
+        return default
+    return int(raw)
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None or raw == "":
+        return default
+    return raw.strip().lower() not in {"0", "false", "no", "off"}
+
 
 def create_sglang_qwen3_asr_executor(
     model_path: str,
@@ -32,6 +50,9 @@ def create_sglang_qwen3_asr_executor(
     mm_embedding_cache_size_bytes: int = 0,
     enable_torch_compile: bool = False,
     mm_attention_backend: str | None = None,
+    request_build_max_workers: int | None = None,
+    request_build_max_pending: int | None = None,
+    request_build_isolate_processors: bool | None = None,
     server_args_overrides: dict[str, Any] | None = None,
 ):
 
@@ -40,6 +61,37 @@ def create_sglang_qwen3_asr_executor(
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     feature_extractor = AutoFeatureExtractor.from_pretrained(
         model_path, trust_remote_code=True
+    )
+    request_build_max_workers = (
+        _env_int("QWEN3_ASR_REQUEST_BUILD_WORKERS", 1)
+        if request_build_max_workers is None
+        else int(request_build_max_workers)
+    )
+    request_build_max_workers = max(1, request_build_max_workers)
+    if request_build_max_pending is None:
+        request_build_max_pending = (
+            _env_int(
+                "QWEN3_ASR_REQUEST_BUILD_MAX_PENDING",
+                max(request_build_max_workers * 4, request_build_max_workers),
+            )
+            if request_build_max_workers > 1
+            else 0
+        )
+    else:
+        request_build_max_pending = int(request_build_max_pending)
+    if request_build_isolate_processors is None:
+        request_build_isolate_processors = _env_bool(
+            "QWEN3_ASR_REQUEST_BUILD_ISOLATE_PROCESSORS",
+            request_build_max_workers > 1,
+        )
+    else:
+        request_build_isolate_processors = bool(request_build_isolate_processors)
+    logger.info(
+        "Qwen3-ASR request build config: workers=%s max_pending=%s "
+        "isolate_processors=%s",
+        request_build_max_workers,
+        request_build_max_pending,
+        request_build_isolate_processors,
     )
 
     encoder_token_count = int(feature_extractor.nb_max_frames // 2)
@@ -101,10 +153,21 @@ def create_sglang_qwen3_asr_executor(
         capture_hidden_layers=None,
         model=model_worker.model_runner.model,
     )
+    tokenizer_factory = None
+    feature_extractor_factory = None
+    if request_build_max_workers > 1 and request_build_isolate_processors:
+        tokenizer_factory = lambda: AutoTokenizer.from_pretrained(
+            model_path, trust_remote_code=True
+        )
+        feature_extractor_factory = lambda: AutoFeatureExtractor.from_pretrained(
+            model_path, trust_remote_code=True
+        )
     request_builder, result_adapter = make_qwen3_asr_scheduler_adapters(
         tokenizer=tokenizer,
         feature_extractor=feature_extractor,
         max_new_tokens=max_new_tokens,
+        tokenizer_factory=tokenizer_factory,
+        feature_extractor_factory=feature_extractor_factory,
     )
 
     return OmniScheduler(
@@ -119,6 +182,8 @@ def create_sglang_qwen3_asr_executor(
         model_runner=ModelRunner(model_worker, output_proc),
         request_builder=request_builder,
         result_adapter=result_adapter,
+        request_build_max_workers=request_build_max_workers,
+        request_build_max_pending=request_build_max_pending,
     )
 
 
