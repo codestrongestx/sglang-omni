@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 
 import numpy as np
@@ -70,6 +72,17 @@ class _FakeTokenizer:
         if skip_special_tokens:
             text = text.replace("<|endoftext|>", "")
         return text
+
+
+class _TrackingTokenizer(_FakeTokenizer):
+    def __init__(self, name: str, calls: list[str]) -> None:
+        super().__init__()
+        self.name = name
+        self._calls = calls
+
+    def __call__(self, text: str, *, add_special_tokens: bool = False):
+        self._calls.append(self.name)
+        return super().__call__(text, add_special_tokens=add_special_tokens)
 
 
 def test_qwen3_asr_audio_token_length_formula_is_shared() -> None:
@@ -145,3 +158,66 @@ def test_qwen3_asr_result_adapter_decodes_without_text_round_trip() -> None:
         "skip_special_tokens": True,
         "clean_up_tokenization_spaces": False,
     }
+
+
+def test_qwen3_asr_request_builder_uses_thread_local_processors(monkeypatch) -> None:
+    num_mel_frames = 101
+    tokenizer_calls: list[str] = []
+    extractor_calls: list[str] = []
+    barrier = threading.Barrier(2)
+    factory_lock = threading.Lock()
+    factory_counts = {"tokenizer": 0, "feature_extractor": 0}
+
+    class TrackingFeatureExtractor:
+        def __init__(self, name: str) -> None:
+            self.name = name
+
+        def __call__(self, *args, **kwargs):
+            extractor_calls.append(self.name)
+            barrier.wait(timeout=2.0)
+            return SimpleNamespace(
+                input_features=torch.zeros((1, 128, 3000)),
+                attention_mask=torch.ones((1, num_mel_frames), dtype=torch.long),
+            )
+
+    def tokenizer_factory():
+        with factory_lock:
+            factory_counts["tokenizer"] += 1
+            name = f"tokenizer-{factory_counts['tokenizer']}"
+        return _TrackingTokenizer(name, tokenizer_calls)
+
+    def feature_extractor_factory():
+        with factory_lock:
+            factory_counts["feature_extractor"] += 1
+            name = f"feature-{factory_counts['feature_extractor']}"
+        return TrackingFeatureExtractor(name)
+
+    monkeypatch.setattr(
+        request_builders,
+        "load_audio",
+        lambda source: np.zeros(1600, dtype=np.float32),
+    )
+    request_builder, _ = make_qwen3_asr_scheduler_adapters(
+        tokenizer=_TrackingTokenizer("shared", tokenizer_calls),
+        max_new_tokens=32,
+        feature_extractor=TrackingFeatureExtractor("shared-feature"),
+        tokenizer_factory=tokenizer_factory,
+        feature_extractor_factory=feature_extractor_factory,
+    )
+
+    payloads = [
+        StagePayload(
+            request_id=f"req-{idx}",
+            request=OmniRequest(inputs={"audio_bytes": b"wav"}),
+            data={},
+        )
+        for idx in range(2)
+    ]
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(executor.map(request_builder, payloads))
+
+    assert [result.req.rid for result in results] == ["req-0", "req-1"]
+    assert set(tokenizer_calls) == {"tokenizer-1", "tokenizer-2"}
+    assert set(extractor_calls) == {"feature-1", "feature-2"}
+    assert factory_counts == {"tokenizer": 2, "feature_extractor": 2}
