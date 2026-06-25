@@ -40,7 +40,6 @@ def create_sglang_qwen3_asr_executor(
     mm_attention_backend: str | None = None,
     request_build_max_workers: int = 2,
     request_build_max_pending: int | None = 16,
-    request_build_max_backlog: int | None = None,
     server_args_overrides: dict[str, Any] | None = None,
 ):
 
@@ -129,7 +128,6 @@ def create_sglang_qwen3_asr_executor(
         result_adapter=result_adapter,
         request_build_max_workers=request_build_max_workers,
         request_build_max_pending=request_build_max_pending,
-        request_build_max_backlog=request_build_max_backlog,
     )
 
 

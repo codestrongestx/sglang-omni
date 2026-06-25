@@ -50,14 +50,6 @@ logger = logging.getLogger(__name__)
 
 _FAILED_BATCH_RESULT = object()
 
-_DEFAULT_REQUEST_BUILD_MAX_PENDING = 16
-_DEFAULT_REQUEST_BUILD_BACKLOG = 64
-
-
-def _default_request_build_backlog(server_args: Any) -> int:
-    queued_limit = int(server_args.max_queued_requests or 0)
-    return max(_DEFAULT_REQUEST_BUILD_BACKLOG, queued_limit)
-
 
 class _NoOpSender:
     """Stub for send_to_detokenizer — stream_output handles emission."""
@@ -125,7 +117,6 @@ class OmniScheduler:
         async_decode_min_batch_size: int = 2,
         request_build_max_workers: int = 1,
         request_build_max_pending: int | None = None,
-        request_build_max_backlog: int | None = None,
     ):
         self.inbox: _queue_mod.Queue[IncomingMessage] = _queue_mod.Queue()
         self.outbox: _queue_mod.Queue[OutgoingMessage] = _queue_mod.Queue()
@@ -141,28 +132,24 @@ class OmniScheduler:
         self._abort_callback = abort_callback
         self._request_admission_lock = threading.RLock()
         self.request_build_max_workers = max(1, int(request_build_max_workers))
-        if (
-            self.request_build_max_workers > 1
-            and int(getattr(server_args, "tp_size", 1)) > 1
-        ):
+        if self.request_build_max_workers > 1 and int(server_args.tp_size) > 1:
             logger.warning(
-                "OmniScheduler request-build workers are disabled for tp_size=%s "
-                "to preserve identical request admission order on every TP rank",
-                getattr(server_args, "tp_size", None),
+                "OmniScheduler request-build workers are disabled for "
+                f"tp_size={server_args.tp_size} to preserve identical request "
+                "admission order on every TP rank"
             )
             self.request_build_max_workers = 1
         if self.request_build_max_workers > 1:
             max_pending = (
-                _DEFAULT_REQUEST_BUILD_MAX_PENDING
+                self.request_build_max_workers
                 if request_build_max_pending is None
                 else int(request_build_max_pending)
             )
             self.request_build_max_pending = max(1, max_pending)
-            if request_build_max_backlog is None:
-                default_backlog = _default_request_build_backlog(server_args)
-            else:
-                default_backlog = int(request_build_max_backlog)
-            self.request_build_max_backlog = max(1, default_backlog)
+            self._request_build_backlog_limit = max(
+                self.request_build_max_pending,
+                int(server_args.max_queued_requests or 0),
+            )
             self._request_build_executor: ThreadPoolExecutor | None = (
                 ThreadPoolExecutor(
                     max_workers=self.request_build_max_workers,
@@ -171,7 +158,7 @@ class OmniScheduler:
             )
         else:
             self.request_build_max_pending = 0
-            self.request_build_max_backlog = 0
+            self._request_build_backlog_limit = 0
             self._request_build_executor = None
         self._pending_request_builds: dict[str, tuple[Any, bool, Future]] = {}
         self._backlogged_request_build_payloads: deque[Any] = deque()
@@ -642,7 +629,7 @@ class OmniScheduler:
                     selected_ids.add(req_id)
                     capacity -= 1
                     continue
-                if len(backlog) >= self.request_build_max_backlog:
+                if len(backlog) >= self._request_build_backlog_limit:
                     rejected.append(payload)
                     continue
                 backlog.append(payload)
@@ -653,7 +640,7 @@ class OmniScheduler:
         req_id = payload.request_id
         error = RuntimeError(
             "request-build backlog is full "
-            f"(max_backlog={self.request_build_max_backlog})"
+            f"(backlog_limit={self._request_build_backlog_limit})"
         )
         logger.warning("Rejecting request %s before build: %s", req_id, error)
         self._emit_request_error(req_id, error)
@@ -1205,7 +1192,6 @@ class OmniScheduler:
                 "request_build_workers": self.request_build_max_workers,
                 "request_build_pending": request_build_pending,
                 "request_build_max_pending": self.request_build_max_pending,
-                "request_build_max_backlog": self.request_build_max_backlog,
                 "request_build_backlog": request_build_backlog,
                 "request_build_max_pending_observed": (
                     self._request_build_max_pending_observed

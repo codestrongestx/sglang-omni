@@ -1328,7 +1328,6 @@ def test_qwen3_tts_ar_scheduler_abort_cleans_prepared_state() -> None:
         scheduler._request_admission_lock = threading.RLock()
         scheduler._request_build_executor = None
         scheduler.request_build_max_pending = 0
-        scheduler.request_build_max_backlog = 0
         scheduler._pending_request_builds = {}
         scheduler._backlogged_request_build_payloads = []
         scheduler._request_build_max_pending_observed = 0

@@ -23,6 +23,7 @@ def test_qwen3_asr_config_uses_batched_stage_with_32_running_requests() -> None:
     assert config.stages[0].factory_args["max_running_requests"] == 32
     assert config.stages[0].factory_args["request_build_max_workers"] == 2
     assert config.stages[0].factory_args["request_build_max_pending"] == 16
+    assert "request_build_max_backlog" not in config.stages[0].factory_args
     assert (
         PIPELINE_CONFIG_REGISTRY.get_config("Qwen3ASRForConditionalGeneration")
         is Qwen3ASRPipelineConfig
@@ -35,6 +36,7 @@ def test_qwen3_asr_stage_default_allows_32_running_requests() -> None:
     assert signature.parameters["max_running_requests"].default == 32
     assert signature.parameters["request_build_max_workers"].default == 2
     assert signature.parameters["request_build_max_pending"].default == 16
+    assert "request_build_max_backlog" not in signature.parameters
 
 
 def test_qwen3_asr_stage_default_uses_auto_static_kv_budget() -> None:
