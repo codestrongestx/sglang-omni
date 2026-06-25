@@ -599,6 +599,88 @@ def test_omni_scheduler_parallel_request_builds_queue_when_ready(monkeypatch) ->
         scheduler._shutdown_request_build_executor()
 
 
+def test_omni_scheduler_parallel_request_build_events_are_worker_side(
+    monkeypatch,
+) -> None:
+    events: list[dict] = []
+    monkeypatch.setattr(
+        "sglang_omni.scheduling.omni_scheduler._emit_event",
+        lambda **kwargs: events.append(kwargs),
+    )
+    scheduler = object.__new__(OmniScheduler)
+    scheduler.outbox = Queue()
+    scheduler.waiting_queue = []
+    scheduler._pending_stream_chunks = {}
+    scheduler._pending_stream_done = set()
+    scheduler._deferred_request_payloads = {}
+    scheduler._dirty_deferred_request_ids = set()
+    scheduler._aborted_request_ids = set()
+    scheduler._prefill_start_done = set()
+    scheduler._first_emit_done = set()
+    scheduler.max_req_len = 16
+    scheduler.max_req_input_len = 16
+    scheduler._request_build_executor = ThreadPoolExecutor(max_workers=2)
+    scheduler.request_build_max_pending = 2
+    scheduler._pending_request_builds = {}
+    scheduler._backlogged_request_build_payloads = deque()
+    scheduler._request_build_max_pending_observed = 0
+
+    first_started = threading.Event()
+    release_first = threading.Event()
+
+    def built_req(req_id: str) -> SimpleNamespace:
+        req = SimpleNamespace(
+            rid=req_id,
+            origin_input_ids=[1],
+            sampling_params=SimpleNamespace(max_new_tokens=1),
+            output_ids=[],
+        )
+        return SimpleNamespace(req=req)
+
+    def request_builder(payload: SimpleNamespace) -> SimpleNamespace:
+        if payload.request_id == "req-a":
+            first_started.set()
+            assert release_first.wait(timeout=2.0)
+        return built_req(payload.request_id)
+
+    scheduler._request_builder = request_builder
+
+    try:
+        scheduler.process_input_requests(
+            [
+                SimpleNamespace(request_id="req-a"),
+                SimpleNamespace(request_id="req-b"),
+            ]
+        )
+
+        assert first_started.wait(timeout=2.0)
+        req_b_result = scheduler._pending_request_builds["req-b"][2].result(
+            timeout=2.0
+        )
+        assert req_b_result.req.rid == "req-b"
+        assert scheduler.waiting_queue == []
+        assert list(scheduler._pending_request_builds) == ["req-a", "req-b"]
+
+        req_b_events = [
+            event["event_name"]
+            for event in events
+            if event["request_id"] == "req-b"
+        ]
+        assert req_b_events == [
+            "scheduler_request_build_start",
+            "scheduler_request_build_end",
+        ]
+
+        release_first.set()
+        scheduler._pending_request_builds["req-a"][2].result(timeout=2.0)
+        scheduler.process_input_requests([])
+
+        assert [req.rid for req in scheduler.waiting_queue] == ["req-a", "req-b"]
+    finally:
+        release_first.set()
+        scheduler._shutdown_request_build_executor()
+
+
 def test_omni_scheduler_parallel_request_builds_preserve_arrival_order() -> None:
     """Later ready builds wait behind earlier unfinished builds."""
     scheduler = object.__new__(OmniScheduler)

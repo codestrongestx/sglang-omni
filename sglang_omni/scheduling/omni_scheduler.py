@@ -31,7 +31,10 @@ from sglang.srt.managers.scheduler import validate_input_length
 from sglang.srt.mem_cache.common import release_kv_cache
 from sglang.srt.utils import broadcast_pyobj
 
-from sglang_omni.profiler.event_recorder import emit as _emit_event
+from sglang_omni.profiler.event_recorder import (
+    emit as _emit_event,
+    get_active_stage as _get_active_stage,
+)
 from sglang_omni.proto.admin import (
     ADMIN_CONTINUE_GENERATION,
     ADMIN_DESTROY_WEIGHTS_UPDATE_GROUP,
@@ -553,11 +556,7 @@ class OmniScheduler:
             ):
                 self._deferred_request_payloads[req_id] = payload
                 continue
-            _emit_event(
-                request_id=req_id,
-                stage=None,
-                event_name="scheduler_request_build_start",
-            )
+            active_stage = _get_active_stage()
             request_build_executor = getattr(self, "_request_build_executor", None)
             if request_build_executor is not None:
                 with self._get_request_admission_lock():
@@ -570,7 +569,7 @@ class OmniScheduler:
                     ):
                         continue
                     future = request_build_executor.submit(
-                        self._request_builder, payload
+                        self._run_request_builder, payload, active_stage
                     )
                     pending_builds[req_id] = (payload, pending_stream_done, future)
                     self._request_build_max_pending_observed = max(
@@ -579,7 +578,7 @@ class OmniScheduler:
                     )
                 continue
             try:
-                req_data = self._request_builder(payload)
+                req_data = self._run_request_builder(payload, active_stage)
             except Exception as exc:
                 logger.exception(f"OmniScheduler: request builder failed for {req_id}")
                 self._emit_request_error(req_id, exc)
@@ -594,6 +593,21 @@ class OmniScheduler:
             lock = threading.RLock()
             self.__dict__["_request_admission_lock"] = lock
         return lock
+
+    def _run_request_builder(self, payload: Any, active_stage: str | None) -> Any:
+        req_id = payload.request_id
+        _emit_event(
+            request_id=req_id,
+            stage=active_stage,
+            event_name="scheduler_request_build_start",
+        )
+        req_data = self._request_builder(payload)
+        _emit_event(
+            request_id=req_id,
+            stage=active_stage,
+            event_name="scheduler_request_build_end",
+        )
+        return req_data
 
     def _stage_request_build_payloads(
         self, recv_reqs: list[Any]
@@ -704,11 +718,6 @@ class OmniScheduler:
         req = req_data.req
         req._omni_data = req_data
         req_id = req.rid
-        _emit_event(
-            request_id=req_id,
-            stage=None,
-            event_name="scheduler_request_build_end",
-        )
         if bool(getattr(req_data, "enforce_request_limits", False)):
             error_msg = self._prepare_request_limits(req_data)
             if error_msg:
