@@ -56,6 +56,7 @@ def test_qwen3_asr_stage_request_build_workers_default_to_sync() -> None:
 
     assert signature.parameters["request_build_max_workers"].default == 1
     assert signature.parameters["request_build_max_pending"].default is None
+    assert signature.parameters["request_build_max_backlog"].default is None
 
 
 def test_qwen3_asr_stage_forwards_request_build_config(monkeypatch) -> None:
@@ -141,8 +142,10 @@ def test_qwen3_asr_stage_forwards_request_build_config(monkeypatch) -> None:
         "Qwen/Qwen3-ASR-1.7B",
         request_build_max_workers=8,
         request_build_max_pending=6,
+        request_build_max_backlog=24,
     )
 
     assert scheduler_kwargs["request_build_max_workers"] == 8
     assert scheduler_kwargs["request_build_max_pending"] == 6
+    assert scheduler_kwargs["request_build_max_backlog"] == 24
     assert set(adapter_kwargs) == {"tokenizer", "feature_extractor", "max_new_tokens"}

@@ -49,12 +49,20 @@ logger = logging.getLogger(__name__)
 
 _FAILED_BATCH_RESULT = object()
 
+_DEFAULT_REQUEST_BUILD_PENDING_PER_WORKER = 4
+_DEFAULT_REQUEST_BUILD_BACKLOG_WINDOWS = 4
+_DEFAULT_REQUEST_BUILD_MIN_BACKLOG = 64
+
 
 def _default_request_build_backlog_capacity(
     max_pending: int, server_args: Any
 ) -> int:
-    queued_limit = int(getattr(server_args, "max_queued_requests", 0) or 0)
-    return max(max_pending * 4, 64, queued_limit)
+    queued_limit = int(server_args.max_queued_requests or 0)
+    return max(
+        max_pending * _DEFAULT_REQUEST_BUILD_BACKLOG_WINDOWS,
+        _DEFAULT_REQUEST_BUILD_MIN_BACKLOG,
+        queued_limit,
+    )
 
 
 class _NoOpSender:
@@ -151,7 +159,8 @@ class OmniScheduler:
             self.request_build_max_workers = 1
         if self.request_build_max_workers > 1:
             max_pending = (
-                self.request_build_max_workers * 4
+                self.request_build_max_workers
+                * _DEFAULT_REQUEST_BUILD_PENDING_PER_WORKER
                 if request_build_max_pending is None
                 else int(request_build_max_pending)
             )
@@ -611,8 +620,7 @@ class OmniScheduler:
             backlog_ids = {payload.request_id for payload in backlog}
             capacity = max(
                 0,
-                int(getattr(self, "request_build_max_pending", 0) or 0)
-                - len(pending_builds),
+                self.request_build_max_pending - len(pending_builds),
             )
             selected: list[Any] = []
             selected_ids: set[str] = set()
@@ -640,28 +648,18 @@ class OmniScheduler:
                     selected_ids.add(req_id)
                     capacity -= 1
                     continue
-                if len(backlog) >= self._request_build_backlog_capacity():
+                if len(backlog) >= self.request_build_max_backlog:
                     rejected.append(payload)
                     continue
                 backlog.append(payload)
                 backlog_ids.add(req_id)
             return selected, rejected
 
-    def _request_build_backlog_capacity(self) -> int:
-        return max(
-            1,
-            int(
-                getattr(self, "request_build_max_backlog", 0)
-                or getattr(self, "request_build_max_pending", 1)
-                or 1
-            ),
-        )
-
     def _reject_request_build_backlog_overflow(self, payload: Any) -> None:
         req_id = payload.request_id
         error = RuntimeError(
             "request-build backlog is full "
-            f"(max_backlog={self._request_build_backlog_capacity()})"
+            f"(max_backlog={self.request_build_max_backlog})"
         )
         logger.warning("Rejecting request %s before build: %s", req_id, error)
         self._emit_request_error(req_id, error)
