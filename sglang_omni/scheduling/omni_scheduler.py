@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 
 _FAILED_BATCH_RESULT = object()
 
-_DEFAULT_REQUEST_BUILD_PENDING_PER_WORKER = 4
+_DEFAULT_REQUEST_BUILD_MAX_PENDING = 16
 _DEFAULT_REQUEST_BUILD_BACKLOG = 64
 
 
@@ -152,8 +152,7 @@ class OmniScheduler:
             self.request_build_max_workers = 1
         if self.request_build_max_workers > 1:
             max_pending = (
-                self.request_build_max_workers
-                * _DEFAULT_REQUEST_BUILD_PENDING_PER_WORKER
+                _DEFAULT_REQUEST_BUILD_MAX_PENDING
                 if request_build_max_pending is None
                 else int(request_build_max_pending)
             )
