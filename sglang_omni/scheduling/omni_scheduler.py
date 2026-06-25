@@ -600,7 +600,7 @@ class OmniScheduler:
         self, recv_reqs: list[Any]
     ) -> tuple[list[Any], list[Any]]:
         if getattr(self, "_request_build_executor", None) is None:
-            return self._merge_request_build_backlog(recv_reqs), []
+            return list(recv_reqs), []
 
         with self._get_request_admission_lock():
             backlog = self.__dict__.setdefault(
@@ -646,18 +646,6 @@ class OmniScheduler:
                 backlog.append(payload)
                 backlog_ids.add(req_id)
             return selected, rejected
-
-    def _merge_request_build_backlog(self, recv_reqs: list[Any]) -> list[Any]:
-        with self._get_request_admission_lock():
-            backlog = self.__dict__.setdefault(
-                "_backlogged_request_build_payloads", deque()
-            )
-            if not backlog:
-                return list(recv_reqs)
-            merged = list(backlog)
-            backlog.clear()
-        merged.extend(recv_reqs)
-        return merged
 
     def _request_build_backlog_capacity(self) -> int:
         return max(
