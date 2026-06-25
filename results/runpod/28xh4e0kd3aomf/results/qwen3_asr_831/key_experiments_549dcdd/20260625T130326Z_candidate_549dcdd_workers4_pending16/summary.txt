@@ -1,0 +1,1 @@
+concurrency=32 wall_mean=11.382s throughput_mean=95.603samples/s wer_max=0.0133 evaluated=1088/1088 skipped=0

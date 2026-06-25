@@ -1,0 +1,33 @@
+run_dir=/workspace/results/qwen3_asr_831/key_experiments_549dcdd/20260625T125754Z_baseline_main_1ad75cc
+label=baseline_main_1ad75cc
+worktree=/workspace/repos/sglang-omni-main-1ad75cc
+model_path=Qwen/Qwen3-ASR-1.7B
+max_samples=1088
+unique_samples_per_repeat=96
+concurrencies=32
+repeats=3
+serve_extra_args=
+acquired_gpu_lock=2026-06-25T12:57:54Z
++ git -C /workspace/repos/sglang-omni-main-1ad75cc rev-parse HEAD
++ git -C /workspace/repos/sglang-omni-main-1ad75cc status --short --branch
++ git -C /workspace/repos/sglang-omni-main-1ad75cc diff --stat
++ nvidia-smi
++ /workspace/repos/sglang-omni/.venv/bin/python --version
++ /workspace/repos/sglang-omni/.venv/bin/python -m pip freeze
+starting_server=2026-06-25T12:57:55Z
+server_ready=2026-06-25T13:00:56Z
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loaded 1088 SeedTTS en samples; sweeping concurrency=[32] x 3 repeats against 127.0.0.1:18000 (Qwen/Qwen3-ASR-1.7B)
+[conc=32] warmup pass ...
+[conc=32 rep=1] wall=21.619s thrpt=50.326/s lat_mean=0.629s lat_p95=0.827s rtf_mean=0.1358 corpus_wer=0.0133 skipped=0
+[conc=32 rep=2] wall=21.695s thrpt=50.151/s lat_mean=0.632s lat_p95=0.824s rtf_mean=0.1366 corpus_wer=0.0131 skipped=0
+[conc=32 rep=3] wall=21.757s thrpt=50.006/s lat_mean=0.634s lat_p95=0.840s rtf_mean=0.1371 corpus_wer=0.0126 skipped=0
+
+| conc | reps | wall(s) mean | thrpt mean | thrpt best | lat mean(s) | lat p95(s) | rtf mean | rtf p95 | corpus WER | max WER |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 32 | 3 | 21.690 | 50.161 | 50.326 | 0.632 | 0.830 | 0.1365 | 0.1839 | 0.0133 | 0.2857 |
+
+Wrote results to /workspace/results/qwen3_asr_831/key_experiments_549dcdd/20260625T125754Z_baseline_main_1ad75cc/results.json
+concurrency=32 wall_mean=21.690s throughput_mean=50.161samples/s wer_max=0.0133 evaluated=1088/1088 skipped=0
+completed=2026-06-25T13:03:09Z
+stopping_server=322

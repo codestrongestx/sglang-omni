@@ -1,0 +1,33 @@
+run_dir=/workspace/results/qwen3_asr_831/key_experiments_549dcdd/20260625T130326Z_candidate_549dcdd_workers4_pending16
+label=candidate_549dcdd_workers4_pending16
+worktree=/workspace/repos/sglang-omni-pr-issue831-549dcdd
+model_path=Qwen/Qwen3-ASR-1.7B
+max_samples=1088
+unique_samples_per_repeat=96
+concurrencies=32
+repeats=3
+serve_extra_args=stages.0.factory_args.request_build_max_workers=4 stages.0.factory_args.request_build_max_pending=16
+acquired_gpu_lock=2026-06-25T13:03:26Z
++ git -C /workspace/repos/sglang-omni-pr-issue831-549dcdd rev-parse HEAD
++ git -C /workspace/repos/sglang-omni-pr-issue831-549dcdd status --short --branch
++ git -C /workspace/repos/sglang-omni-pr-issue831-549dcdd diff --stat
++ nvidia-smi
++ /workspace/repos/sglang-omni/.venv/bin/python --version
++ /workspace/repos/sglang-omni/.venv/bin/python -m pip freeze
+starting_server=2026-06-25T13:03:28Z
+server_ready=2026-06-25T13:05:28Z
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loaded 1088 SeedTTS en samples; sweeping concurrency=[32] x 3 repeats against 127.0.0.1:18000 (Qwen/Qwen3-ASR-1.7B)
+[conc=32] warmup pass ...
+[conc=32 rep=1] wall=11.491s thrpt=94.681/s lat_mean=0.332s lat_p95=0.439s rtf_mean=0.0718 corpus_wer=0.0132 skipped=0
+[conc=32 rep=2] wall=11.218s thrpt=96.988/s lat_mean=0.323s lat_p95=0.431s rtf_mean=0.0700 corpus_wer=0.0127 skipped=0
+[conc=32 rep=3] wall=11.436s thrpt=95.139/s lat_mean=0.329s lat_p95=0.447s rtf_mean=0.0712 corpus_wer=0.0133 skipped=0
+
+| conc | reps | wall(s) mean | thrpt mean | thrpt best | lat mean(s) | lat p95(s) | rtf mean | rtf p95 | corpus WER | max WER |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 32 | 3 | 11.382 | 95.603 | 96.988 | 0.328 | 0.439 | 0.0710 | 0.0979 | 0.0133 | 0.2727 |
+
+Wrote results to /workspace/results/qwen3_asr_831/key_experiments_549dcdd/20260625T130326Z_candidate_549dcdd_workers4_pending16/results.json
+concurrency=32 wall_mean=11.382s throughput_mean=95.603samples/s wer_max=0.0133 evaluated=1088/1088 skipped=0
+completed=2026-06-25T13:06:47Z
+stopping_server=1115

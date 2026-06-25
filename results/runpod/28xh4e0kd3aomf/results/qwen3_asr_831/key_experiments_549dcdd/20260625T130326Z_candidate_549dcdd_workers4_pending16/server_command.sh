@@ -1,0 +1,1 @@
+PYTHONPATH="/workspace/repos/sglang-omni-pr-issue831-549dcdd" "/workspace/repos/sglang-omni/.venv/bin/sgl-omni" serve --model-path "Qwen/Qwen3-ASR-1.7B" --host 0.0.0.0 --port "18000" --log-level info stages.0.factory_args.request_build_max_workers=4 stages.0.factory_args.request_build_max_pending=16

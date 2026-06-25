@@ -1,0 +1,1 @@
+{"object":"list","data":[{"id":"Qwen/Qwen3-ASR-1.7B","object":"model","created":0,"owned_by":"sglang-omni","permission":[{"id":"modelperm-default","object":"model_permission","allow_create_engine":false,"allow_sampling":true,"allow_logprobs":true}],"root":"Qwen/Qwen3-ASR-1.7B"}]}
