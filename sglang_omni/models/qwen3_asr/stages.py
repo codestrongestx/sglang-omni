@@ -32,13 +32,6 @@ def _env_int(name: str, default: int) -> int:
     return int(raw)
 
 
-def _env_bool(name: str, default: bool) -> bool:
-    raw = os.getenv(name)
-    if raw is None or raw == "":
-        return default
-    return raw.strip().lower() not in {"0", "false", "no", "off"}
-
-
 def create_sglang_qwen3_asr_executor(
     model_path: str,
     *,
@@ -52,7 +45,6 @@ def create_sglang_qwen3_asr_executor(
     mm_attention_backend: str | None = None,
     request_build_max_workers: int | None = None,
     request_build_max_pending: int | None = None,
-    request_build_isolate_processors: bool | None = None,
     server_args_overrides: dict[str, Any] | None = None,
 ):
 
@@ -79,19 +71,10 @@ def create_sglang_qwen3_asr_executor(
         )
     else:
         request_build_max_pending = int(request_build_max_pending)
-    if request_build_isolate_processors is None:
-        request_build_isolate_processors = _env_bool(
-            "QWEN3_ASR_REQUEST_BUILD_ISOLATE_PROCESSORS",
-            request_build_max_workers > 1,
-        )
-    else:
-        request_build_isolate_processors = bool(request_build_isolate_processors)
     logger.info(
-        "Qwen3-ASR request build config: workers=%s max_pending=%s "
-        "isolate_processors=%s",
+        "Qwen3-ASR request build config: workers=%s max_pending=%s",
         request_build_max_workers,
         request_build_max_pending,
-        request_build_isolate_processors,
     )
 
     encoder_token_count = int(feature_extractor.nb_max_frames // 2)
@@ -153,21 +136,10 @@ def create_sglang_qwen3_asr_executor(
         capture_hidden_layers=None,
         model=model_worker.model_runner.model,
     )
-    tokenizer_factory = None
-    feature_extractor_factory = None
-    if request_build_max_workers > 1 and request_build_isolate_processors:
-        tokenizer_factory = lambda: AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=True
-        )
-        feature_extractor_factory = lambda: AutoFeatureExtractor.from_pretrained(
-            model_path, trust_remote_code=True
-        )
     request_builder, result_adapter = make_qwen3_asr_scheduler_adapters(
         tokenizer=tokenizer,
         feature_extractor=feature_extractor,
         max_new_tokens=max_new_tokens,
-        tokenizer_factory=tokenizer_factory,
-        feature_extractor_factory=feature_extractor_factory,
     )
 
     return OmniScheduler(
