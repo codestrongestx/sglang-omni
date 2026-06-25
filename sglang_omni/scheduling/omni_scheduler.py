@@ -50,19 +50,12 @@ logger = logging.getLogger(__name__)
 _FAILED_BATCH_RESULT = object()
 
 _DEFAULT_REQUEST_BUILD_PENDING_PER_WORKER = 4
-_DEFAULT_REQUEST_BUILD_BACKLOG_WINDOWS = 4
-_DEFAULT_REQUEST_BUILD_MIN_BACKLOG = 64
+_DEFAULT_REQUEST_BUILD_BACKLOG = 64
 
 
-def _default_request_build_backlog_capacity(
-    max_pending: int, server_args: Any
-) -> int:
+def _default_request_build_backlog(server_args: Any) -> int:
     queued_limit = int(server_args.max_queued_requests or 0)
-    return max(
-        max_pending * _DEFAULT_REQUEST_BUILD_BACKLOG_WINDOWS,
-        _DEFAULT_REQUEST_BUILD_MIN_BACKLOG,
-        queued_limit,
-    )
+    return max(_DEFAULT_REQUEST_BUILD_BACKLOG, queued_limit)
 
 
 class _NoOpSender:
@@ -166,9 +159,7 @@ class OmniScheduler:
             )
             self.request_build_max_pending = max(1, max_pending)
             if request_build_max_backlog is None:
-                default_backlog = _default_request_build_backlog_capacity(
-                    self.request_build_max_pending, server_args
-                )
+                default_backlog = _default_request_build_backlog(server_args)
             else:
                 default_backlog = int(request_build_max_backlog)
             self.request_build_max_backlog = max(1, default_backlog)

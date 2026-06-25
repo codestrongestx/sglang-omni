@@ -718,15 +718,10 @@ def test_omni_scheduler_request_build_backpressure_bounds_futures() -> None:
 def test_omni_scheduler_request_build_default_backlog_allows_admission_burst() -> None:
     server_args = SimpleNamespace(max_queued_requests=0)
 
+    assert omni_scheduler_module._default_request_build_backlog(server_args) == 64
     assert (
-        omni_scheduler_module._default_request_build_backlog_capacity(
-            8, server_args
-        )
-        == 64
-    )
-    assert (
-        omni_scheduler_module._default_request_build_backlog_capacity(
-            8, SimpleNamespace(max_queued_requests=256)
+        omni_scheduler_module._default_request_build_backlog(
+            SimpleNamespace(max_queued_requests=256)
         )
         == 256
     )
