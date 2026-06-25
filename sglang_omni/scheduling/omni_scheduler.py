@@ -676,28 +676,23 @@ class OmniScheduler:
                 req_id, (payload, pending_stream_done, future) = next(
                     iter(pending_builds.items())
                 )
-            if not future.done():
-                return
+                if not future.done():
+                    return
+                pending_builds.pop(req_id, None)
+                if req_id in self._aborted_request_ids:
+                    continue
             try:
                 req_data = future.result()
             except Exception as exc:
                 with self._get_request_admission_lock():
-                    pending_builds = getattr(self, "_pending_request_builds", {})
-                    pending = pending_builds.get(req_id)
-                    if pending is not None and pending[2] is future:
-                        pending_builds.pop(req_id, None)
-                    if pending is None or req_id in self._aborted_request_ids:
+                    if req_id in self._aborted_request_ids:
                         continue
                 logger.exception(f"OmniScheduler: request builder failed for {req_id}")
                 self._emit_request_error(req_id, exc)
                 self.abort(req_id)
                 continue
             with self._get_request_admission_lock():
-                pending_builds = getattr(self, "_pending_request_builds", {})
-                pending = pending_builds.get(req_id)
-                if pending is not None and pending[2] is future:
-                    pending_builds.pop(req_id, None)
-                if pending is None or req_id in self._aborted_request_ids:
+                if req_id in self._aborted_request_ids:
                     continue
                 self._enqueue_built_request(
                     payload,
