@@ -51,10 +51,10 @@ def test_qwen3_asr_stage_default_disables_torch_compile() -> None:
     assert signature.parameters["enable_torch_compile"].default is False
 
 
-def test_qwen3_asr_stage_request_build_workers_default_to_env_opt_in() -> None:
+def test_qwen3_asr_stage_request_build_workers_default_to_sync() -> None:
     signature = inspect.signature(create_sglang_qwen3_asr_executor)
 
-    assert signature.parameters["request_build_max_workers"].default is None
+    assert signature.parameters["request_build_max_workers"].default == 1
     assert signature.parameters["request_build_max_pending"].default is None
 
 

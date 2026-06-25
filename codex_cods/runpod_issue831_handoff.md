@@ -98,7 +98,8 @@ sed '/--unique-timed-samples/d; /--unique-samples-per-repeat/d' \
 chmod +x /workspace/tmp/run_issue831_experiment_no_unique_5560337.sh
 ```
 
-Then run with request-build workers enabled via env:
+Then run with request-build workers enabled through the existing dotted config
+overrides for the ASR stage kwargs, not via env:
 
 ```bash
 export PYTHONPATH=/workspace/repos/sglang-omni-verify-5560337
@@ -109,11 +110,11 @@ export ISSUE831_PORT=18000
 export ISSUE831_MAX_SAMPLES=1088
 export ISSUE831_CONCURRENCIES=32
 export ISSUE831_REPEATS=3
-export QWEN3_ASR_REQUEST_BUILD_WORKERS=4
-export QWEN3_ASR_REQUEST_BUILD_MAX_PENDING=16
 bash /workspace/tmp/run_issue831_experiment_no_unique_5560337.sh \
   candidate_5560337_supported_benchmark_w4p16_fg \
-  /workspace/repos/sglang-omni-verify-5560337
+  /workspace/repos/sglang-omni-verify-5560337 \
+  stages.0.factory_args.request_build_max_workers=4 \
+  stages.0.factory_args.request_build_max_pending=16
 ```
 
 Observed run directory:
