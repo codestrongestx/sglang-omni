@@ -33,3 +33,9 @@ This is the supported `benchmark_qwen3_asr_concurrency` path available in the
 current checkout. The benchmark parser in both current `origin/main` and
 candidate did not accept the `--unique-timed-samples` flags, so the temporary
 wrapper removed those two arguments.
+
+The pod virtualenv did not include `pip`, so `pip_freeze.txt` records
+`No module named pip` for these two lightweight ASR benchmark runs. Python
+version, GPU metadata, exact SHAs, server/client commands, logs, and result
+JSON are present. The generated-audio PR evidence bundle below includes the
+same code paths and full per-repeat benchmark outputs.
