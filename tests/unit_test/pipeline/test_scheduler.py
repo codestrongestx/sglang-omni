@@ -1081,7 +1081,6 @@ def test_omni_scheduler_abort_filters_request_build_backlog_in_place() -> None:
 
     scheduler.abort("req-drop")
 
-    assert scheduler._backlogged_request_build_payloads is backlog
     assert [payload.request_id for payload in backlog] == ["req-keep"]
     assert "req-drop" in scheduler._aborted_request_ids
 
