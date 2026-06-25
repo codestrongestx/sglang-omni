@@ -54,7 +54,7 @@ def _default_request_build_backlog_capacity(
     max_pending: int, server_args: Any
 ) -> int:
     queued_limit = int(getattr(server_args, "max_queued_requests", 0) or 0)
-    return max(max_pending, max_pending * 4, 64, queued_limit)
+    return max(max_pending * 4, 64, queued_limit)
 
 
 class _NoOpSender:
