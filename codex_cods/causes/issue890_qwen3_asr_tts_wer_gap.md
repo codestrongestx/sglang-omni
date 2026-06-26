@@ -47,8 +47,8 @@ latency. The p99 latency reported in the issue is especially suspicious
 
 ## Current Thesis
 
-The most likely explanation is benchmark-path mismatch rather than #885 request
-builder configuration failing to propagate.
+The most likely explanation is generated-audio workload difference, not #885
+request-builder configuration failing to propagate.
 
 Static code inspection of the merged #885 path suggests:
 
@@ -71,6 +71,12 @@ The major known benchmark differences are:
   equivalent excluded warmup window.
 - The TTS WER path transcribes generated TTS WAVs instead of the fixed SeedTTS
   reference audio.
+
+The 2026-06-26 cross-over run below makes the harness-only explanation less
+likely: when audio is held fixed in a direct single-worker ASR server shape, the
+TTS WER client path was not slower than the standalone client path. The stable
+directional signal was audio source: generated TTS audio was slower than
+SeedTTS reference audio in both client paths.
 
 ## Evidence Gathered So Far
 
@@ -111,6 +117,57 @@ candidate. They do not close issue #890 because the reported CI comparison used
 the merged defaults, a managed-router shape with two worker replicas, and job
 artifacts/logs that are not fully available locally.
 
+New cross-over evidence on the merged issue commit:
+
+- Pod: `vlnvl972hadukt`, one `NVIDIA H100 80GB HBM3`, stopped after results were
+  pulled.
+- Commit: `4eff258e4a279c61c2b68a06e4949f1f5a17b972`.
+- Runner: `codex_cods/scripts/issue890_cross_over_remote.py`.
+- Remote results:
+  `/workspace/results/issue890_cross_over/20260626T134741Z_4eff258_direct_h100`
+  and
+  `/workspace/results/issue890_cross_over/20260626T135711Z_4eff258_direct_h100_generated_only`.
+- Local mirror:
+  `results/runpod/vlnvl972hadukt/results/issue890_cross_over`.
+- ASR server shape: direct `sgl-omni serve`, one ASR stage process on one GPU.
+  This is not exact CI parity with the two-worker managed router fixture.
+
+Cross-over matrix, ASR concurrency 32:
+
+| cell | audio | harness | wall s | samples/s | audio s/s | p95 s | p99 s | corpus WER |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| A1 | SeedTTS reference | standalone async, warmup 64 | 20.364 | 53.427 | 253.0 | 0.796 | 0.936 | 0.0162 |
+| A2 | SeedTTS reference | TTS WER thread pool, no excluded warmup | 12.340 | 88.168 | 417.6 | 0.473 | 0.544 | 0.0133 |
+| B1 | generated TTS | standalone async, warmup 64 | 24.040 | 45.257 | 199.2 | 1.040 | 1.405 | 0.0264 |
+| B2 | generated TTS | TTS WER thread pool, no excluded warmup | 13.660 | 79.646 | 350.5 | 0.584 | 0.692 | 0.0255 |
+
+Useful ratios:
+
+```text
+standalone generated/reference: 45.257 / 53.427 = 0.847  (~15.3% slower)
+TTS WER generated/reference:    79.646 / 88.168 = 0.903  (~9.7% slower)
+issue reported generated/ref:   63 / 71 ~= 0.887        (~11.3% slower)
+```
+
+Interpretation:
+
+- The generated-audio slowdown survives in both harnesses, so generated TTS WAVs
+  are a plausible primary explanation for the issue's `~63` vs `~71` gap.
+- The issue's observed ratio sits between the two direct-server cross-over
+  ratios, which makes an audio-workload explanation quantitatively plausible.
+- Holding audio fixed did not show the TTS WER harness as intrinsically slower in
+  this run. Do not over-interpret A2 > A1 or B2 > B1 as proof that the TTS path
+  is faster; those cells ran after a preceding pass on a direct server and are
+  affected by ordering/warm-server effects. The safer conclusion is narrower:
+  the harness-only-slower thesis is not supported by this controlled run.
+- Generated audio also had worse tail latency and higher WER in matching
+  harnesses, which supports a content/workload difference rather than a pure
+  sample-count or duration explanation.
+- The generated-only pass completed B2 and wrote valid
+  `generated_audio_tts_wer_harness/{wer_results.json,asr_speed_results.json}`;
+  `run_error.txt` records only a post-run summary typo in the experiment runner.
+  The runner has been fixed locally.
+
 RunPod status checked on 2026-06-26:
 
 - Account balance was `1240.49 USD`, above the `1230 USD` stop threshold.
@@ -123,6 +180,11 @@ RunPod status checked on 2026-06-26:
   but not the generated WAV files. Re-running the cross-over matrix therefore
   needs either the original pod artifacts, GitHub artifact access, or fresh TTS
   audio generation.
+- Replacement pod `vlnvl972hadukt` was launched in `US-CA-2` against network
+  volume `2uctshujzl` because the original stopped pod could not be restarted.
+  It was stopped after pulling results. Balance after stopping was
+  `1239.04 USD`, above the `1230 USD` stop threshold; current spend returned to
+  `0.049 USD/hr`.
 
 ## Minimal Experiment Matrix
 
@@ -173,3 +235,10 @@ Stop once the gap is attributable to harness differences, generated-audio
 workload differences, or a specific runtime/config artifact. Only turn the issue
 into an optimization task if the matrix shows a server-side or routing behavior
 that remains slower after controlling audio set and client harness.
+
+Current stop-rule status: the direct-server cross-over attributes the direction
+and approximate magnitude of the mismatch to generated-audio workload effects.
+The remaining open item is exact CI-parity confirmation under the two-worker
+managed router, or access to the original GitHub job logs/artifacts. That is a
+stronger provenance check, not a reason to suspect #885 configuration
+propagation by default.
