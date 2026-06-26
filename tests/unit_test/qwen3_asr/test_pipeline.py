@@ -21,6 +21,9 @@ def test_qwen3_asr_config_uses_batched_stage_with_32_running_requests() -> None:
     assert config.stages[0].factory.endswith("create_sglang_qwen3_asr_executor")
     assert config.stages[0].factory_args["device"] == "cuda:0"
     assert config.stages[0].factory_args["max_running_requests"] == 32
+    assert config.stages[0].factory_args["request_build_max_workers"] == 2
+    assert config.stages[0].factory_args["request_build_max_pending"] == 16
+    assert "request_build_max_backlog" not in config.stages[0].factory_args
     assert (
         PIPELINE_CONFIG_REGISTRY.get_config("Qwen3ASRForConditionalGeneration")
         is Qwen3ASRPipelineConfig
@@ -31,6 +34,9 @@ def test_qwen3_asr_stage_default_allows_32_running_requests() -> None:
     signature = inspect.signature(create_sglang_qwen3_asr_executor)
 
     assert signature.parameters["max_running_requests"].default == 32
+    assert signature.parameters["request_build_max_workers"].default == 2
+    assert signature.parameters["request_build_max_pending"].default == 16
+    assert "request_build_max_backlog" not in signature.parameters
 
 
 def test_qwen3_asr_stage_default_uses_auto_static_kv_budget() -> None:
@@ -51,101 +57,74 @@ def test_qwen3_asr_stage_default_disables_torch_compile() -> None:
     assert signature.parameters["enable_torch_compile"].default is False
 
 
-def test_qwen3_asr_stage_request_build_workers_default_to_sync() -> None:
-    signature = inspect.signature(create_sglang_qwen3_asr_executor)
+def test_qwen3_asr_threads_explicit_cuda_graph_bs(monkeypatch) -> None:
+    build_kwargs: dict[str, object] = {}
 
-    assert signature.parameters["request_build_max_workers"].default == 1
-    assert signature.parameters["request_build_max_pending"].default is None
-    assert signature.parameters["request_build_max_backlog"].default is None
-
-
-def test_qwen3_asr_stage_forwards_request_build_config(monkeypatch) -> None:
-    scheduler_kwargs: dict = {}
-    adapter_kwargs: dict = {}
-
-    monkeypatch.setattr(qwen3_asr_stages, "get_visible_gpu_sm_version", lambda _gpu: 90)
     monkeypatch.setattr(
         qwen3_asr_stages.AutoTokenizer,
         "from_pretrained",
-        staticmethod(lambda *args, **kwargs: object()),
+        lambda *args, **kwargs: object(),
     )
     monkeypatch.setattr(
         qwen3_asr_stages.AutoFeatureExtractor,
         "from_pretrained",
-        staticmethod(lambda *args, **kwargs: SimpleNamespace(nb_max_frames=3000)),
-    )
-
-    def fake_build_sglang_server_args(model_path, context_length, **kwargs):
-        del model_path, context_length
-        return SimpleNamespace(
-            disable_cuda_graph=kwargs["disable_cuda_graph"],
-            disable_overlap_schedule=kwargs["disable_overlap_schedule"],
-        )
-
-    class FakeWorker:
-        def __init__(self):
-            self.model_runner = SimpleNamespace(
-                model=object(),
-                init_device_graphs=lambda: None,
-            )
-
-    monkeypatch.setattr(
-        qwen3_asr_stages,
-        "build_sglang_server_args",
-        fake_build_sglang_server_args,
+        lambda *args, **kwargs: SimpleNamespace(nb_max_frames=3000),
     )
     monkeypatch.setattr(
         qwen3_asr_stages,
-        "create_sglang_infrastructure",
-        lambda *args, **kwargs: (
-            FakeWorker(),
-            object(),
-            object(),
-            object(),
-            object(),
-            object(),
-            SimpleNamespace(),
-        ),
+        "get_visible_gpu_sm_version",
+        lambda gpu_id: None,
     )
-    monkeypatch.setattr(
-        qwen3_asr_stages,
-        "init_mm_embedding_cache",
-        lambda *args, **kwargs: None,
-    )
-    monkeypatch.setattr(
-        qwen3_asr_stages,
-        "SGLangOutputProcessor",
-        lambda **kwargs: SimpleNamespace(**kwargs),
-    )
-
-    def fake_make_qwen3_asr_scheduler_adapters(**kwargs):
-        adapter_kwargs.update(kwargs)
-        return lambda payload: payload, lambda data: data
-
+    monkeypatch.setattr(qwen3_asr_stages, "init_mm_embedding_cache", lambda size: None)
     monkeypatch.setattr(
         qwen3_asr_stages,
         "make_qwen3_asr_scheduler_adapters",
-        fake_make_qwen3_asr_scheduler_adapters,
+        lambda **kwargs: (object(), object()),
     )
     monkeypatch.setattr(
         qwen3_asr_stages,
         "ModelRunner",
-        lambda *args, **kwargs: SimpleNamespace(args=args, kwargs=kwargs),
+        lambda *args, **kwargs: object(),
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "SGLangOutputProcessor",
+        lambda **kwargs: object(),
     )
     monkeypatch.setattr(
         qwen3_asr_stages,
         "OmniScheduler",
-        lambda **kwargs: scheduler_kwargs.update(kwargs) or SimpleNamespace(**kwargs),
+        lambda **kwargs: SimpleNamespace(**kwargs),
     )
 
-    create_sglang_qwen3_asr_executor(
-        "Qwen/Qwen3-ASR-1.7B",
-        request_build_max_workers=8,
-        request_build_max_pending=6,
-        request_build_max_backlog=24,
+    def _fake_server_args_builder(model_path, context_length, **overrides):
+        build_kwargs.update(overrides)
+        return SimpleNamespace(**overrides)
+
+    def _fake_create_infrastructure(server_args, gpu_id, **kwargs):
+        model_worker = SimpleNamespace(model_runner=SimpleNamespace(model=object()))
+        return False, (
+            model_worker,
+            object(),
+            object(),
+            object(),
+            object(),
+            object(),
+            object(),
+        )
+
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "build_sglang_server_args",
+        _fake_server_args_builder,
+    )
+    monkeypatch.setattr(
+        qwen3_asr_stages,
+        "create_sglang_infrastructure_defer_cuda_graph",
+        _fake_create_infrastructure,
     )
 
-    assert scheduler_kwargs["request_build_max_workers"] == 8
-    assert scheduler_kwargs["request_build_max_pending"] == 6
-    assert scheduler_kwargs["request_build_max_backlog"] == 24
-    assert set(adapter_kwargs) == {"tokenizer", "feature_extractor", "max_new_tokens"}
+    qwen3_asr_stages.create_sglang_qwen3_asr_executor("dummy")
+
+    assert build_kwargs["cuda_graph_max_bs"] == 32
+    assert build_kwargs["cuda_graph_bs"] == [1, 2, 4, 8, 12, 16, 24, 32]

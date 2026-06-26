@@ -20,6 +20,15 @@ from sglang_omni.scheduling.threaded_simple_scheduler import ThreadedSimpleSched
 from tests.unit_test.pipeline.helpers import run_scheduler
 
 
+def _init_sync_request_build_state(scheduler: OmniScheduler) -> None:
+    scheduler._request_admission_lock = threading.RLock()
+    scheduler._request_build_executor = None
+    scheduler.request_build_max_pending = 0
+    scheduler._pending_request_builds = {}
+    scheduler._backlogged_request_build_payloads = []
+    scheduler._request_build_max_pending_observed = 0
+
+
 def test_simple_scheduler_batch_and_error_contracts() -> None:
     """Preserves batched success output and per-request batch failure emission."""
     good = SimpleScheduler(
@@ -220,6 +229,7 @@ def test_omni_scheduler_run_batch_failure_emits_error_and_aborts(monkeypatch) ->
     )
     scheduler.running_batch = batch
     scheduler.cur_batch = batch
+    _init_sync_request_build_state(scheduler)
 
     result = scheduler.run_batch(batch)
 
@@ -402,6 +412,7 @@ def test_omni_scheduler_abort_propagates_immediate_kv_cleanup_failure(
     scheduler.running_batch = batch
     scheduler.cur_batch = batch
     scheduler.last_batch = None
+    _init_sync_request_build_state(scheduler)
 
     with pytest.raises(RuntimeError, match="kv cleanup failed"):
         scheduler.abort("req-fail", defer_running_cleanup=False)
@@ -440,6 +451,7 @@ def test_omni_scheduler_abort_marks_running_request_for_finish(monkeypatch) -> N
     scheduler.running_batch = batch
     scheduler.cur_batch = batch
     scheduler.last_batch = None
+    _init_sync_request_build_state(scheduler)
 
     scheduler.abort("req-run")
 
@@ -475,6 +487,7 @@ def test_omni_scheduler_abort_cleans_queued_request_immediately() -> None:
     scheduler.running_batch = SimpleNamespace(reqs=[], batch_is_full=False)
     scheduler.cur_batch = None
     scheduler.last_batch = None
+    _init_sync_request_build_state(scheduler)
 
     scheduler.abort("req-wait")
 
@@ -502,6 +515,7 @@ def test_omni_scheduler_distinguishes_queue_enter_from_prefill_start(
     scheduler._prefill_start_done = set()
     scheduler.max_req_len = 16
     scheduler.max_req_input_len = 16
+    _init_sync_request_build_state(scheduler)
 
     req = SimpleNamespace(
         rid="req-delayed",
@@ -1342,6 +1356,7 @@ def test_omni_scheduler_request_builder_errors_do_not_stop_loop() -> None:
     scheduler._prefill_start_done = set()
     scheduler.inbox = Queue()
     scheduler.tree_cache = None
+    _init_sync_request_build_state(scheduler)
 
     def request_builder(payload: SimpleNamespace) -> None:
         raise ValueError(payload.request_id)
@@ -1376,6 +1391,7 @@ def test_omni_scheduler_follower_request_builder_errors_do_not_emit() -> None:
     scheduler._prefill_start_done = set()
     scheduler.inbox = Queue()
     scheduler.tree_cache = None
+    _init_sync_request_build_state(scheduler)
 
     def request_builder(payload: SimpleNamespace) -> None:
         raise ValueError(payload.request_id)
@@ -1404,6 +1420,7 @@ def test_omni_scheduler_prepares_custom_request_token_budget() -> None:
     scheduler.max_req_input_len = 5
     scheduler.page_size = 1
     scheduler.max_total_num_tokens = 128
+    _init_sync_request_build_state(scheduler)
 
     sampling_params = SimpleNamespace(max_new_tokens=10)
     req = SimpleNamespace(
@@ -1445,6 +1462,7 @@ def test_omni_scheduler_rejects_custom_request_over_context() -> None:
     scheduler._prefill_start_done = set()
     scheduler.inbox = Queue()
     scheduler.tree_cache = None
+    _init_sync_request_build_state(scheduler)
 
     req = SimpleNamespace(
         rid="req-long",
@@ -1491,6 +1509,7 @@ def test_omni_scheduler_follower_rejections_do_not_emit_errors() -> None:
     scheduler.page_size = 1
     scheduler.max_total_num_tokens = 128
     scheduler.server_args = SimpleNamespace(mem_fraction_static=0.85)
+    _init_sync_request_build_state(scheduler)
 
     over_context_req = SimpleNamespace(
         rid="req-long",
@@ -1539,6 +1558,7 @@ def test_omni_scheduler_leaves_request_budget_unchanged_without_opt_in() -> None
     scheduler.max_req_input_len = 5
     scheduler.page_size = 1
     scheduler.max_total_num_tokens = 128
+    _init_sync_request_build_state(scheduler)
 
     sampling_params = SimpleNamespace(max_new_tokens=3)
     req = SimpleNamespace(
