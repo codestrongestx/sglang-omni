@@ -119,9 +119,10 @@ RunPod status checked on 2026-06-26:
 - The network volume `2uctshujzl` is in `US-CA-2`; `US-CA-2` reported H100/H200
   availability, so any replacement pod should be launched there if a fresh run
   becomes necessary.
-- The local mirror does not include generated WAV files, only JSON summaries.
-  Re-running the cross-over matrix therefore needs either the original pod
-  artifacts, GitHub artifact access, or fresh TTS audio generation.
+- The local mirror includes logs, commands, JSON summaries, CSVs, and metadata,
+  but not the generated WAV files. Re-running the cross-over matrix therefore
+  needs either the original pod artifacts, GitHub artifact access, or fresh TTS
+  audio generation.
 
 ## Minimal Experiment Matrix
 
