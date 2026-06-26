@@ -131,8 +131,9 @@ New cross-over evidence on the merged issue commit is summarized in
   and
   `/workspace/results/issue890_cross_over/20260626T135711Z_4eff258_direct_h100_generated_only`.
 - Source-file checksums and compact metrics are committed in
-  `issue890_cross_over_evidence.json`; the full pulled result tree remains a
-  local working artifact rather than a committed repo artifact.
+  `issue890_cross_over_evidence.json`; the relevant pulled RunPod logs and
+  JSON/CSV result files are tracked under
+  `results/runpod/vlnvl972hadukt/results/issue890_cross_over/`.
 - ASR server shape: direct `sgl-omni serve`, one ASR stage process on one GPU.
   This is not exact CI parity with the two-worker managed router fixture.
 
