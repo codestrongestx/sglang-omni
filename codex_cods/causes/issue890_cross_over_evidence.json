@@ -1,0 +1,91 @@
+{
+  "issue": "sgl-project/sglang-omni#890",
+  "purpose": "Compact evidence for the Qwen3-ASR audio/harness cross-over run.",
+  "run_date_utc": "2026-06-26",
+  "source_commit": "4eff258e4a279c61c2b68a06e4949f1f5a17b972",
+  "hardware": "1x NVIDIA H100 80GB HBM3",
+  "server_shape": "direct sgl-omni serve; one ASR stage process on one GPU; not the two-worker managed-router CI fixture",
+  "asr_model": "Qwen/Qwen3-ASR-1.7B",
+  "asr_concurrency": 32,
+  "standalone_warmup_requests": 64,
+  "sample_count": 1088,
+  "runner_provenance": {
+    "committed_reproduction_script": "codex_cods/scripts/issue890_cross_over_remote.py",
+    "executed_script_note": "The RunPod run used temporary uploaded copies of the same runner while it was being hardened. The committed script is the cleaned reproduction copy. B2 wrote valid TTS WER result files before a post-run summary typo, so B2 metrics below are taken from generated_audio_tts_wer_harness/asr_speed_results.json and wer_results.json."
+  },
+  "cells": [
+    {
+      "cell": "A1",
+      "audio": "SeedTTS reference",
+      "harness": "standalone async aiohttp, 64 warmup requests excluded",
+      "wall_s": 20.364291,
+      "samples_per_s": 53.426855,
+      "audio_s": 5152.879125,
+      "audio_s_per_wall": 253.035043,
+      "latency_p95_s": 0.795643,
+      "latency_p99_s": 0.935778,
+      "corpus_wer": 0.016192,
+      "source_file": "20260626T134741Z_4eff258_direct_h100/reference_audio_standalone.json"
+    },
+    {
+      "cell": "A2",
+      "audio": "SeedTTS reference",
+      "harness": "TTS WER requests thread pool, no excluded warmup",
+      "wall_s": 12.340036,
+      "samples_per_s": 88.168301,
+      "audio_s": 5152.879125,
+      "audio_s_per_wall": 417.574079,
+      "latency_p95_s": 0.473029,
+      "latency_p99_s": 0.543983,
+      "corpus_wer": 0.013317,
+      "source_files": [
+        "20260626T134741Z_4eff258_direct_h100/reference_audio_tts_wer_harness/asr_speed_results.json",
+        "20260626T134741Z_4eff258_direct_h100/reference_audio_tts_wer_harness/wer_results.json"
+      ]
+    },
+    {
+      "cell": "B1",
+      "audio": "generated TTS",
+      "harness": "standalone async aiohttp, 64 warmup requests excluded",
+      "wall_s": 24.040488,
+      "samples_per_s": 45.256985,
+      "audio_s": 4788.64,
+      "audio_s_per_wall": 199.190632,
+      "latency_p95_s": 1.039643,
+      "latency_p99_s": 1.404761,
+      "corpus_wer": 0.026375,
+      "source_file": "20260626T135711Z_4eff258_direct_h100_generated_only/cross_over_summary.json"
+    },
+    {
+      "cell": "B2",
+      "audio": "generated TTS",
+      "harness": "TTS WER requests thread pool, no excluded warmup",
+      "wall_s": 13.660438,
+      "samples_per_s": 79.646057,
+      "audio_s": 4788.64,
+      "audio_s_per_wall": 350.548065,
+      "latency_p95_s": 0.583773,
+      "latency_p99_s": 0.691677,
+      "corpus_wer": 0.025454,
+      "source_files": [
+        "20260626T135711Z_4eff258_direct_h100_generated_only/generated_audio_tts_wer_harness/asr_speed_results.json",
+        "20260626T135711Z_4eff258_direct_h100_generated_only/generated_audio_tts_wer_harness/wer_results.json"
+      ]
+    }
+  ],
+  "source_file_sha256": {
+    "20260626T134741Z_4eff258_direct_h100/reference_audio_standalone.json": "8be62a048f2eb780c44bfadfc4319b307bc7fcab3c3cfabbb071208f24ace479",
+    "20260626T134741Z_4eff258_direct_h100/reference_audio_tts_wer_harness/asr_speed_results.json": "ddf92da6652d0385fd33308b481d7efec929baf66e6e3257a503b01a4d3d8480",
+    "20260626T134741Z_4eff258_direct_h100/reference_audio_tts_wer_harness/wer_results.json": "1ba503cf344533238f094fd3f2cb1325b588190dbb2fb4817f01bc91538f10e4",
+    "20260626T135711Z_4eff258_direct_h100_generated_only/cross_over_summary.json": "08626c03fcb8a280799ed1fcc2b786a714708d42d1218a5434d0e2f33633a5c3",
+    "20260626T135711Z_4eff258_direct_h100_generated_only/generated_audio_tts_wer_harness/asr_speed_results.json": "0baaa75b63902b7de44b3dee6c955c52721c03d89523e1c12febe3125b5973ee",
+    "20260626T135711Z_4eff258_direct_h100_generated_only/generated_audio_tts_wer_harness/wer_results.json": "01c1f46dc35ff5567dbbea9ba126ddf5336dc8f71c61f2ccdcf763a2465c7db9",
+    "20260626T135711Z_4eff258_direct_h100_generated_only/run_error.txt": "03fb1aa8154d92e983f9539734721330523894fb39f1c201f8fb4f20cffc5841"
+  },
+  "interpretation": {
+    "standalone_generated_over_reference": 0.847083,
+    "tts_wer_generated_over_reference": 0.903341,
+    "issue_reported_generated_over_reference_approx": 0.887324,
+    "summary": "Generated TTS audio is slower than SeedTTS reference audio in both harnesses. The issue-reported ratio sits between the two direct-server ratios, supporting generated-audio workload as the primary explanation for the mismatch direction and approximate magnitude."
+  }
+}

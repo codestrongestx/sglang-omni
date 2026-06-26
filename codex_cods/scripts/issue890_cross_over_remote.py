@@ -249,7 +249,11 @@ def make_generated_dir_from_reference(samples: list[SampleInput], output_dir: Pa
 def make_generated_dir_from_artifact(source_dir: Path, output_dir: Path, max_samples: int) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     with (source_dir / "generated.json").open() as handle:
-        entries = json.load(handle)[:max_samples]
+        entries = [
+            entry
+            for entry in json.load(handle)[:max_samples]
+            if entry.get("is_success", False)
+        ]
     (output_dir / "generated.json").write_text(json.dumps(entries, indent=2))
     speed_path = source_dir / "speed_results.json"
     if speed_path.exists():

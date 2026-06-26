@@ -117,18 +117,22 @@ candidate. They do not close issue #890 because the reported CI comparison used
 the merged defaults, a managed-router shape with two worker replicas, and job
 artifacts/logs that are not fully available locally.
 
-New cross-over evidence on the merged issue commit:
+New cross-over evidence on the merged issue commit is summarized in
+`codex_cods/causes/issue890_cross_over_evidence.json`:
 
-- Pod: `vlnvl972hadukt`, one `NVIDIA H100 80GB HBM3`, stopped after results were
-  pulled.
+- Hardware: one `NVIDIA H100 80GB HBM3`; the pod was stopped after results were
+  pulled and summarized.
 - Commit: `4eff258e4a279c61c2b68a06e4949f1f5a17b972`.
-- Runner: `codex_cods/scripts/issue890_cross_over_remote.py`.
+- Runner: temporary uploaded copies of
+  `codex_cods/scripts/issue890_cross_over_remote.py` were used while the runner
+  was being hardened. The committed script is the cleaned reproduction copy.
 - Remote results:
   `/workspace/results/issue890_cross_over/20260626T134741Z_4eff258_direct_h100`
   and
   `/workspace/results/issue890_cross_over/20260626T135711Z_4eff258_direct_h100_generated_only`.
-- Local mirror:
-  `results/runpod/vlnvl972hadukt/results/issue890_cross_over`.
+- Source-file checksums and compact metrics are committed in
+  `issue890_cross_over_evidence.json`; the full pulled result tree remains a
+  local working artifact rather than a committed repo artifact.
 - ASR server shape: direct `sgl-omni serve`, one ASR stage process on one GPU.
   This is not exact CI parity with the two-worker managed router fixture.
 
@@ -165,26 +169,22 @@ Interpretation:
   sample-count or duration explanation.
 - The generated-only pass completed B2 and wrote valid
   `generated_audio_tts_wer_harness/{wer_results.json,asr_speed_results.json}`;
-  `run_error.txt` records only a post-run summary typo in the experiment runner.
-  The runner has been fixed locally.
+  `run_error.txt` records only a post-run summary typo in the temporary uploaded
+  runner. The committed runner has that summary bug fixed.
 
 RunPod status checked on 2026-06-26:
 
-- Account balance was `1240.49 USD`, above the `1230 USD` stop threshold.
+- Account balance was above the `1230 USD` stop threshold before and after the
+  cross-over run.
 - Existing pod `28xh4e0kd3aomf` was stopped.
 - Starting that pod failed twice with RunPod reporting no free GPUs on the host.
-- The network volume `2uctshujzl` is in `US-CA-2`; `US-CA-2` reported H100/H200
-  availability, so any replacement pod should be launched there if a fresh run
-  becomes necessary.
 - The local mirror includes logs, commands, JSON summaries, CSVs, and metadata,
   but not the generated WAV files. Re-running the cross-over matrix therefore
   needs either the original pod artifacts, GitHub artifact access, or fresh TTS
   audio generation.
-- Replacement pod `vlnvl972hadukt` was launched in `US-CA-2` against network
-  volume `2uctshujzl` because the original stopped pod could not be restarted.
-  It was stopped after pulling results. Balance after stopping was
-  `1239.04 USD`, above the `1230 USD` stop threshold; current spend returned to
-  `0.049 USD/hr`.
+- A replacement H100 pod in the network-volume region was launched because the
+  original stopped pod could not be restarted. It was stopped after pulling
+  results, leaving no H100 workload running for this investigation.
 
 ## Minimal Experiment Matrix
 
