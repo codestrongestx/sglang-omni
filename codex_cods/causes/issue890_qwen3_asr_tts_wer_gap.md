@@ -72,6 +72,57 @@ The major known benchmark differences are:
 - The TTS WER path transcribes generated TTS WAVs instead of the fixed SeedTTS
   reference audio.
 
+## Evidence Gathered So Far
+
+Current CI observation for issue #890 gives two live data points, but both
+audio source and harness change at the same time:
+
+```text
+stage 1:   SeedTTS reference audio + standalone ASR harness ~= 71 samples/s
+stage 2/3: generated TTS audio    + TTS WER harness        ~= 63 samples/s
+```
+
+That comparison establishes the symptom, but it does not attribute the cause.
+The missing information is the two cross-over cases:
+
+```text
+SeedTTS reference audio + TTS WER harness
+generated TTS audio    + standalone ASR harness
+```
+
+Existing pulled RunPod artifacts provide additional but non-final evidence:
+
+- `results/runpod/28xh4e0kd3aomf/results/qwen3_asr_831/key_experiments_549dcdd`
+  covers standalone ASR benchmark runs on the fixed SeedTTS reference audio.
+  The candidate there used `workers4_pending16` and reached about
+  `95.6 samples/s` mean throughput on one direct ASR server.
+- `results/runpod/28xh4e0kd3aomf/results/qwen3_asr_ci_request_build/asr_runs/20260625T130900Z_current_549dcdd_generated_audio`
+  covers generated TTS audio through the TTS WER transcribe path. The warm
+  `workers4_pending16` repeats reached about `82-84 samples/s` on one direct
+  ASR server.
+- An older generated-audio worker sweep in
+  `results/runpod/28xh4e0kd3aomf/results/qwen3_asr_ci_request_build/asr_runs/20260621T104249Z_moss_ci_wer_3x_clean_pr_async_final_b5d9d94`
+  showed `workers2_pending8` warm repeats around `76 samples/s`, still well
+  above the issue's `~63 samples/s`.
+
+These artifacts show that generated audio plus the TTS WER harness can be fast
+when measured on a direct single ASR server with the experimental request-build
+candidate. They do not close issue #890 because the reported CI comparison used
+the merged defaults, a managed-router shape with two worker replicas, and job
+artifacts/logs that are not fully available locally.
+
+RunPod status checked on 2026-06-26:
+
+- Account balance was `1240.49 USD`, above the `1230 USD` stop threshold.
+- Existing pod `28xh4e0kd3aomf` was stopped.
+- Starting that pod failed twice with RunPod reporting no free GPUs on the host.
+- The network volume `2uctshujzl` is in `US-CA-2`; `US-CA-2` reported H100/H200
+  availability, so any replacement pod should be launched there if a fresh run
+  becomes necessary.
+- The local mirror does not include generated WAV files, only JSON summaries.
+  Re-running the cross-over matrix therefore needs either the original pod
+  artifacts, GitHub artifact access, or fresh TTS audio generation.
+
 ## Minimal Experiment Matrix
 
 Run the smallest matrix that separates audio workload from harness behavior:
