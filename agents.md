@@ -6,6 +6,6 @@ Always commit stratgically so that we can keep a track of how things worked out 
 
  After commit always launch a headless agent with the latest best model and the maximal thinking effort and fast mode to review the commit. Based on its feedback, reason and fix the issues if necessary. Then ask that same agent to review again. Repeat until no major issues found.
 
-When renting gpus from runpod, always priotizie gpus that can be attached to our network volume, aka same region as the network volume.
+When renting gpus from runpod, always priotizie gpus that can be attached to our network volume, aka same region as the network volume. When you are done with a gpu task, stop the gpu to avoid billing.
 
 Do not expose internal plan steps in code.
