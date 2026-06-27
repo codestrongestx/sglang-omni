@@ -1,7 +1,8 @@
 # Issue 890 Clean Rerun Protocol
 
-This note is a concise protocol for rerunning the issue #890 attribution matrix
-without the cache/order ambiguity in the first cross-over check.
+This note is a high-level handoff for rerunning the issue #890 attribution
+matrix in a clean environment. It is intentionally concise: the goal is to make
+the comparison reproducible without over-prescribing implementation details.
 
 ## Where We Are
 
@@ -21,6 +22,25 @@ The goal is to clear server-side runtime state between cells, including any
 in-memory request, prefix, KV, scheduler, or warmed execution state. Do not try
 to achieve this by deleting model or dataset caches; those are download/input
 caches and should stay stable across cells.
+
+In this context, "clean" means clean runtime state, not redownloading models or
+regenerating inputs. The input artifacts should be fixed before the matrix
+starts, and the ASR server should be restarted between cells.
+
+Keep:
+
+- the same repository commit
+- the same model weights
+- the same reference audio set
+- the same generated TTS artifact
+- the same hardware class and concurrency setting
+
+Reset:
+
+- ASR/TTS server processes
+- GPU memory held by old server processes
+- per-cell runtime logs and result directories
+- any per-process warmed state created by a previous cell
 
 For each cell:
 
@@ -46,9 +66,16 @@ and generated-audio artifact for all cells.
 Run each cell from a fresh ASR server. If time permits, repeat the full matrix
 or rotate the cell order so the conclusion is not tied to one run order.
 
+The important controlled comparisons are:
+
+- `A1 -> B1`: change audio source only, keep the standalone harness.
+- `A2 -> B2`: change audio source only, keep the TTS WER ASR path.
+- `A1 -> A2`: change harness only, keep reference audio.
+- `B1 -> B2`: change harness only, keep generated audio.
+
 ## What To Report
 
-Report the raw numbers first:
+Report the raw numbers first, with one row per matrix cell:
 
 - samples/s
 - audio seconds/s
@@ -56,16 +83,20 @@ Report the raw numbers first:
 - p95 and p99 ASR latency
 - sample count and total audio seconds
 - corpus WER
+- repository commit, GPU type, and cell order
 
-Then report only same-harness ratios:
+Then report the controlled ratios:
 
 ```text
 B1 / A1 = generated/reference under standalone harness
 B2 / A2 = generated/reference under TTS WER harness
+A2 / A1 = TTS WER ASR path / standalone harness on reference audio
+B2 / B1 = TTS WER ASR path / standalone harness on generated audio
 ```
 
-Do not use `A2 / A1` or `B2 / B1` as a harness-speed conclusion unless each
-cell was run from a fresh server and the result repeats.
+Use `A2 / A1` and `B2 / B1` as harness comparisons only when each cell was run
+from a fresh server. If the run was not fresh-per-cell, keep those as raw
+numbers instead of a harness-speed conclusion.
 
 ## Interpretation Boundary
 
@@ -80,3 +111,17 @@ The clean rerun can support one of these conclusions:
 
 Keep the conclusion limited to what the controlled cells show. Avoid explaining
 why generated audio differs unless a separate sample-level analysis proves it.
+
+## Handoff Checklist
+
+Before sharing the results, make sure the rerun package contains:
+
+- the four per-cell result files
+- server logs for each cell
+- pre/post GPU state for each cell
+- the exact commit and artifact paths used
+- a short summary table with the raw metrics and controlled ratios
+
+The issue comment should state what was controlled, what changed in each row,
+and which comparisons are valid. It should not speculate about audio difficulty
+or model behavior unless that has been measured separately.
