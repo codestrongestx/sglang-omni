@@ -9,3 +9,5 @@ Always commit stratgically so that we can keep a track of how things worked out 
 When renting gpus from runpod, always priotizie gpus that can be attached to our network volume, aka same region as the network volume. When you are done with a gpu task, stop the gpu to avoid billing.
 
 Do not expose internal plan steps in code.
+
+When committing issue-related work, avoid GitHub autolinks unless intentionally updating the issue timeline: write "issue 890" instead of "#890", "fixes #890", or "sgl-project#890" in commit messages.
