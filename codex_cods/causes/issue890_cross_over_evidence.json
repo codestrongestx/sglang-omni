@@ -13,6 +13,12 @@
     "committed_reproduction_script": "codex_cods/scripts/issue890_cross_over_remote.py",
     "executed_script_note": "The RunPod run used temporary uploaded copies of the same runner while it was being hardened. The committed script is the cleaned reproduction copy. B2 wrote valid TTS WER result files before a post-run summary typo, so B2 metrics below are taken from generated_audio_tts_wer_harness/asr_speed_results.json and wer_results.json."
   },
+  "tracked_mirror": {
+    "path": "results/runpod/vlnvl972hadukt/results/issue890_cross_over",
+    "included": "Pulled server logs, result JSON/CSV files, generated input manifests, and second-pass stdout/error logs.",
+    "not_included": "Generated WAV/audio blobs, separate command captures, environment captures, hardware manifests, and first-pass stdout capture.",
+    "provenance_limit": "The temporary remote runner did not emit a complete command/provenance bundle. Use this mirror as evidence for the measured outputs, with the committed reproduction script as the cleaned rerun entry point."
+  },
   "cells": [
     {
       "cell": "A1",

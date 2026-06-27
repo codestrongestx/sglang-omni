@@ -134,6 +134,11 @@ New cross-over evidence on the merged issue commit is summarized in
   `issue890_cross_over_evidence.json`; the relevant pulled RunPod logs and
   JSON/CSV result files are tracked under
   `results/runpod/vlnvl972hadukt/results/issue890_cross_over/`.
+- The tracked mirror is an evidence mirror, not a complete rerun bundle: the
+  temporary runner did not write separate command, environment, or hardware
+  manifest files for the first pass. The committed runner plus the tracked
+  result JSON files describe the measured harness settings; missing provenance
+  is called out in the mirror README.
 - ASR server shape: direct `sgl-omni serve`, one ASR stage process on one GPU.
   This is not exact CI parity with the two-worker managed router fixture.
 
@@ -179,10 +184,11 @@ RunPod status checked on 2026-06-26:
   cross-over run.
 - Existing pod `28xh4e0kd3aomf` was stopped.
 - Starting that pod failed twice with RunPod reporting no free GPUs on the host.
-- The local mirror includes logs, commands, JSON summaries, CSVs, and metadata,
-  but not the generated WAV files. Re-running the cross-over matrix therefore
-  needs either the original pod artifacts, GitHub artifact access, or fresh TTS
-  audio generation.
+- The tracked mirror includes the pulled server logs, result JSON/CSV files,
+  generated input manifests, and second-pass stdout/error logs, but not command
+  captures, environment captures, hardware manifests, or generated WAV files.
+  Re-running the cross-over matrix therefore needs either the original pod
+  artifacts, GitHub artifact access, or fresh TTS audio generation.
 - A replacement H100 pod in the network-volume region was launched because the
   original stopped pod could not be restarted. It was stopped after pulling
   results, leaving no H100 workload running for this investigation.
