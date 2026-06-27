@@ -1,0 +1,35 @@
+{
+  "config": {
+    "repo": "/workspace/repos/sglang-omni-issue890-4eff258",
+    "output_root": "/workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/A2_reference_tts_wer",
+    "generated_output_dir": "/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16",
+    "model_path": "Qwen/Qwen3-ASR-1.7B",
+    "port": 19000,
+    "asr_concurrency": 32,
+    "standalone_warmup_requests": 64,
+    "max_samples": 1088,
+    "cells": [
+      "A2"
+    ]
+  },
+  "summaries": [
+    {
+      "label": "A2_reference_tts_wer",
+      "audio_set": "seedtts_reference",
+      "harness": "tts_wer_requests_threadpool_no_warmup",
+      "total_samples": 1088,
+      "evaluated": 1088,
+      "skipped": 0,
+      "wall_clock_s": 22.047620370984077,
+      "throughput_samples_per_s": 49.34772921942496,
+      "latency_mean_s": 0.6463461910016657,
+      "latency_p95_s": 0.87387698860839,
+      "latency_p99_s": 2.182172565395012,
+      "rtf_mean": 0.13992800631238142,
+      "audio_duration_total_s": 5152.879125,
+      "audio_seconds_per_wall_second": 233.71588580967597,
+      "corpus_wer": 0.013468523002421308,
+      "output_path": "/workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/A2_reference_tts_wer/reference_audio_tts_wer_harness/wer_results.json"
+    }
+  ]
+}

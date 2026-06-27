@@ -1,0 +1,9 @@
+[issue890] repo=/workspace/repos/sglang-omni-issue890-4eff258
+[issue890] output_root=/workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/A1_reference_standalone
+[issue890] generated_source=/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16
+[issue890] reference_samples=1088
+[issue890] generated_samples=1088
+[issue890] reference_audio_total_s=5152.879
+[issue890] generated_audio_total_s=4788.640
+[issue890] wrote /workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/A1_reference_standalone/cross_over_summary.json
+[issue890] A1_reference_standalone: throughput=54.080/s wall=20.118s audio_s_per_wall=256.130 lat_p95=0.784s lat_p99=0.906s wer=0.0141

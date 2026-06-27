@@ -1,0 +1,81 @@
+2026-06-27 00:45:51,625 benchmarks.dataset.seedtts INFO Loading zhaochenyang20/seed-tts-eval-arrow split=en from HuggingFace ...
+2026-06-27 00:45:51,762 httpx INFO HTTP Request: HEAD https://huggingface.co/datasets/zhaochenyang20/seed-tts-eval-arrow/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-06-27 00:45:51,763 huggingface_hub.utils._http WARNING Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-06-27 00:45:51,772 httpx INFO HTTP Request: HEAD https://huggingface.co/api/resolve-cache/datasets/zhaochenyang20/seed-tts-eval-arrow/27f4c1adee83b5b29b7c4b375f6b976324bda308/README.md "HTTP/1.1 200 OK"
+2026-06-27 00:45:51,861 httpx INFO HTTP Request: HEAD https://huggingface.co/datasets/zhaochenyang20/seed-tts-eval-arrow/resolve/27f4c1adee83b5b29b7c4b375f6b976324bda308/seed-tts-eval-arrow.py "HTTP/1.1 404 Not Found"
+2026-06-27 00:45:52,111 httpx INFO HTTP Request: HEAD https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/zhaochenyang20/seed-tts-eval-arrow/zhaochenyang20/seed-tts-eval-arrow.py "HTTP/1.1 404 Not Found"
+2026-06-27 00:45:52,201 httpx INFO HTTP Request: GET https://huggingface.co/api/datasets/zhaochenyang20/seed-tts-eval-arrow/revision/27f4c1adee83b5b29b7c4b375f6b976324bda308 "HTTP/1.1 200 OK"
+2026-06-27 00:45:52,289 httpx INFO HTTP Request: HEAD https://huggingface.co/datasets/zhaochenyang20/seed-tts-eval-arrow/resolve/27f4c1adee83b5b29b7c4b375f6b976324bda308/.huggingface.yaml "HTTP/1.1 404 Not Found"
+2026-06-27 00:45:52,427 httpx INFO HTTP Request: GET https://datasets-server.huggingface.co/info?dataset=zhaochenyang20/seed-tts-eval-arrow "HTTP/1.1 200 OK"
+2026-06-27 00:45:52,527 httpx INFO HTTP Request: GET https://huggingface.co/api/datasets/zhaochenyang20/seed-tts-eval-arrow/tree/27f4c1adee83b5b29b7c4b375f6b976324bda308/data?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-06-27 00:45:52,608 httpx INFO HTTP Request: GET https://huggingface.co/api/datasets/zhaochenyang20/seed-tts-eval-arrow/tree/27f4c1adee83b5b29b7c4b375f6b976324bda308?recursive=false&expand=false "HTTP/1.1 200 OK"
+2026-06-27 00:45:52,692 httpx INFO HTTP Request: HEAD https://huggingface.co/datasets/zhaochenyang20/seed-tts-eval-arrow/resolve/27f4c1adee83b5b29b7c4b375f6b976324bda308/dataset_infos.json "HTTP/1.1 404 Not Found"
+2026-06-27 00:45:53,011 benchmarks.dataset.seedtts INFO Staging audio to /tmp/seedtts_en_oni36d8e
+2026-06-27 00:45:53,782 benchmarks.dataset.seedtts INFO Loaded 1088 samples (666 unique audio files) from zhaochenyang20/seed-tts-eval-arrow/en
+2026-06-27 00:48:54,482 benchmarks.benchmarker.runner INFO Warmup (64 requests)...
+2026-06-27 00:49:04,258 benchmarks.benchmarker.runner INFO   warmup 1/64: ok
+2026-06-27 00:49:04,428 benchmarks.benchmarker.runner INFO   warmup 2/64: ok
+2026-06-27 00:49:04,633 benchmarks.benchmarker.runner INFO   warmup 3/64: ok
+2026-06-27 00:49:04,761 benchmarks.benchmarker.runner INFO   warmup 4/64: ok
+2026-06-27 00:49:04,910 benchmarks.benchmarker.runner INFO   warmup 5/64: ok
+2026-06-27 00:49:05,021 benchmarks.benchmarker.runner INFO   warmup 6/64: ok
+2026-06-27 00:49:05,133 benchmarks.benchmarker.runner INFO   warmup 7/64: ok
+2026-06-27 00:49:05,214 benchmarks.benchmarker.runner INFO   warmup 8/64: ok
+2026-06-27 00:49:05,304 benchmarks.benchmarker.runner INFO   warmup 9/64: ok
+2026-06-27 00:49:05,376 benchmarks.benchmarker.runner INFO   warmup 10/64: ok
+2026-06-27 00:49:05,495 benchmarks.benchmarker.runner INFO   warmup 11/64: ok
+2026-06-27 00:49:05,590 benchmarks.benchmarker.runner INFO   warmup 12/64: ok
+2026-06-27 00:49:05,684 benchmarks.benchmarker.runner INFO   warmup 13/64: ok
+2026-06-27 00:49:05,763 benchmarks.benchmarker.runner INFO   warmup 14/64: ok
+2026-06-27 00:49:05,858 benchmarks.benchmarker.runner INFO   warmup 15/64: ok
+2026-06-27 00:49:05,948 benchmarks.benchmarker.runner INFO   warmup 16/64: ok
+2026-06-27 00:49:06,040 benchmarks.benchmarker.runner INFO   warmup 17/64: ok
+2026-06-27 00:49:06,119 benchmarks.benchmarker.runner INFO   warmup 18/64: ok
+2026-06-27 00:49:06,212 benchmarks.benchmarker.runner INFO   warmup 19/64: ok
+2026-06-27 00:49:06,299 benchmarks.benchmarker.runner INFO   warmup 20/64: ok
+2026-06-27 00:49:06,389 benchmarks.benchmarker.runner INFO   warmup 21/64: ok
+2026-06-27 00:49:06,461 benchmarks.benchmarker.runner INFO   warmup 22/64: ok
+2026-06-27 00:49:06,549 benchmarks.benchmarker.runner INFO   warmup 23/64: ok
+2026-06-27 00:49:06,633 benchmarks.benchmarker.runner INFO   warmup 24/64: ok
+2026-06-27 00:49:06,706 benchmarks.benchmarker.runner INFO   warmup 25/64: ok
+2026-06-27 00:49:06,810 benchmarks.benchmarker.runner INFO   warmup 26/64: ok
+2026-06-27 00:49:06,903 benchmarks.benchmarker.runner INFO   warmup 27/64: ok
+2026-06-27 00:49:07,001 benchmarks.benchmarker.runner INFO   warmup 28/64: ok
+2026-06-27 00:49:07,089 benchmarks.benchmarker.runner INFO   warmup 29/64: ok
+2026-06-27 00:49:07,166 benchmarks.benchmarker.runner INFO   warmup 30/64: ok
+2026-06-27 00:49:07,260 benchmarks.benchmarker.runner INFO   warmup 31/64: ok
+2026-06-27 00:49:07,364 benchmarks.benchmarker.runner INFO   warmup 32/64: ok
+2026-06-27 00:49:07,453 benchmarks.benchmarker.runner INFO   warmup 33/64: ok
+2026-06-27 00:49:07,559 benchmarks.benchmarker.runner INFO   warmup 34/64: ok
+2026-06-27 00:49:07,664 benchmarks.benchmarker.runner INFO   warmup 35/64: ok
+2026-06-27 00:49:07,751 benchmarks.benchmarker.runner INFO   warmup 36/64: ok
+2026-06-27 00:49:07,832 benchmarks.benchmarker.runner INFO   warmup 37/64: ok
+2026-06-27 00:49:07,918 benchmarks.benchmarker.runner INFO   warmup 38/64: ok
+2026-06-27 00:49:07,994 benchmarks.benchmarker.runner INFO   warmup 39/64: ok
+2026-06-27 00:49:08,091 benchmarks.benchmarker.runner INFO   warmup 40/64: ok
+2026-06-27 00:49:08,177 benchmarks.benchmarker.runner INFO   warmup 41/64: ok
+2026-06-27 00:49:08,264 benchmarks.benchmarker.runner INFO   warmup 42/64: ok
+2026-06-27 00:49:08,370 benchmarks.benchmarker.runner INFO   warmup 43/64: ok
+2026-06-27 00:49:08,463 benchmarks.benchmarker.runner INFO   warmup 44/64: ok
+2026-06-27 00:49:08,543 benchmarks.benchmarker.runner INFO   warmup 45/64: ok
+2026-06-27 00:49:08,672 benchmarks.benchmarker.runner INFO   warmup 46/64: ok
+2026-06-27 00:49:08,790 benchmarks.benchmarker.runner INFO   warmup 47/64: ok
+2026-06-27 00:49:08,883 benchmarks.benchmarker.runner INFO   warmup 48/64: ok
+2026-06-27 00:49:08,974 benchmarks.benchmarker.runner INFO   warmup 49/64: ok
+2026-06-27 00:49:09,053 benchmarks.benchmarker.runner INFO   warmup 50/64: ok
+2026-06-27 00:49:09,156 benchmarks.benchmarker.runner INFO   warmup 51/64: ok
+2026-06-27 00:49:09,246 benchmarks.benchmarker.runner INFO   warmup 52/64: ok
+2026-06-27 00:49:09,359 benchmarks.benchmarker.runner INFO   warmup 53/64: ok
+2026-06-27 00:49:09,459 benchmarks.benchmarker.runner INFO   warmup 54/64: ok
+2026-06-27 00:49:09,532 benchmarks.benchmarker.runner INFO   warmup 55/64: ok
+2026-06-27 00:49:09,594 benchmarks.benchmarker.runner INFO   warmup 56/64: ok
+2026-06-27 00:49:09,690 benchmarks.benchmarker.runner INFO   warmup 57/64: ok
+2026-06-27 00:49:09,777 benchmarks.benchmarker.runner INFO   warmup 58/64: ok
+2026-06-27 00:49:09,883 benchmarks.benchmarker.runner INFO   warmup 59/64: ok
+2026-06-27 00:49:09,977 benchmarks.benchmarker.runner INFO   warmup 60/64: ok
+2026-06-27 00:49:10,084 benchmarks.benchmarker.runner INFO   warmup 61/64: ok
+2026-06-27 00:49:10,191 benchmarks.benchmarker.runner INFO   warmup 62/64: ok
+2026-06-27 00:49:10,290 benchmarks.benchmarker.runner INFO   warmup 63/64: ok
+2026-06-27 00:49:10,377 benchmarks.benchmarker.runner INFO   warmup 64/64: ok
+2026-06-27 00:49:10,377 benchmarks.benchmarker.runner INFO Benchmarking 1088 requests (max_concurrency=32)...

@@ -1,0 +1,55 @@
+[issue890] repo=/workspace/repos/sglang-omni-issue890-4eff258
+[issue890] output_root=/workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/A2_reference_tts_wer
+[issue890] generated_source=/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16
+[issue890] reference_samples=1088
+[issue890] generated_samples=1088
+[issue890] reference_audio_total_s=5152.879
+[issue890] generated_audio_total_s=4788.640
+
+============================================================
+          TTS WER Benchmark Result (non-streaming)          
+============================================================
+  TTS model:                     issue890-audio-source
+  Generation mode:               non-streaming
+  Language:                      en
+  Evaluated / Total:             1088/1088
+  Skipped:                       0
+------------------------------------------------------------
+  WER (corpus, micro-avg):       0.0135 (1.35%)
+------------------------------------------------------------
+  WER per-sample mean:           0.0135 (1.35%)
+  WER per-sample median:         0.0000
+  WER per-sample std:            0.0361
+  WER per-sample p95:            0.0909
+  WER per-sample max:            0.2727 (27.27%)
+  WER corpus (excl >50%):        0.0135 (1.35%)
+  >50% WER samples:              0 (0.0%)
+------------------------------------------------------------
+  Latency mean (s):              0.0
+  Latency p95 (s):               0.0
+  RTF mean:                      0.0
+  Audio duration mean (s):       4.736102136948529
+============================================================
+
+
+============================================================
+                 ASR Speed Benchmark Result                 
+============================================================
+  ASR model:                     Qwen/Qwen3-ASR-1.7B
+  Evaluated / Total:             1088/1088
+  ASR concurrency:               32
+  Skipped:                       0
+------------------------------------------------------------
+  ASR latency mean (s):          0.6463461910016657
+  ASR latency median (s):        0.5963790942914784
+  ASR latency p95 (s):           0.87387698860839
+  ASR latency p99 (s):           2.182172565395012
+  ASR RTF mean:                  0.13992800631238142
+  ASR RTF median:                0.1311058724859402
+  ASR total time (s):            22.047620370984077
+  ASR latency sum (s):           703.2246558098122
+  ASR throughput (samples/s):    49.34772921942496
+  Audio processed (s):           5152.879125
+============================================================
+[issue890] wrote /workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/A2_reference_tts_wer/cross_over_summary.json
+[issue890] A2_reference_tts_wer: throughput=49.348/s wall=22.048s audio_s_per_wall=233.716 lat_p95=0.874s lat_p99=2.182s wer=0.0135

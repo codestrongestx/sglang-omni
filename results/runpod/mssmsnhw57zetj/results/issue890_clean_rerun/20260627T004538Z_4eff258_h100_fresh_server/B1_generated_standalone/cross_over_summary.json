@@ -1,0 +1,35 @@
+{
+  "config": {
+    "repo": "/workspace/repos/sglang-omni-issue890-4eff258",
+    "output_root": "/workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/B1_generated_standalone",
+    "generated_output_dir": "/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16",
+    "model_path": "Qwen/Qwen3-ASR-1.7B",
+    "port": 19000,
+    "asr_concurrency": 32,
+    "standalone_warmup_requests": 64,
+    "max_samples": 1088,
+    "cells": [
+      "B1"
+    ]
+  },
+  "summaries": [
+    {
+      "label": "B1_generated_standalone",
+      "audio_set": "generated_tts",
+      "harness": "standalone_async_aiohttp_warmup64",
+      "total_samples": 1088,
+      "evaluated": 1088,
+      "skipped": 0,
+      "wall_clock_s": 23.179223699495196,
+      "throughput_samples_per_s": 46.93858664575099,
+      "latency_mean_s": 0.6746139074367581,
+      "latency_p95_s": 0.9504299351014195,
+      "latency_p99_s": 1.090252318447453,
+      "rtf_mean": 0.15678543240001475,
+      "audio_duration_total_s": 4788.64,
+      "audio_seconds_per_wall_second": 206.59190584127668,
+      "corpus_wer": 0.026542744704010718,
+      "output_path": "/workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/B1_generated_standalone/generated_audio_standalone.json"
+    }
+  ]
+}

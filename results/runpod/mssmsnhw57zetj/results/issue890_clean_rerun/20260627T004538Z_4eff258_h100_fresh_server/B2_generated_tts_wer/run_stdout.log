@@ -1,0 +1,83 @@
+[issue890] repo=/workspace/repos/sglang-omni-issue890-4eff258
+[issue890] output_root=/workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/B2_generated_tts_wer
+[issue890] generated_source=/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16
+[issue890] reference_samples=1088
+[issue890] generated_samples=1088
+[issue890] reference_audio_total_s=5152.879
+[issue890] generated_audio_total_s=4788.640
+
+============================================================
+         TTS Speed Benchmark Result (non-streaming)         
+============================================================
+  Model:                         issue890-audio-source
+  Concurrency:                   16
+  Completed requests:            1088
+  Failed requests:               0
+------------------------------------------------------------
+  Latency mean (s):              3.553
+  Latency median (s):            3.363
+  Latency p95 (s):               5.053
+  Latency p99 (s):               6.845
+  RTF mean:                      0.8582
+  RTF median:                    0.7716
+  RTF p95:                       1.4089
+  RTF p99:                       1.9181
+  Audio duration mean (s):       4.401
+  Audio throughput (s/s):        19.756
+  Output throughput (tok/s):     246.9
+  Output tokens/request-s:       80.0
+  Output tokens (mean):          55
+  Output tokens (total):         59858
+  Prompt tokens (mean):          132
+  Prompt tokens (total):         144051
+  Throughput (req/s):            4.489
+============================================================
+
+============================================================
+          TTS WER Benchmark Result (non-streaming)          
+============================================================
+  TTS model:                     issue890-audio-source
+  Generation mode:               non-streaming
+  Language:                      en
+  Evaluated / Total:             1088/1088
+  Skipped:                       0
+------------------------------------------------------------
+  WER (corpus, micro-avg):       0.0260 (2.60%)
+------------------------------------------------------------
+  WER per-sample mean:           0.0270 (2.70%)
+  WER per-sample median:         0.0000
+  WER per-sample std:            0.0947
+  WER per-sample p95:            0.1429
+  WER per-sample max:            1.1667 (116.67%)
+  WER corpus (excl >50%):        0.0201 (2.01%)
+  >50% WER samples:              8 (0.7%)
+------------------------------------------------------------
+  Latency mean (s):              3.5528056066176474
+  Latency p95 (s):               5.05296
+  RTF mean:                      0.8621299644693313
+  Throughput (req/s):            4.489
+  Audio duration mean (s):       4.401323529411764
+============================================================
+
+
+============================================================
+                 ASR Speed Benchmark Result                 
+============================================================
+  ASR model:                     Qwen/Qwen3-ASR-1.7B
+  Evaluated / Total:             1088/1088
+  ASR concurrency:               32
+  Skipped:                       0
+------------------------------------------------------------
+  ASR latency mean (s):          0.7074225838415955
+  ASR latency median (s):        0.6531071732752025
+  ASR latency p95 (s):           1.023764218855649
+  ASR latency p99 (s):           2.4612811161763966
+  ASR RTF mean:                  0.16667260174267692
+  ASR RTF median:                0.1527276330179561
+  ASR total time (s):            24.126511240378022
+  ASR latency sum (s):           769.6757712196559
+  ASR throughput (samples/s):    45.095620712004475
+  Audio processed (s):           4788.64
+============================================================
+[issue890] wrote /workspace/results/issue890_clean_rerun/20260627T004538Z_4eff258_h100_fresh_server/B2_generated_tts_wer/cross_over_summary.json
+[issue890] B2_generated_tts_wer: throughput=45.096/s wall=24.127s audio_s_per_wall=198.480 lat_p95=1.024s lat_p99=2.461s wer=0.0260

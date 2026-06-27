@@ -1,0 +1,3 @@
+repo=/workspace/repos/sglang-omni-issue890-4eff258
+commit=4eff258e4a279c61c2b68a06e4949f1f5a17b972
+generated=/workspace/results/qwen3_asr_ci_request_build/artifacts/2_seedtts_moss_nonstream_c16_8a41fc4_single_h100/vc_nonstream_c16
