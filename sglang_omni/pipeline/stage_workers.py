@@ -14,6 +14,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any, Literal, Mapping, Sequence
 
+from sglang_omni.config.runtime import apply_stage_factory_signature_args
 from sglang_omni.pipeline.control_plane import StageControlPlane
 from sglang_omni.pipeline.local_dispatch import LocalStageDispatcher
 from sglang_omni.pipeline.stage.input import AggregatedInput, DirectInput
@@ -53,6 +54,8 @@ class StageLaunchConfig:
     # Factory
     factory: str = ""
     factory_args: dict[str, Any] = field(default_factory=dict)
+    model_path: str | None = None
+    total_gpu_memory_fraction: float | None = None
     env_defaults: dict[str, str] = field(default_factory=dict)
 
     # Routing: static next stage(s)
@@ -440,6 +443,8 @@ def _construct_stage(
         gpu_id = spec.factory_args.get("gpu_id")
     if gpu_id is None and _factory_args_use_cuda(spec.factory_args):
         gpu_id = spec.gpu_id
+    if gpu_id is None:
+        gpu_id = spec.gpu_id
     if gpu_id is not None:
         import torch
 
@@ -635,12 +640,19 @@ def _construct_scheduler(
     """Build a scheduler, serializing GPU factory work per visible device."""
 
     factory = import_string(spec.factory)
+    factory_args = apply_stage_factory_signature_args(
+        spec.factory_args,
+        factory,
+        model_path=spec.model_path,
+        gpu_id=spec.gpu_id,
+        total_gpu_memory_fraction=spec.total_gpu_memory_fraction,
+    )
     if gpu_id is None:
-        return factory(**spec.factory_args)
+        return factory(**factory_args)
 
     with gpu_startup_lock(int(gpu_id)) as lock_path:
         log.info(f"Acquired GPU startup lock for stage {spec.stage_name}: {lock_path}")
-        return factory(**spec.factory_args)
+        return factory(**factory_args)
 
 
 def _factory_args_use_cuda(factory_args: Mapping[str, Any]) -> bool:

@@ -145,6 +145,57 @@ def test_gpu_scheduler_construction_uses_startup_lock(monkeypatch) -> None:
     assert seen_gpu_ids == [0]
 
 
+def test_scheduler_construction_injects_signature_args_in_child() -> None:
+    spec = StageLaunchConfig(
+        stage_name="thinker",
+        factory=fake_factory_path("runtime_factory"),
+        factory_args={"thinker_max_seq_len": 8192},
+        model_path="model-from-parent",
+        gpu_id=3,
+        total_gpu_memory_fraction=0.25,
+    )
+
+    scheduler = stage_workers._construct_scheduler(spec, None, _RecordingLog())
+
+    assert scheduler["model_path"] == "model-from-parent"
+    assert scheduler["gpu_id"] == 3
+    assert scheduler["thinker_max_seq_len"] == 8192
+    assert scheduler["total_gpu_memory_fraction"] == 0.25
+
+
+def test_tp_child_normalized_gpu_id_is_injected_lazy(monkeypatch) -> None:
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "4")
+    monkeypatch.setenv("SGLANG_ONE_VISIBLE_DEVICE_PER_PROCESS", "true")
+    seen_gpu_ids: list[int] = []
+
+    @contextmanager
+    def _fake_lock(gpu_id: int):
+        seen_gpu_ids.append(gpu_id)
+        yield Path("/tmp/test.lock")
+
+    monkeypatch.setattr(stage_workers, "gpu_startup_lock", _fake_lock)
+    spec = StageLaunchConfig(
+        stage_name="thinker",
+        role="leader",
+        tp_rank=0,
+        tp_size=2,
+        gpu_id=1,
+        factory=fake_factory_path("runtime_factory"),
+        factory_args={"thinker_max_seq_len": 8192},
+        model_path="model-from-parent",
+        total_gpu_memory_fraction=0.25,
+    )
+
+    stage_workers._prepare_cuda_environment(spec, _RecordingLog())
+    scheduler = stage_workers._construct_scheduler(spec, spec.gpu_id, _RecordingLog())
+
+    assert spec.gpu_id == 0
+    assert scheduler["gpu_id"] == 0
+    assert scheduler["model_path"] == "model-from-parent"
+    assert scheduler["total_gpu_memory_fraction"] == 0.25
+    assert seen_gpu_ids == [0]
+
+
 def test_construct_stage_uses_factory_gpu_id_for_device_and_startup_lock(
     monkeypatch,
 ) -> None:

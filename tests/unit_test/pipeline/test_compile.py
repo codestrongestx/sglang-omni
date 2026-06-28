@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import sys
+
 import pytest
 
 from sglang_omni.config.schema import EndpointsConfig, PipelineConfig
@@ -142,6 +144,33 @@ def test_runner_specs_wire_routes_overrides_aggregation_and_streams(tmp_path) ->
     assert specs["thinker"].same_process_targets == {"aggregate", "talker"}
     assert specs["thinker"].factory_args["model_path"] == "runtime-model"
     assert specs["thinker"].factory_args["extra"] == "rt"
+
+
+def test_stage_group_build_defers_heavy_factory_imports() -> None:
+    from sglang_omni.models.qwen3_asr.config import Qwen3ASRPipelineConfig
+
+    heavy_module = "sglang_omni.models.qwen3_asr.stages"
+    sys.modules.pop(heavy_module, None)
+    config = Qwen3ASRPipelineConfig(model_path="Qwen/Qwen3-ASR-1.7B")
+    prep = prepare_pipeline_runtime(config)
+    try:
+        groups = _build_stage_groups(
+            config,
+            ctx=FakeMpContext(),
+            stages_cfg=prep.stages_cfg,
+            name_map=prep.name_map,
+            endpoints=prep.endpoints,
+            placement_plan=prep.placement_plan,
+            process_plan=prep.process_plan,
+        )
+    finally:
+        assert prep.runtime_dir is not None
+        prep.runtime_dir.close()
+
+    specs = {spec.stage_name: spec for group in groups for spec in group.specs}
+    assert specs["asr"].factory.endswith("create_sglang_qwen3_asr_executor")
+    assert specs["asr"].model_path == "Qwen/Qwen3-ASR-1.7B"
+    assert heavy_module not in sys.modules
 
 
 def test_runner_specs_wire_same_process_targets_only_for_local_edges() -> None:

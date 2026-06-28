@@ -18,7 +18,7 @@ from sglang_omni.config.placement import (
     resolve_same_gpu_stream_targets,
     resolve_stage_gpu_ids,
 )
-from sglang_omni.config.runtime import resolve_stage_factory_args
+from sglang_omni.config.runtime import resolve_stage_static_factory_args
 from sglang_omni.config.schema import PipelineConfig, StageConfig
 from sglang_omni.config.topology import ProcessTopologyPlan
 from sglang_omni.pipeline import Coordinator
@@ -83,12 +83,15 @@ def _build_stage_groups(
             process_plan,
         )
 
-        # Pre-resolve factory args (inject model_path, gpu_id)
-        base_factory_args = resolve_stage_factory_args(stage_cfg, config)
+        base_factory_args = resolve_stage_static_factory_args(stage_cfg, config)
 
         stage_kwargs = dict(
             stage_name=stage_cfg.name,
             factory=stage_cfg.factory,
+            model_path=config.model_path,
+            total_gpu_memory_fraction=(
+                stage_cfg.runtime.resources.total_gpu_memory_fraction
+            ),
             next_stages=stage_cfg.next,
             route_fn=stage_cfg.route_fn,
             is_terminal=stage_cfg.terminal,

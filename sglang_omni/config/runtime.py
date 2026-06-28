@@ -25,34 +25,65 @@ def resolve_stage_factory_args(
     Placement budgets are injected only when the factory declares them.
     """
 
+    args = resolve_stage_static_factory_args(stage_cfg, global_cfg)
+    factory = import_string(stage_cfg.factory)
+    return apply_stage_factory_signature_args(
+        args,
+        factory,
+        model_path=global_cfg.model_path,
+        gpu_id=(
+            gpu_id if gpu_id is not None else _resolve_primary_gpu_id(stage_cfg, global_cfg)
+        ),
+        total_gpu_memory_fraction=(
+            stage_cfg.runtime.resources.total_gpu_memory_fraction
+        ),
+    )
+
+
+def resolve_stage_static_factory_args(
+    stage_cfg: StageConfig,
+    global_cfg: PipelineConfig,
+) -> dict[str, Any]:
+    """Resolve factory kwargs that do not require importing the factory."""
+
     args = dict(stage_cfg.factory_args)
     runtime_overrides = global_cfg.runtime_overrides.get(stage_cfg.name, {})
     _validate_runtime_sources(stage_cfg, args, runtime_overrides)
     _merge_factory_arg_overrides(args, runtime_overrides)
     _apply_typed_runtime_args(args, stage_cfg)
+    return args
 
-    factory = import_string(stage_cfg.factory)
+
+def apply_stage_factory_signature_args(
+    args: dict[str, Any],
+    factory: Any,
+    *,
+    model_path: str | None,
+    gpu_id: int | None,
+    total_gpu_memory_fraction: float | None,
+) -> dict[str, Any]:
+    """Inject signature-dependent factory kwargs after the factory is imported."""
+
+    resolved = dict(args)
     sig = inspect.signature(factory)
-
-    if "model_path" in sig.parameters and "model_path" not in args:
-        args["model_path"] = global_cfg.model_path
+    if (
+        model_path is not None
+        and "model_path" in sig.parameters
+        and "model_path" not in args
+    ):
+        resolved["model_path"] = model_path
 
     if "gpu_id" in sig.parameters and "gpu_id" not in args:
-        args["gpu_id"] = (
-            gpu_id
-            if gpu_id is not None
-            else _resolve_primary_gpu_id(stage_cfg, global_cfg)
-        )
+        resolved["gpu_id"] = gpu_id
 
-    total_gpu_memory_fraction = stage_cfg.runtime.resources.total_gpu_memory_fraction
     if (
         total_gpu_memory_fraction is not None
         and "total_gpu_memory_fraction" in sig.parameters
-        and "total_gpu_memory_fraction" not in args
+        and "total_gpu_memory_fraction" not in resolved
     ):
-        args["total_gpu_memory_fraction"] = total_gpu_memory_fraction
+        resolved["total_gpu_memory_fraction"] = total_gpu_memory_fraction
 
-    return args
+    return resolved
 
 
 def reject_untyped_total_gpu_memory_fraction(
