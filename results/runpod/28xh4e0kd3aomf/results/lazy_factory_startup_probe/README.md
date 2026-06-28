@@ -16,6 +16,7 @@ lazy stage-factory import experiment on pod `28xh4e0kd3aomf`.
 
 The probe started `Qwen/Qwen3-ASR-1.7B` and measured elapsed time from process
 launch until `/health` returned HTTP 200. Each run was stopped after readiness.
+The uploaded probe script is preserved as `probe_script.py` in this directory.
 
 The corrected RunPod command used:
 
@@ -34,10 +35,22 @@ binary from the existing venv.
   - Invalid run.
   - Server startup exited before readiness because the process PATH did not
     include the venv `ninja` executable.
+  - `05_candidate.server.log` is an extra orphan candidate startup attempt from
+    the interrupted invalid run. It is not represented in that run's
+    `results.json`; it is kept because it helps audit the same PATH/ninja
+    failure mode before the corrected run.
   - Kept for audit trail.
 - `20260628T015422Z_asr_h100_5999ce5/`
   - Successful corrected run.
   - One uncounted base warmup, then two counted pairs.
+
+## Capture Notes
+
+This was a quick dev-branch probe, not a final CI-equivalence run. The evidence
+bundle includes revision/tree metadata, raw server logs, structured results, the
+summary, and the exact probe script. It does not include a full `pip freeze` or
+full `nvidia-smi` dump; `meta.json` records the GPU name and memory reported by
+`nvidia-smi --query-gpu=name,memory.total --format=csv,noheader`.
 
 Successful summary:
 
