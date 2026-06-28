@@ -1,0 +1,6 @@
+run_dir=/workspace/results/lazy_factory_startup_probe/20260628T015422Z_asr_h100_5999ce5
+gpu=NVIDIA H100 80GB HBM3, 81559 MiB
+base: n=2 values=[122.16378302592784, 114.697314822115] mean=118.43054892402142
+candidate: n=2 values=[83.67632551118731, 91.40337156038731] mean=87.53984853578731
+delta_mean_s=30.891
+delta_mean_pct=26.08

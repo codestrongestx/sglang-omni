@@ -1,0 +1,16 @@
+{
+  "base": {
+    "head": "5ef6341f5fe06ab9bd1156796f22b3c1ff5312bb",
+    "tree": "95c3a4eaca247be2b78652fc5d9ef63774d89536",
+    "worktree": "/workspace/repos/sglang-omni-lazy-base-5ef6341-20260628"
+  },
+  "candidate": {
+    "head": "fa91b4cebffd45f04dbae66590cc0edc49f0f417",
+    "tree": "1e6e97324a50f077d6fb08917c499e1164e9b72d",
+    "worktree": "/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628"
+  },
+  "gpu": "NVIDIA H100 80GB HBM3, 81559 MiB",
+  "model": "Qwen/Qwen3-ASR-1.7B",
+  "run_id": "20260628T015422Z_asr_h100_5999ce5",
+  "venv_python": "/workspace/repos/sglang-omni/.venv/bin/python"
+}
