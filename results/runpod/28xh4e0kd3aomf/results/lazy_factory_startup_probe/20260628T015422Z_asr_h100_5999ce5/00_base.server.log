@@ -1,0 +1,53 @@
+cmd=/workspace/repos/sglang-omni/.venv/bin/python -m sglang_omni.cli serve --model-path Qwen/Qwen3-ASR-1.7B --host 127.0.0.1 --port 18100 --log-level warning
+Failed to import mooncake: libibverbs.so.1: cannot open shared object file: No such file or directory. MooncakeRelay will not work. Install with: pip install mooncake-transfer-engine
+Failed to import nixl: No module named 'nixl'. NixlRelay will not work.
+2026-06-28 01:54:45,364 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-ASR-1.7B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-06-28 01:54:45,375 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-ASR-1.7B/7278e1e70fe206f11671096ffdd38061171dd6e5/config.json "HTTP/1.1 200 OK"
+2026-06-28 01:54:45,466 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-ASR-1.7B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-06-28 01:54:45,476 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-ASR-1.7B/7278e1e70fe206f11671096ffdd38061171dd6e5/config.json "HTTP/1.1 200 OK"
+2026-06-28 01:55:14,484 [INFO] sglang_omni.pipeline.control_plane: Coordinator control plane started
+2026-06-28 01:55:14,485 [INFO] sglang_omni.pipeline.coordinator: Coordinator started
+2026-06-28 01:55:14,487 [INFO] sglang_omni.pipeline.stage_workers: StageGroup asr: spawned 1 process(es) (pids=[2275])
+Failed to import mooncake: libibverbs.so.1: cannot open shared object file: No such file or directory. MooncakeRelay will not work. Install with: pip install mooncake-transfer-engine
+Failed to import nixl: No module named 'nixl'. NixlRelay will not work.
+2026-06-28 01:55:19,441 [INFO] stage_workers.asr: Set current CUDA device to 0 for stage asr
+2026-06-28 01:55:19,441 [INFO] stage_workers.asr: Building scheduler for asr (tp_rank=0/1) ...
+2026-06-28 01:56:02,271 [INFO] stage_workers.asr: Acquired GPU startup lock for stage asr: /tmp/sglang_omni_gpu_0_startup.lock
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-06-28 01:56:02,406 [WARNING] huggingface_hub.utils._http: Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_section', 'mrope_interleaved', 'interleaved'}
+2026-06-28 01:56:02,424 [INFO] sglang.utils: thinker_config is None. Initializing Qwen3-ASR thinker with default values
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_section', 'mrope_interleaved', 'interleaved'}
+2026-06-28 01:56:03,553 [INFO] sglang.utils: thinker_config is None. Initializing Qwen3-ASR thinker with default values
+[transformers] The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+2026-06-28 01:56:03,649 [WARNING] sglang.srt.configs.model_config: Casting torch.bfloat16 to torch.float16.
+2026-06-28 01:56:03,746 [INFO] sglang.srt.server_args: Attention backend not specified. Use fa3 backend by default.
+2026-06-28 01:56:03,833 [WARNING] sglang.srt.configs.model_config: Casting torch.bfloat16 to torch.float16.
+2026-06-28 01:56:03,912 [INFO] sglang_omni.model_runner.model_worker: Configured SGLang backend policy: arch=Qwen3ASRForConditionalGeneration effective_quantization=None server_quantization=None moe_runner_backend=auto fp8_gemm_backend=auto
+2026-06-28 01:56:06,775 [INFO] sglang.srt.model_executor.model_runner: Init torch distributed begin.
+2026-06-28 01:56:06,841 [INFO] sglang.srt.model_executor.model_runner: Init torch distributed ends. elapsed=0.07 s, mem usage=0.09 GB
+2026-06-28 01:56:06,844 [INFO] sglang.srt.model_executor.model_runner: Load weight begin. avail mem=78.50 GB
+2026-06-28 01:56:06,888 [INFO] sglang.srt.utils.common: Multimodal attention backend not set. Use fa3.
+2026-06-28 01:56:06,888 [INFO] sglang.srt.utils.common: Using fa3 as multimodal attention backend.
+2026-06-28 01:56:06,985 [INFO] sglang.srt.model_loader.weight_utils: Found local HF snapshot for Qwen/Qwen3-ASR-1.7B at /workspace/.cache/huggingface/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5; skipping download.
+Multi-thread loading shards:   0% Completed | 0/2 [00:00<?, ?it/s]Multi-thread loading shards:  50% Completed | 1/2 [00:01<00:01,  1.63s/it]Multi-thread loading shards: 100% Completed | 2/2 [00:01<00:00,  1.22it/s]Multi-thread loading shards: 100% Completed | 2/2 [00:01<00:00,  1.06it/s]
+2026-06-28 01:56:09,071 [INFO] sglang.srt.model_executor.model_runner: Load weight end. elapsed=2.23 s, type=Qwen3ASRForConditionalGeneration, avail mem=74.60 GB, mem usage=3.91 GB.
+2026-06-28 01:56:09,072 [INFO] sglang.srt.model_executor.model_runner: Using KV cache dtype: torch.float16
+2026-06-28 01:56:09,095 [INFO] sglang.srt.mem_cache.memory_pool: KV Cache is allocated. #tokens: 605700, K size: 32.35 GB, V size: 32.35 GB
+2026-06-28 01:56:09,096 [INFO] sglang.srt.model_executor.model_runner_kv_cache_mixin: Memory pool end. avail mem=9.85 GB
+2026-06-28 01:56:09,182 [INFO] sglang.srt.model_executor.model_runner: Disable piecewise CUDA graph because --disable-piecewise-cuda-graph is set
+2026-06-28 01:56:09,212 [INFO] sglang.srt.model_executor.model_runner: Capture cuda graph begin. This can take up to several minutes. avail mem=9.75 GB
+2026-06-28 01:56:09,212 [INFO] sglang.srt.model_executor.cuda_graph_runner: Capture cuda graph bs [1, 2, 4, 8, 12, 16, 24, 32]
+  0%|          | 0/8 [00:00<?, ?it/s]Capturing batches (bs=32 avail_mem=9.73 GB):   0%|          | 0/8 [00:00<?, ?it/s]Capturing batches (bs=32 avail_mem=9.73 GB):  12%|█▎        | 1/8 [00:17<02:04, 17.79s/it]Capturing batches (bs=24 avail_mem=9.67 GB):  12%|█▎        | 1/8 [00:17<02:04, 17.79s/it]Capturing batches (bs=16 avail_mem=9.67 GB):  12%|█▎        | 1/8 [00:17<02:04, 17.79s/it]Capturing batches (bs=16 avail_mem=9.67 GB):  38%|███▊      | 3/8 [00:17<00:23,  4.68s/it]Capturing batches (bs=12 avail_mem=9.66 GB):  38%|███▊      | 3/8 [00:17<00:23,  4.68s/it]Capturing batches (bs=8 avail_mem=9.66 GB):  38%|███▊      | 3/8 [00:18<00:23,  4.68s/it] Capturing batches (bs=8 avail_mem=9.66 GB):  62%|██████▎   | 5/8 [00:18<00:06,  2.30s/it]Capturing batches (bs=4 avail_mem=9.66 GB):  62%|██████▎   | 5/8 [00:18<00:06,  2.30s/it]Capturing batches (bs=2 avail_mem=9.65 GB):  62%|██████▎   | 5/8 [00:18<00:06,  2.30s/it]Capturing batches (bs=1 avail_mem=9.65 GB):  62%|██████▎   | 5/8 [00:18<00:06,  2.30s/it]Capturing batches (bs=1 avail_mem=9.65 GB): 100%|██████████| 8/8 [00:18<00:00,  1.12s/it]Capturing batches (bs=1 avail_mem=9.65 GB): 100%|██████████| 8/8 [00:18<00:00,  2.28s/it]
+2026-06-28 01:56:28,038 [INFO] sglang.srt.model_executor.model_runner: Capture cuda graph end. Time elapsed: 18.83 s. mem usage=0.10 GB. avail mem=9.64 GB.
+2026-06-28 01:56:28,062 [INFO] sglang_omni.pipeline.control_plane: Stage asr control plane started
+2026-06-28 01:56:28,062 [INFO] sglang_omni.pipeline.stage.runtime: Scheduler thread for stage asr set CUDA device to 0
+2026-06-28 01:56:28,063 [INFO] sglang_omni.pipeline.stage.runtime: Stage asr started
+2026-06-28 01:56:28,063 [INFO] stage_workers.asr: Process asr ready with stages=['asr']
+2026-06-28 01:56:28,063 [INFO] sglang_omni.pipeline.stage_workers: Process asr ready
+2026-06-28 01:56:28,063 [INFO] sglang_omni.pipeline.coordinator: Coordinator registered stage: asr at ipc:///tmp/sglang_omni/qwen-qwen3-asr-1-7b-fbftf1mu/stage_asr.sock
+2026-06-28 01:56:28,063 [INFO] sglang_omni.pipeline.mp_runner: MultiProcessPipelineRunner started: 1 stage(s), 1 process(es)
+2026-06-28 01:56:28,063 [INFO] sglang_omni.serve.launcher: Resolved placement/topology plan: placement={'topology': 'Qwen3ASRPipelineConfig', 'pipeline': 'Qwen/Qwen3-ASR-1.7B', 'process_groups': {'asr': {'stages': ['asr'], 'gpu': 0}}, 'tp_process_groups': {}, 'stage_runtime': {'asr': {'gpu': 0, 'total_gpu_memory_fraction': None, 'mem_fraction_static': None}}, 'gpus': {0: {'hardware': {'device_id': 0, 'name': 'NVIDIA H100 80GB HBM3', 'total_memory': '79.65GiB'}, 'stages': ['asr'], 'total_gpu_memory_fraction': 0.0, 'missing_fraction_stages': ['asr']}}}
+2026-06-28 01:56:28,063 [INFO] sglang_omni.serve.launcher: Pipeline 'Qwen/Qwen3-ASR-1.7B' started (1 GPU(s))
+/usr/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 9 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

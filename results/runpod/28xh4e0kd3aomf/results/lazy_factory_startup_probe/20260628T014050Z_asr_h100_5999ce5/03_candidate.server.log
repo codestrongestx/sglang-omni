@@ -1,0 +1,485 @@
+cmd=/workspace/repos/sglang-omni/.venv/bin/python -m sglang_omni.cli serve --model-path Qwen/Qwen3-ASR-1.7B --host 127.0.0.1 --port 18103 --log-level warning
+Failed to import mooncake: libibverbs.so.1: cannot open shared object file: No such file or directory. MooncakeRelay will not work. Install with: pip install mooncake-transfer-engine
+Failed to import nixl: No module named 'nixl'. NixlRelay will not work.
+2026-06-28 01:47:26,977 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-ASR-1.7B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-06-28 01:47:26,986 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-ASR-1.7B/7278e1e70fe206f11671096ffdd38061171dd6e5/config.json "HTTP/1.1 200 OK"
+2026-06-28 01:47:27,093 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-ASR-1.7B/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-06-28 01:47:27,101 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-ASR-1.7B/7278e1e70fe206f11671096ffdd38061171dd6e5/config.json "HTTP/1.1 200 OK"
+2026-06-28 01:47:27,243 [INFO] sglang_omni.pipeline.control_plane: Coordinator control plane started
+2026-06-28 01:47:27,243 [INFO] sglang_omni.pipeline.coordinator: Coordinator started
+2026-06-28 01:47:27,266 [INFO] sglang_omni.pipeline.stage_workers: StageGroup asr: spawned 1 process(es) (pids=[1302])
+Failed to import mooncake: libibverbs.so.1: cannot open shared object file: No such file or directory. MooncakeRelay will not work. Install with: pip install mooncake-transfer-engine
+Failed to import nixl: No module named 'nixl'. NixlRelay will not work.
+2026-06-28 01:47:33,140 [INFO] stage_workers.asr: Set current CUDA device to 0 for stage asr
+2026-06-28 01:47:33,140 [INFO] stage_workers.asr: Building scheduler for asr (tp_rank=0/1) ...
+2026-06-28 01:48:18,998 [INFO] stage_workers.asr: Acquired GPU startup lock for stage asr: /tmp/sglang_omni_gpu_0_startup.lock
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-06-28 01:48:19,137 [WARNING] huggingface_hub.utils._http: Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_section', 'interleaved', 'mrope_interleaved'}
+2026-06-28 01:48:19,165 [INFO] sglang.utils: thinker_config is None. Initializing Qwen3-ASR thinker with default values
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'mrope_section', 'interleaved', 'mrope_interleaved'}
+2026-06-28 01:48:20,299 [INFO] sglang.utils: thinker_config is None. Initializing Qwen3-ASR thinker with default values
+[transformers] The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+2026-06-28 01:48:20,413 [WARNING] sglang.srt.configs.model_config: Casting torch.bfloat16 to torch.float16.
+2026-06-28 01:48:20,526 [INFO] sglang.srt.server_args: Attention backend not specified. Use fa3 backend by default.
+2026-06-28 01:48:20,614 [WARNING] sglang.srt.configs.model_config: Casting torch.bfloat16 to torch.float16.
+2026-06-28 01:48:20,695 [INFO] sglang_omni.model_runner.model_worker: Configured SGLang backend policy: arch=Qwen3ASRForConditionalGeneration effective_quantization=None server_quantization=None moe_runner_backend=auto fp8_gemm_backend=auto
+2026-06-28 01:48:24,038 [INFO] sglang.srt.model_executor.model_runner: Init torch distributed begin.
+2026-06-28 01:48:24,117 [INFO] sglang.srt.model_executor.model_runner: Init torch distributed ends. elapsed=0.08 s, mem usage=0.09 GB
+2026-06-28 01:48:24,120 [INFO] sglang.srt.model_executor.model_runner: Load weight begin. avail mem=78.50 GB
+2026-06-28 01:48:24,165 [INFO] sglang.srt.utils.common: Multimodal attention backend not set. Use fa3.
+2026-06-28 01:48:24,165 [INFO] sglang.srt.utils.common: Using fa3 as multimodal attention backend.
+2026-06-28 01:48:24,265 [INFO] sglang.srt.model_loader.weight_utils: Found local HF snapshot for Qwen/Qwen3-ASR-1.7B at /workspace/.cache/huggingface/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5; skipping download.
+Multi-thread loading shards:   0% Completed | 0/2 [00:00<?, ?it/s]Multi-thread loading shards:  50% Completed | 1/2 [00:01<00:01,  1.63s/it]Multi-thread loading shards: 100% Completed | 2/2 [00:01<00:00,  1.21it/s]Multi-thread loading shards: 100% Completed | 2/2 [00:01<00:00,  1.06it/s]
+2026-06-28 01:48:26,373 [INFO] sglang.srt.model_executor.model_runner: Load weight end. elapsed=2.25 s, type=Qwen3ASRForConditionalGeneration, avail mem=74.60 GB, mem usage=3.91 GB.
+2026-06-28 01:48:26,374 [INFO] sglang.srt.model_executor.model_runner: Using KV cache dtype: torch.float16
+2026-06-28 01:48:26,397 [INFO] sglang.srt.mem_cache.memory_pool: KV Cache is allocated. #tokens: 605700, K size: 32.35 GB, V size: 32.35 GB
+2026-06-28 01:48:26,398 [INFO] sglang.srt.model_executor.model_runner_kv_cache_mixin: Memory pool end. avail mem=9.85 GB
+2026-06-28 01:48:26,483 [INFO] sglang.srt.model_executor.model_runner: Disable piecewise CUDA graph because --disable-piecewise-cuda-graph is set
+2026-06-28 01:48:26,510 [INFO] sglang.srt.model_executor.model_runner: Capture cuda graph begin. This can take up to several minutes. avail mem=9.75 GB
+2026-06-28 01:48:26,510 [INFO] sglang.srt.model_executor.cuda_graph_runner: Capture cuda graph bs [1, 2, 4, 8, 12, 16, 24, 32]
+  0%|          | 0/8 [00:00<?, ?it/s]Capturing batches (bs=32 avail_mem=9.73 GB):   0%|          | 0/8 [00:00<?, ?it/s]2026-06-28 01:48:28,456 [WARNING] sglang.jit_kernel.norm: Failed to load JIT QK-Norm kernel: [Errno 2] No such file or directory: 'ninja'
+2026-06-28 01:48:29,113 [WARNING] sglang.jit_kernel.kvcache: Failed to load JIT KV-Cache kernel with row_bytes=2048: [Errno 2] No such file or directory: 'ninja'
+Capturing batches (bs=32 avail_mem=9.73 GB):   0%|          | 0/8 [00:03<?, ?it/s]
+2026-06-28 01:48:30,354 [ERROR] stage_workers.asr: Stage process asr failed
+Traceback (most recent call last):
+  File "/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pipeline/stage_workers.py", line 375, in stage_process_main
+    _run_process(spec, ready_event, log)
+  File "/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pipeline/stage_workers.py", line 406, in _run_process
+    _construct_stage(stage_spec, log, local_dispatcher=local_dispatcher)
+  File "/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pipeline/stage_workers.py", line 462, in _construct_stage
+    scheduler = _construct_scheduler(spec, gpu_id, log)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pipeline/stage_workers.py", line 655, in _construct_scheduler
+    return factory(**factory_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/models/qwen3_asr/stages.py", line 102, in create_sglang_qwen3_asr_executor
+    model_worker.model_runner.init_device_graphs()
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/model_executor/model_runner.py", line 2965, in init_device_graphs
+    self.graph_runner = graph_runners[self.device](self)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/model_executor/cuda_graph_runner.py", line 736, in __init__
+    self.capture()
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/model_executor/cuda_graph_runner.py", line 918, in capture
+    _capture_one_stream()
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/model_executor/cuda_graph_runner.py", line 906, in _capture_one_stream
+    ) = self.capture_one_batch_size(bs, forward, stream_idx)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/model_executor/cuda_graph_runner.py", line 1187, in capture_one_batch_size
+    run_once()
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/model_executor/cuda_graph_runner.py", line 1165, in run_once
+    logits_output_or_pp_proxy_tensors = forward(
+                                        ^^^^^^^^
+  File "/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/models/qwen3_asr/sglang_model.py", line 118, in forward
+    hidden_states = general_mm_embed_routine(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/managers/mm_utils.py", line 1106, in general_mm_embed_routine
+    hidden_states = language_model(
+                    ^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/models/qwen3.py", line 517, in forward
+    hidden_states = self.model(
+                    ^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/models/qwen2.py", line 367, in forward
+    hidden_states, residual = layer(
+                              ^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/models/qwen3.py", line 422, in forward
+    hidden_states = self.mlp(hidden_states, forward_batch=forward_batch)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/models/qwen2.py", line 103, in forward
+    x = self.act_fn(gate_up)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/layers/utils/multi_platform.py", line 83, in forward
+    return self._forward_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/layers/activation.py", line 94, in forward_cuda
+    silu_and_mul(x, out)
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kernel/activation.py", line 109, in silu_and_mul
+    return run_activation("silu", input, out, expert_ids, expert_step)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kernel/activation.py", line 97, in run_activation
+    _run_activation_inplace(op_name, input, out)
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/_ops.py", line 1269, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kernel/activation.py", line 57, in _run_activation_inplace
+    module = _jit_activation_module(input.dtype)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kernel/utils.py", line 57, in wrapper
+    result_map[key] = fn(*args, **kwargs)
+                      ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kernel/activation.py", line 34, in _jit_activation_module
+    return load_jit(
+           ^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kernel/utils.py", line 208, in load_jit
+    return load_inline(
+           ^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/tvm_ffi/cpp/extension.py", line 1035, in load_inline
+    build_inline(
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/tvm_ffi/cpp/extension.py", line 877, in build_inline
+    return _build_impl(
+           ^^^^^^^^^^^^
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/tvm_ffi/cpp/extension.py", line 672, in _build_impl
+    build_ninja(str(build_dir))
+  File "/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/tvm_ffi/cpp/extension.py", line 533, in build_ninja
+    status = subprocess.run(check=False, args=command, cwd=build_dir, capture_output=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'ninja'
+[rank0]:[W628 01:48:31.510905673 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+2026-06-28 01:48:32,283 [INFO] sglang_omni.pipeline.coordinator: Coordinator completion loop cancelled
+2026-06-28 01:48:32,283 [INFO] sglang_omni.pipeline.coordinator: Coordinator stopped
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/cli │
+│ /serve.py:1241 in serve                                                      │
+│                                                                              │
+│   1238 │   if _should_print_merged_config(colocate=colocate,                 │
+│        log_level=log_level):                                                 │
+│   1239 │   │   _print_merged_config(merged_config)                           │
+│   1240 │                                                                     │
+│ ❱ 1241 │   launch_server(                                                    │
+│   1242 │   │   merged_config,                                                │
+│   1243 │   │   host=host,                                                    │
+│   1244 │   │   port=port,                                                    │
+│                                                                              │
+│ /workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/cli │
+│ /serve.py:36 in launch_server                                                │
+│                                                                              │
+│     33 def launch_server(*args: object, **kwargs: object) -> object:         │
+│     34 │   from sglang_omni.serve.launcher import launch_server as           │
+│        _launch_server                                                        │
+│     35 │                                                                     │
+│ ❱   36 │   return _launch_server(*args, **kwargs)                            │
+│     37                                                                       │
+│     38                                                                       │
+│     39 def _normalize_stage_toggle_mode(flag_name: str, value: str) ->       │
+│        _STAGE_TOGGLE_MODE:                                                   │
+│                                                                              │
+│ /workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/ser │
+│ ve/launcher.py:442 in launch_server                                          │
+│                                                                              │
+│   439 │   │   │   ``/v1/audio/speech/batch``.                                │
+│   440 │   """                                                                │
+│   441 │   apply_gpu_compat_env_defaults()                                    │
+│ ❱ 442 │   asyncio.run(                                                       │
+│   443 │   │   _run_server(                                                   │
+│   444 │   │   │   pipeline_config,                                           │
+│   445 │   │   │   host=host,                                                 │
+│                                                                              │
+│ /usr/lib/python3.12/asyncio/runners.py:194 in run                            │
+│                                                                              │
+│   191 │   │   │   "asyncio.run() cannot be called from a running event       │
+│       loop")                                                                 │
+│   192 │                                                                      │
+│   193 │   with Runner(debug=debug, loop_factory=loop_factory) as runner:     │
+│ ❱ 194 │   │   return runner.run(main)                                        │
+│   195                                                                        │
+│   196                                                                        │
+│   197 def _cancel_all_tasks(loop):                                           │
+│                                                                              │
+│ /usr/lib/python3.12/asyncio/runners.py:118 in run                            │
+│                                                                              │
+│   115 │   │                                                                  │
+│   116 │   │   self._interrupt_count = 0                                      │
+│   117 │   │   try:                                                           │
+│ ❱ 118 │   │   │   return self._loop.run_until_complete(task)                 │
+│   119 │   │   except exceptions.CancelledError:                              │
+│   120 │   │   │   if self._interrupt_count > 0:                              │
+│   121 │   │   │   │   uncancel = getattr(task, "uncancel", None)             │
+│                                                                              │
+│ /usr/lib/python3.12/asyncio/base_events.py:687 in run_until_complete         │
+│                                                                              │
+│    684 │   │   if not future.done():                                         │
+│    685 │   │   │   raise RuntimeError('Event loop stopped before Future      │
+│        completed.')                                                          │
+│    686 │   │                                                                 │
+│ ❱  687 │   │   return future.result()                                        │
+│    688 │                                                                     │
+│    689 │   def stop(self):                                                   │
+│    690 │   │   """Stop running the event loop.                               │
+│                                                                              │
+│ /workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/ser │
+│ ve/launcher.py:311 in _run_server                                            │
+│                                                                              │
+│   308 │                                                                      │
+│   309 │   mp_runner = MultiProcessPipelineRunner(pipeline_config)            │
+│   310 │   startup_timeout =                                                  │
+│       float(os.environ.get("SGLANG_OMNI_STARTUP_TIMEOUT", "600"))            │
+│ ❱ 311 │   await mp_runner.start(timeout=startup_timeout)                     │
+│   312 │   coordinator = mp_runner.coordinator                                │
+│   313 │                                                                      │
+│   314 │   # Plans are resolved once inside ``mp_runner.start()`` (which      │
+│       applies                                                                │
+│                                                                              │
+│ /workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pip │
+│ eline/mp_runner.py:415 in start                                              │
+│                                                                              │
+│   412 │   │   │   for group in self._groups:                                 │
+│   413 │   │   │   │   group.spawn(ctx)                                       │
+│   414 │   │   │                                                              │
+│ ❱ 415 │   │   │   await asyncio.gather(*(g.wait_ready(timeout) for g in      │
+│       self._groups))                                                         │
+│   416 │   │   │                                                              │
+│   417 │   │   │   for group in self._groups:                                 │
+│   418 │   │   │   │   if group.any_dead():                                   │
+│                                                                              │
+│ /workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pip │
+│ eline/stage_workers.py:304 in wait_ready                                     │
+│                                                                              │
+│   301 │   │   │   │   │   │   pass                                           │
+│   302 │   │   │   │   │   else:                                              │
+│   303 │   │   │   │   │   │   details = f"\nStartup failure                  │
+│       detail:\n{traceback_text}"                                             │
+│ ❱ 304 │   │   │   │   │   raise RuntimeError(                                │
+│   305 │   │   │   │   │   │   f"Process {process_label} died during startup  │
+│       "                                                                      │
+│   306 │   │   │   │   │   │   f"(exit code {proc.exitcode}){details}"        │
+│   307 │   │   │   │   │   )                                                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+RuntimeError: Process asr died during startup (exit code 1)
+Startup failure detail:
+Traceback (most recent call last):
+  File 
+"/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pipeli
+ne/stage_workers.py", line 375, in stage_process_main
+    _run_process(spec, ready_event, log)
+  File 
+"/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pipeli
+ne/stage_workers.py", line 406, in _run_process
+    _construct_stage(stage_spec, log, local_dispatcher=local_dispatcher)
+  File 
+"/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pipeli
+ne/stage_workers.py", line 462, in _construct_stage
+    scheduler = _construct_scheduler(spec, gpu_id, log)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/pipeli
+ne/stage_workers.py", line 655, in _construct_scheduler
+    return factory(**factory_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/models
+/qwen3_asr/stages.py", line 102, in create_sglang_qwen3_asr_executor
+    model_worker.model_runner.init_device_graphs()
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+l_executor/model_runner.py", line 2965, in init_device_graphs
+    self.graph_runner = graph_runners[self.device](self)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+l_executor/cuda_graph_runner.py", line 736, in __init__
+    self.capture()
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+l_executor/cuda_graph_runner.py", line 918, in capture
+    _capture_one_stream()
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+l_executor/cuda_graph_runner.py", line 906, in _capture_one_stream
+    ) = self.capture_one_batch_size(bs, forward, stream_idx)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+l_executor/cuda_graph_runner.py", line 1187, in capture_one_batch_size
+    run_once()
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+l_executor/cuda_graph_runner.py", line 1165, in run_once
+    logits_output_or_pp_proxy_tensors = forward(
+                                        ^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni-lazy-candidate-5999ce5-20260628/sglang_omni/models
+/qwen3_asr/sglang_model.py", line 118, in forward
+    hidden_states = general_mm_embed_routine(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mana
+gers/mm_utils.py", line 1106, in general_mm_embed_routine
+    hidden_states = language_model(
+                    ^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/utils/_co
+ntextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+ls/qwen3.py", line 517, in forward
+    hidden_states = self.model(
+                    ^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+ls/qwen2.py", line 367, in forward
+    hidden_states, residual = layer(
+                              ^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+ls/qwen3.py", line 422, in forward
+    hidden_states = self.mlp(hidden_states, forward_batch=forward_batch)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/mode
+ls/qwen2.py", line 103, in forward
+    x = self.act_fn(gate_up)
+        ^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/nn/module
+s/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/laye
+rs/utils/multi_platform.py", line 83, in forward
+    return self._forward_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/srt/laye
+rs/activation.py", line 94, in forward_cuda
+    silu_and_mul(x, out)
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kern
+el/activation.py", line 109, in silu_and_mul
+    return run_activation("silu", input, out, expert_ids, expert_step)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kern
+el/activation.py", line 97, in run_activation
+    _run_activation_inplace(op_name, input, out)
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/torch/_ops.py",
+line 1269, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kern
+el/activation.py", line 57, in _run_activation_inplace
+    module = _jit_activation_module(input.dtype)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kern
+el/utils.py", line 57, in wrapper
+    result_map[key] = fn(*args, **kwargs)
+                      ^^^^^^^^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kern
+el/activation.py", line 34, in _jit_activation_module
+    return load_jit(
+           ^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/sglang/jit_kern
+el/utils.py", line 208, in load_jit
+    return load_inline(
+           ^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/tvm_ffi/cpp/ext
+ension.py", line 1035, in load_inline
+    build_inline(
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/tvm_ffi/cpp/ext
+ension.py", line 877, in build_inline
+    return _build_impl(
+           ^^^^^^^^^^^^
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/tvm_ffi/cpp/ext
+ension.py", line 672, in _build_impl
+    build_ninja(str(build_dir))
+  File 
+"/workspace/repos/sglang-omni/.venv/lib/python3.12/site-packages/tvm_ffi/cpp/ext
+ension.py", line 533, in build_ninja
+    status = subprocess.run(check=False, args=command, cwd=build_dir, 
+capture_output=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'ninja'
+
