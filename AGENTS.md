@@ -1,9 +1,15 @@
 # Agent Instructions
 
 SSH to RunPod pods is often fragile. Prefer
-`~/code/runpod-lab/bin/runpod_jupyter` for remote pod commands. Use its `exec`
-subcommand with the pod's Jupyter proxy URL and a password file; see
-`~/code/runpod-lab/README.md` for the current command syntax.
+`~/code/runpod-lab/bin/runpod_jupyter` for remote pod commands. For ad hoc
+commands, use:
+
+```bash
+~/code/runpod-lab/bin/runpod_jupyter exec \
+  --base-url https://<pod-id>-8888.proxy.runpod.net \
+  --password-file <jupyter-password-file> \
+  "<command>"
+```
 
 To pull SGLang-Omni results from a pod, use:
 
