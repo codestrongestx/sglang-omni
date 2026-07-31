@@ -229,7 +229,6 @@ def create_sglang_fun_asr_executor(
     output_proc = SGLangOutputProcessor(
         capture_hidden=False,
         capture_hidden_layers=None,
-        model=model_worker.model_runner.model,
     )
 
     audio_encoder_service = None

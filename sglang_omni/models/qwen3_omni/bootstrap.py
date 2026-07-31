@@ -82,7 +82,6 @@ def create_thinker_scheduler(
         capture_hidden=capture_hidden,
         capture_hidden_layers=capture_hidden_layers,
         capture_hidden_width=capture_hidden_width,
-        model=model_worker.model_runner.model if capture_hidden_layers else None,
         should_emit_hidden=_should_generate_qwen_audio_output,
     )
 
@@ -198,7 +197,6 @@ def create_talker_scheduler(
     output_proc = SGLangOutputProcessor(
         capture_hidden=False,
         capture_hidden_layers=None,
-        model=model_worker.model_runner.model,
     )
 
     tokenizer = get_tokenizer(

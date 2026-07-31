@@ -454,11 +454,6 @@ class ThinkerModelRunner(ModelRunner):
             capture_layer_count=len(self._capture_hidden_layers or []),
             hidden_size=self._capture_hidden_width,
         )
-        if captured_aux is None:
-            captured_aux = self.model._captured_aux_hidden_states
-        # The Qwen first-class path never needs this slot. Clearing it prevents a
-        # stale eager fallback from being attributed to a later launch.
-        self.model._captured_aux_hidden_states = None
         has_stream_hidden = isinstance(stream_hidden, torch.Tensor)
 
         sources = list(captured_aux) if captured_aux is not None else []

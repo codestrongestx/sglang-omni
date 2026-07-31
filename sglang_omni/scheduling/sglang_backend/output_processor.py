@@ -19,14 +19,12 @@ class SGLangOutputProcessor:
         self,
         capture_hidden: bool = False,
         capture_hidden_layers: list[int] | None = None,
-        model: Any = None,
         should_emit_hidden: Callable[[Any], bool] | None = None,
         capture_hidden_width: int | None = None,
     ):
         self._capture_hidden = capture_hidden
         self._capture_hidden_layers = capture_hidden_layers
         self._capture_hidden_width = capture_hidden_width
-        self._model = model
         self._should_emit_hidden = should_emit_hidden
 
     def process(
@@ -153,14 +151,6 @@ class SGLangOutputProcessor:
             capture_layer_count=len(self._capture_hidden_layers or []),
             hidden_size=self._capture_hidden_width,
         )
-        if captured is not None:
-            if self._model is not None:
-                self._model._captured_aux_hidden_states = None
-            return captured
-        if self._model is None:
-            return None
-        captured = self._model._captured_aux_hidden_states
-        self._model._captured_aux_hidden_states = None
         return captured
 
     def _build_aux_hidden_extra(

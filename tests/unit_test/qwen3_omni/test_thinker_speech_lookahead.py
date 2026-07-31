@@ -19,7 +19,6 @@ from sglang_omni.scheduling.types import SchedulerOutput, SchedulerRequest
 
 def _runner() -> ThinkerModelRunner:
     runner = object.__new__(ThinkerModelRunner)
-    runner.model = SimpleNamespace(_captured_aux_hidden_states=None)
     runner._capture_hidden_layers = [0, 24]
     runner._capture_hidden_width = 2
     runner._th_hidden_bufs = None
@@ -149,8 +148,7 @@ def test_speech_hidden_capture_pingpongs_across_lookahead_launches() -> None:
         torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
     ]
     first_stream = torch.tensor([[21.0, 22.0], [23.0, 24.0]])
-    first_result = _result(first_stream)
-    runner.model._captured_aux_hidden_states = first_aux
+    first_result = _packed_result(*first_aux, first_stream)
 
     runner._stage_async_hidden_capture(first_result)
 
@@ -159,12 +157,10 @@ def test_speech_hidden_capture_pingpongs_across_lookahead_launches() -> None:
         torch.tensor([[111.0, 112.0], [113.0, 114.0]]),
     ]
     second_stream = torch.tensor([[121.0, 122.0], [123.0, 124.0]])
-    second_result = _result(second_stream)
-    runner.model._captured_aux_hidden_states = second_aux
+    second_result = _packed_result(*second_aux, second_stream)
 
     runner._stage_async_hidden_capture(second_result)
 
-    assert runner.model._captured_aux_hidden_states is None
     assert torch.equal(first_result._captured_aux_hidden_states[0], first_aux[0])
     assert torch.equal(first_result._captured_aux_hidden_states[1], first_aux[1])
     assert torch.equal(first_result._captured_stream_hidden_states, first_stream)
@@ -190,15 +186,9 @@ def test_speech_hidden_capture_uses_the_replayed_graph_output() -> None:
     graph_a_output = torch.cat([*graph_a_aux, graph_a_stream], dim=-1)
     graph_b_output = torch.cat([*graph_b_aux, graph_b_stream], dim=-1)
 
-    # A stale legacy side channel must not override the graph-owned output.
-    runner.model._captured_aux_hidden_states = [
-        torch.full((2, 2), 999.0),
-        torch.full((2, 2), 999.0),
-    ]
     graph_a_result = _result(graph_a_output)
     runner._stage_async_hidden_capture(graph_a_result)
 
-    assert runner.model._captured_aux_hidden_states is None
     assert torch.equal(graph_a_result._captured_aux_hidden_states[0], graph_a_aux[0])
     assert torch.equal(graph_a_result._captured_stream_hidden_states, graph_a_stream)
 
@@ -246,22 +236,24 @@ def test_speech_raw_hidden_capture_pingpongs_when_aux_capture_is_missing() -> No
 
 def test_output_processor_consumes_result_owned_capture_not_later_launch() -> None:
     runner = _runner()
-    result = _result(torch.tensor([[21.0, 22.0], [23.0, 24.0]]))
-    runner.model._captured_aux_hidden_states = [
+    aux = [
         torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
         torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
     ]
+    stream = torch.tensor([[21.0, 22.0], [23.0, 24.0]])
+    result = _packed_result(*aux, stream)
     runner._stage_async_hidden_capture(result)
 
-    later_capture = [
-        torch.tensor([[101.0, 102.0], [103.0, 104.0]]),
-        torch.tensor([[111.0, 112.0], [113.0, 114.0]]),
-    ]
-    runner.model._captured_aux_hidden_states = later_capture
+    # Launch(N+1) replays the same graph before this step resolves: the packed
+    # logits-output buffer now holds the NEXT step's values. Emitted extras
+    # must come from the launch-owned snapshot, not the live buffer.
+    result.logits_output.hidden_states = torch.cat(
+        [part + 100.0 for part in [*aux, stream]], dim=-1
+    )
     output_processor = SGLangOutputProcessor(
         capture_hidden=True,
         capture_hidden_layers=[0, 24],
-        model=runner.model,
+        capture_hidden_width=2,
         should_emit_hidden=lambda request: request.request_id == "audio",
     )
     scheduler_output = SchedulerOutput(
@@ -284,21 +276,13 @@ def test_output_processor_consumes_result_owned_capture_not_later_launch() -> No
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
     assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([13.0, 14.0]))
     assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([23.0, 24.0]))
-    assert runner.model._captured_aux_hidden_states is later_capture
 
 
 def test_output_processor_reads_graph_owned_packed_capture() -> None:
-    model = SimpleNamespace(
-        _captured_aux_hidden_states=[
-            torch.full((2, 2), 999.0),
-            torch.full((2, 2), 999.0),
-        ]
-    )
     output_processor = SGLangOutputProcessor(
         capture_hidden=True,
         capture_hidden_layers=[0, 24],
         capture_hidden_width=2,
-        model=model,
         should_emit_hidden=lambda request: request.request_id == "audio",
     )
     result = _packed_result(
@@ -326,7 +310,6 @@ def test_output_processor_reads_graph_owned_packed_capture() -> None:
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
     assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([13.0, 14.0]))
     assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([23.0, 24.0]))
-    assert model._captured_aux_hidden_states is None
 
 
 def test_output_processor_reads_last_only_capture_after_multi_token_prefill() -> None:
@@ -334,7 +317,6 @@ def test_output_processor_reads_last_only_capture_after_multi_token_prefill() ->
         capture_hidden=True,
         capture_hidden_layers=[0, 24],
         capture_hidden_width=2,
-        model=SimpleNamespace(_captured_aux_hidden_states=None),
         should_emit_hidden=lambda request: True,
     )
     result = _packed_result(
@@ -359,7 +341,6 @@ def test_output_processor_maps_last_only_capture_for_mixed_prefill() -> None:
         capture_hidden=True,
         capture_hidden_layers=[0, 24],
         capture_hidden_width=2,
-        model=SimpleNamespace(_captured_aux_hidden_states=None),
         should_emit_hidden=lambda request: request.request_id == "audio",
     )
     result = _packed_result(
@@ -399,7 +380,6 @@ def test_output_processor_uses_owned_raw_snapshot_when_aux_capture_is_missing() 
     output_processor = SGLangOutputProcessor(
         capture_hidden=True,
         capture_hidden_layers=[0, 24],
-        model=runner.model,
         should_emit_hidden=lambda request: request.request_id == "audio",
     )
     scheduler_output = SchedulerOutput(
@@ -440,7 +420,6 @@ def test_output_processor_uses_launch_rows_after_live_batch_shrinks() -> None:
     output_processor = SGLangOutputProcessor(
         capture_hidden=True,
         capture_hidden_layers=[0, 24],
-        model=SimpleNamespace(_captured_aux_hidden_states=None),
         should_emit_hidden=lambda request: request.request_id == "audio",
     )
     result = _result(torch.tensor([[21.0, 22.0], [23.0, 24.0], [25.0, 26.0]]))
@@ -504,16 +483,14 @@ def test_lookahead_profile_event_records_capture_and_step(monkeypatch) -> None:
 
 
 def test_unconfigured_capture_ignores_audio_default_and_requests_null_mode() -> None:
-    """A text-only deployment installs no capture layers and its model object
-    never grows the legacy capture attribute. Requests that default to audio
-    output (missing output_modalities) must still keep NULL capture and never
-    reach the hidden-snapshot path. Regression: capture gating used to read
-    only per-request metadata, so such a batch requested FULL decode capture
-    (mismatching the NULL-captured CUDA graphs and disabling replay) and the
-    launch snapshot dereferenced missing model state (AttributeError, failing
-    every lookahead batch)."""
+    """A text-only deployment installs no capture layers. Requests that default
+    to audio output (missing output_modalities) must still keep NULL capture
+    and never reach the hidden-snapshot path. Regression: capture gating used
+    to read only per-request metadata, so such a batch requested FULL decode
+    capture (mismatching the NULL-captured CUDA graphs and disabling replay)
+    and the launch snapshot dereferenced capture state that text deployments
+    never create (AttributeError, failing every lookahead batch)."""
     runner = object.__new__(ThinkerModelRunner)
-    runner.model = SimpleNamespace()  # no legacy capture attribute
     runner._capture_hidden_layers = None
     runner._capture_hidden_width = None
     runner._should_capture_hidden = lambda request: True  # modalities default
