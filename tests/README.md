@@ -413,6 +413,9 @@ that happened to contain an older version of the test.
   - colocation config and SGLang AR budget contracts
   - `Qwen3OmniPipelineState` request builders, including projected payload container
     isolation for mutable streaming state
+  - thinker one-step lookahead eligibility, including launch-owned ping-pong
+    snapshots that keep speech hidden states aligned across asynchronous
+    launch/resolve ordering
   - talker behavior, including partial-prefix startup gate, the real
     `_build_talker_request_data` propagation contract (input_ids,
     tts_pad_embed, sampling_seed, fallback chunks, thinker_done), and the

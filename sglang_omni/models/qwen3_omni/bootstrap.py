@@ -80,6 +80,7 @@ def create_thinker_scheduler(
     output_proc = SGLangOutputProcessor(
         capture_hidden=capture_hidden,
         capture_hidden_layers=capture_hidden_layers,
+        capture_hidden_width=model_config.hidden_size if capture_hidden else None,
         model=model_worker.model_runner.model if capture_hidden_layers else None,
         should_emit_hidden=_should_generate_qwen_audio_output,
     )

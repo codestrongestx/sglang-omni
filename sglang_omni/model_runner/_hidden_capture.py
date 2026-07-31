@@ -1,14 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Hook-based hidden state capture for multi-layer extraction.
+"""Hidden state capture helpers for multi-layer extraction.
 
 SGLang's VL wrapper (Qwen3VLForConditionalGeneration) doesn't support
 the aux_hidden_states tuple returned by the text model when layers_to_capture
-is set. This module wraps the text model's forward to intercept that tuple,
-store aux_hidden_states on a side-channel, and return only the plain
-hidden_states so the VL wrapper's logits_processor works correctly.
-
-The OutputProcessor then reads from the side-channel to build per-layer
-hidden state dicts.
+is set. Omni-owned model wrappers can publish those layers through
+``LogitsProcessorOutput.hidden_states``; the generic fallback below retains the
+older hook/side-channel behavior for wrappers that do not support that path.
 """
 
 from __future__ import annotations
@@ -23,6 +20,31 @@ import torch.nn as nn
 logger = logging.getLogger(__name__)
 
 
+def unpack_packed_hidden_capture(
+    packed: Any,
+    *,
+    capture_layer_count: int,
+    hidden_size: int | None,
+) -> tuple[tuple[torch.Tensor, ...] | None, torch.Tensor | None]:
+    """Split ``[captured layers..., final stream state]`` along the last axis."""
+    if not isinstance(packed, torch.Tensor):
+        return None, None
+    if (
+        capture_layer_count <= 0
+        or hidden_size is None
+        or hidden_size <= 0
+        or packed.ndim == 0
+    ):
+        return None, packed
+
+    part_count = capture_layer_count + 1
+    if packed.shape[-1] != hidden_size * part_count:
+        return None, packed
+
+    parts = packed.split(hidden_size, dim=-1)
+    return tuple(parts[:-1]), parts[-1]
+
+
 def install_hidden_capture_hooks(
     model: nn.Module,
     capture_layers: list[int],
@@ -35,7 +57,23 @@ def install_hidden_capture_hooks(
             Layer 0 captures embed output (input to first transformer layer).
             Layer N captures input to layer N (= output of layer N-1).
     """
-    # Navigate to the text model that has layers_to_capture
+    from sglang_omni.models.qwen3_omni.components.sglang_thinker import (
+        Qwen3OmniThinkerForCausalLM,
+    )
+
+    if isinstance(model, Qwen3OmniThinkerForCausalLM):
+        model.configure_hidden_capture_layers(capture_layers)
+        # Keep the legacy attribute available to generic output processing, but
+        # the model-specific forward publishes capture data on its result.
+        model._captured_aux_hidden_states = None
+        logger.info(
+            "Configured first-class hidden capture on %s for layers %s",
+            type(model).__name__,
+            capture_layers,
+        )
+        return
+
+    # Navigate to the text model that has layers_to_capture.
     # Qwen3OmniMoeForConditionalGeneration -> .thinker -> .model (Qwen3MoeLLMModel)
     # Qwen3OmniTalker -> .model (text model)
     if hasattr(model, "thinker"):
