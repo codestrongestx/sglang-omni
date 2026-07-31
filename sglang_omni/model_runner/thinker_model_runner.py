@@ -465,8 +465,6 @@ class ThinkerModelRunner(ModelRunner):
         if has_stream_hidden:
             sources.append(stream_hidden)
         if not sources:
-            result._captured_aux_hidden_states = None
-            result._captured_stream_hidden_states = None
             return
 
         snapshots = self._async_hidden_bufs(sources)
@@ -499,9 +497,6 @@ class ThinkerModelRunner(ModelRunner):
         host_buf[:n].copy_(nt[:n], non_blocking=True)
         if self._batch_should_capture_hidden(requests):
             self._stage_async_hidden_capture(result)
-        else:
-            result._captured_aux_hidden_states = None
-            result._captured_stream_hidden_states = None
         return host_buf
 
     def post_decode_resolve(

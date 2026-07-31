@@ -28,9 +28,13 @@ def _runner() -> ThinkerModelRunner:
 
 
 def _result(stream_hidden: torch.Tensor) -> SimpleNamespace:
+    # Mirrors the base-runner mailbox contract: every batch result carries the
+    # capture slots stamped to None before any post-decode hook runs.
     return SimpleNamespace(
         next_token_ids=torch.tensor([11, 22]),
         logits_output=SimpleNamespace(hidden_states=stream_hidden),
+        _captured_aux_hidden_states=None,
+        _captured_stream_hidden_states=None,
     )
 
 

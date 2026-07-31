@@ -140,11 +140,10 @@ class SGLangOutputProcessor:
     def _take_captured_aux_hidden_states(
         self, model_output: Any
     ) -> Sequence[torch.Tensor] | None:
-        # Async lookahead attaches a launch-owned snapshot to the result. The
-        # attribute's presence is authoritative even when its value is None:
-        # falling back to the model-global slot could consume a later launch.
-        if hasattr(model_output, "_captured_aux_hidden_states"):
-            captured = model_output._captured_aux_hidden_states
+        # Base runners stamp the capture slots on every batch result; non-None
+        # means the async launch staged a snapshot for this exact step.
+        captured = model_output._captured_aux_hidden_states
+        if captured is not None:
             model_output._captured_aux_hidden_states = None
             return captured
         logits_output = model_output.logits_output
@@ -212,10 +211,10 @@ class SGLangOutputProcessor:
         }
 
     def _extract_stream_hidden_states(self, model_output: Any) -> torch.Tensor | None:
-        if hasattr(model_output, "_captured_stream_hidden_states"):
-            raw_hidden = model_output._captured_stream_hidden_states
+        raw_hidden = model_output._captured_stream_hidden_states
+        if raw_hidden is not None:
             model_output._captured_stream_hidden_states = None
-            return raw_hidden if isinstance(raw_hidden, torch.Tensor) else None
+            return raw_hidden
         logits_output = model_output.logits_output
         if logits_output is None:
             return None

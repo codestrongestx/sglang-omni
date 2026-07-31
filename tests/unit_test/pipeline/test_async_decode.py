@@ -1068,3 +1068,31 @@ def test_drop_stale_overrun_filters_decoding_reqs():
     live_decode = batch.reqs[2]
     out = s._drop_stale_overrun(batch)
     assert out.decoding_reqs == [live_decode]
+
+
+def test_prepare_and_forward_stamps_capture_mailbox_slots():
+    """Every batch result must carry the async hidden-capture slots (None when
+    nothing is staged): the scheduler's lookahead profiling probe and the
+    output processor read them unconditionally, and only the thinker runner
+    ever overwrites them. Regression: results from runners that never stage a
+    snapshot (every non-thinker async pipeline) lacked the attributes, so the
+    profiling probe raised AttributeError on launch."""
+    runner = object.__new__(ModelRunner)
+    batch_result = types.SimpleNamespace(
+        next_token_ids=torch.tensor([1]), logits_output=None
+    )
+    runner.tp_worker = types.SimpleNamespace(
+        forward_batch_generation=lambda forward_batch: batch_result
+    )
+    schedule_batch = types.SimpleNamespace(is_prefill_only=False, output_ids=None)
+
+    out = runner._prepare_and_forward(
+        types.SimpleNamespace(),
+        schedule_batch,
+        requests=[],
+        is_prefill=False,
+    )
+
+    assert out is batch_result
+    assert out._captured_aux_hidden_states is None
+    assert out._captured_stream_hidden_states is None

@@ -273,6 +273,8 @@ def test_qwen_aux_hidden_states_clone_only_audio_request_slice():
         logits_output=SimpleNamespace(
             hidden_states=torch.arange(100, 106, dtype=torch.float32).reshape(3, 2)
         ),
+        _captured_aux_hidden_states=None,
+        _captured_stream_hidden_states=None,
     )
 
     outputs = output_processor.process(model_output, scheduler_output)
@@ -331,6 +333,8 @@ def test_qwen_aux_hidden_states_clear_when_no_request_emits_hidden():
         logits_output=SimpleNamespace(
             hidden_states=torch.arange(100, 106, dtype=torch.float32).reshape(3, 2)
         ),
+        _captured_aux_hidden_states=None,
+        _captured_stream_hidden_states=None,
     )
 
     outputs = output_processor.process(model_output, scheduler_output)
