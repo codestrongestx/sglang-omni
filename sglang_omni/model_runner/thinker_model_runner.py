@@ -31,9 +31,18 @@ class ThinkerModelRunner(ModelRunner):
         output_processor: Any,
         *,
         should_capture_hidden: Callable[[Any], bool] | None = None,
+        capture_hidden_layers: list[int] | None = None,
+        capture_hidden_width: int | None = None,
     ):
         super().__init__(tp_worker, output_processor)
         self._should_capture_hidden = should_capture_hidden
+        # Capture configuration is frozen at construction. A text-only
+        # deployment installs no capture layers, so every batch there must stay
+        # on the NULL capture path no matter what per-request metadata says.
+        self._capture_hidden_layers = (
+            list(capture_hidden_layers) if capture_hidden_layers else None
+        )
+        self._capture_hidden_width = capture_hidden_width
 
         model = self.model
         self._outer_model = model.thinker
@@ -73,6 +82,8 @@ class ThinkerModelRunner(ModelRunner):
             return super().execute_launch(scheduler_output)
 
     def _batch_should_capture_hidden(self, requests: list[Any]) -> bool:
+        if self._capture_hidden_layers is None:
+            return False
         if self._should_capture_hidden is None:
             return True
         for request in requests:
@@ -438,12 +449,10 @@ class ThinkerModelRunner(ModelRunner):
         """Snapshot graph-owned hidden output into this lookahead launch."""
         logits_output = result.logits_output
         packed_hidden = logits_output.hidden_states
-        capture_layers = self.output_processor._capture_hidden_layers
-        capture_width = self.output_processor._capture_hidden_width
         captured_aux, stream_hidden = unpack_packed_hidden_capture(
             packed_hidden,
-            capture_layer_count=len(capture_layers or []),
-            hidden_size=capture_width,
+            capture_layer_count=len(self._capture_hidden_layers or []),
+            hidden_size=self._capture_hidden_width,
         )
         if captured_aux is None:
             captured_aux = self.model._captured_aux_hidden_states

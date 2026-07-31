@@ -20,10 +20,8 @@ from sglang_omni.scheduling.types import SchedulerOutput, SchedulerRequest
 def _runner() -> ThinkerModelRunner:
     runner = object.__new__(ThinkerModelRunner)
     runner.model = SimpleNamespace(_captured_aux_hidden_states=None)
-    runner.output_processor = SimpleNamespace(
-        _capture_hidden_layers=[0, 24],
-        _capture_hidden_width=2,
-    )
+    runner._capture_hidden_layers = [0, 24]
+    runner._capture_hidden_width = 2
     runner._th_hidden_bufs = None
     runner._th_hidden_slot = 0
     return runner
@@ -499,6 +497,39 @@ def test_lookahead_profile_event_records_capture_and_step(monkeypatch) -> None:
 
     assert [event["request_id"] for event in events] == ["speech-1", "speech-2"]
     assert all(event["event_name"] == "scheduler_lookahead_resolve" for event in events)
+
+
+def test_unconfigured_capture_ignores_audio_default_and_requests_null_mode() -> None:
+    """A text-only deployment installs no capture layers and its model object
+    never grows the legacy capture attribute. Requests that default to audio
+    output (missing output_modalities) must still keep NULL capture and never
+    reach the hidden-snapshot path. Regression: capture gating used to read
+    only per-request metadata, so such a batch requested FULL decode capture
+    (mismatching the NULL-captured CUDA graphs and disabling replay) and the
+    launch snapshot dereferenced missing model state (AttributeError, failing
+    every lookahead batch)."""
+    runner = object.__new__(ThinkerModelRunner)
+    runner.model = SimpleNamespace()  # no legacy capture attribute
+    runner._capture_hidden_layers = None
+    runner._capture_hidden_width = None
+    runner._should_capture_hidden = lambda request: True  # modalities default
+    runner._th_hidden_bufs = None
+    runner._th_hidden_slot = 0
+    runner._async_host_buf = lambda like, n: torch.empty(n, dtype=like.dtype)
+    requests = [
+        SimpleNamespace(request_id="text-1"),
+        SimpleNamespace(request_id="text-2"),
+    ]
+
+    assert runner.requested_capture_hidden_mode_decode(None, requests).name == "NULL"
+    assert runner.requested_capture_hidden_mode_prefill(None, requests).name == "NULL"
+
+    result = _result(torch.tensor([[1.0, 2.0], [3.0, 4.0]]))
+    runner.post_decode_launch(result, forward_batch=None, requests=requests)
+
+    assert result._captured_aux_hidden_states is None
+    assert result._captured_stream_hidden_states is None
+    assert runner._th_hidden_bufs is None
     assert all(
         event["metadata"]
         == {
