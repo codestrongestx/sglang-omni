@@ -17,25 +17,24 @@ import torch
 
 
 def unpack_packed_hidden_capture(
-    packed: Any,
+    packed: torch.Tensor | None,
     *,
     capture_layer_count: int,
-    hidden_size: int | None,
+    hidden_size: int,
 ) -> tuple[tuple[torch.Tensor, ...] | None, torch.Tensor | None]:
-    """Split ``[captured layers..., final stream state]`` along the last axis."""
-    if not isinstance(packed, torch.Tensor):
+    """Split ``[captured layers..., final stream state]`` along the last axis.
+
+    ``packed`` is None on steps that captured nothing (NULL capture mode);
+    any other width than ``hidden_size * (capture_layer_count + 1)`` means the
+    capture configuration and the model disagree — fail loud instead of
+    silently dropping speech hidden states.
+    """
+    if packed is None:
         return None, None
-    if (
-        capture_layer_count <= 0
-        or hidden_size is None
-        or hidden_size <= 0
-        or packed.ndim == 0
-    ):
-        return None, packed
-
     part_count = capture_layer_count + 1
-    if packed.shape[-1] != hidden_size * part_count:
-        return None, packed
-
+    assert packed.shape[-1] == hidden_size * part_count, (
+        f"packed hidden capture width {packed.shape[-1]} != "
+        f"{hidden_size} * {part_count} (hidden_size * (capture layers + 1))"
+    )
     parts = packed.split(hidden_size, dim=-1)
     return tuple(parts[:-1]), parts[-1]

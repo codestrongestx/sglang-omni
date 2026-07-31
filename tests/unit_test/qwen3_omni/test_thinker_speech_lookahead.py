@@ -5,8 +5,10 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
 import torch
 
+from sglang_omni.model_runner._hidden_capture import unpack_packed_hidden_capture
 from sglang_omni.model_runner.thinker_model_runner import ThinkerModelRunner
 from sglang_omni.models.qwen3_omni.components.sglang_thinker import (
     Qwen3OmniThinkerForCausalLM,
@@ -212,28 +214,6 @@ def test_speech_hidden_capture_uses_the_replayed_graph_output() -> None:
     )
 
 
-def test_speech_raw_hidden_capture_pingpongs_when_aux_capture_is_missing() -> None:
-    runner = _runner()
-    graph_owned_hidden = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
-    first_result = _result(graph_owned_hidden)
-
-    runner._stage_async_hidden_capture(first_result)
-    graph_owned_hidden.add_(100)
-
-    second_result = _result(torch.tensor([[11.0, 12.0], [13.0, 14.0]]))
-    runner._stage_async_hidden_capture(second_result)
-
-    assert first_result._captured_aux_hidden_states is None
-    assert torch.equal(
-        first_result._captured_stream_hidden_states,
-        torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
-    )
-    assert (
-        first_result._captured_stream_hidden_states.data_ptr()
-        != second_result._captured_stream_hidden_states.data_ptr()
-    )
-
-
 def test_output_processor_consumes_result_owned_capture_not_later_launch() -> None:
     runner = _runner()
     aux = [
@@ -275,6 +255,17 @@ def test_output_processor_consumes_result_owned_capture_not_later_launch() -> No
     audio_extra = outputs["audio"].extra
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
     assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([13.0, 14.0]))
+    assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([23.0, 24.0]))
+
+    # Two more launches cycle both ping-pong slots after this payload entered
+    # the async stream queue; the emitted request must own its slice.
+    runner._stage_async_hidden_capture(
+        _packed_result(*[part + 200.0 for part in [*aux, stream]])
+    )
+    runner._stage_async_hidden_capture(
+        _packed_result(*[part + 300.0 for part in [*aux, stream]])
+    )
+    assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
     assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([23.0, 24.0]))
 
 
@@ -370,56 +361,11 @@ def test_output_processor_maps_last_only_capture_for_mixed_prefill() -> None:
     assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([27.0, 28.0]))
 
 
-def test_output_processor_uses_owned_raw_snapshot_when_aux_capture_is_missing() -> None:
-    runner = _runner()
-    graph_owned_hidden = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
-    result = _result(graph_owned_hidden)
-    runner._stage_async_hidden_capture(result)
-    graph_owned_hidden.add_(100)
-
-    output_processor = SGLangOutputProcessor(
-        capture_hidden=True,
-        capture_hidden_layers=[0, 24],
-        should_emit_hidden=lambda request: request.request_id == "audio",
-    )
-    scheduler_output = SchedulerOutput(
-        requests=[
-            SchedulerRequest(request_id="text"),
-            SchedulerRequest(request_id="audio"),
-        ],
-        batch_data=SimpleNamespace(
-            reqs=[
-                SimpleNamespace(extend_input_len=1),
-                SimpleNamespace(extend_input_len=1),
-            ]
-        ),
-    )
-
-    outputs = output_processor.process(result, scheduler_output)
-
-    assert outputs["text"].extra is None
-    emitted_hidden = outputs["audio"].extra["hidden_states"]
-    assert torch.equal(
-        emitted_hidden,
-        torch.tensor([3.0, 4.0]),
-    )
-
-    # The third launch reuses the first ping-pong slot after this payload has
-    # entered the async stream queue. The emitted request must own its slice.
-    runner._stage_async_hidden_capture(
-        _result(torch.tensor([[11.0, 12.0], [13.0, 14.0]]))
-    )
-    runner._stage_async_hidden_capture(
-        _result(torch.tensor([[101.0, 102.0], [103.0, 104.0]]))
-    )
-
-    assert torch.equal(emitted_hidden, torch.tensor([3.0, 4.0]))
-
-
 def test_output_processor_uses_launch_rows_after_live_batch_shrinks() -> None:
     output_processor = SGLangOutputProcessor(
         capture_hidden=True,
         capture_hidden_layers=[0, 24],
+        capture_hidden_width=2,
         should_emit_hidden=lambda request: request.request_id == "audio",
     )
     result = _result(torch.tensor([[21.0, 22.0], [23.0, 24.0], [25.0, 26.0]]))
@@ -511,6 +457,43 @@ def test_unconfigured_capture_ignores_audio_default_and_requests_null_mode() -> 
     assert result._captured_aux_hidden_states is None
     assert result._captured_stream_hidden_states is None
     assert runner._th_hidden_bufs is None
+
+
+def test_unpack_rejects_width_mismatch() -> None:
+    # Width is the contract between the capture config and the model's packing;
+    # a mismatch means speech hidden states would be silently wrong. Fail loud.
+    with pytest.raises(AssertionError):
+        unpack_packed_hidden_capture(
+            torch.zeros(2, 4),
+            capture_layer_count=2,
+            hidden_size=2,
+        )
+
+
+def test_slice_rejects_row_count_mismatch() -> None:
+    # A capture tensor whose rows don't match the launch-time request count
+    # would map hidden states to the wrong request (wrong voice downstream).
+    output_processor = SGLangOutputProcessor(
+        capture_hidden=True,
+        capture_hidden_layers=[0, 24],
+        capture_hidden_width=2,
+        should_emit_hidden=lambda request: True,
+    )
+    result = _packed_result(
+        torch.tensor([[1.0, 2.0]]),
+        torch.tensor([[11.0, 12.0]]),
+        torch.tensor([[21.0, 22.0]]),
+    )
+    scheduler_output = SchedulerOutput(
+        requests=[
+            SchedulerRequest(request_id="a"),
+            SchedulerRequest(request_id="b"),
+        ],
+        batch_data=None,
+    )
+
+    with pytest.raises(ValueError):
+        output_processor.process(result, scheduler_output)
     assert all(
         event["metadata"]
         == {

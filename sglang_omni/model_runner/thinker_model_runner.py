@@ -401,15 +401,12 @@ class ThinkerModelRunner(ModelRunner):
 
     @staticmethod
     def _hidden_buf_fits(buf: torch.Tensor, source: torch.Tensor) -> bool:
-        if (
-            buf.dtype != source.dtype
-            or buf.device != source.device
-            or buf.ndim != source.ndim
-        ):
-            return False
-        if source.ndim == 0:
-            return buf.shape == source.shape
-        return buf.shape[0] >= source.shape[0] and buf.shape[1:] == source.shape[1:]
+        return (
+            buf.dtype == source.dtype
+            and buf.device == source.device
+            and buf.shape[0] >= source.shape[0]
+            and buf.shape[1:] == source.shape[1:]
+        )
 
     def _async_hidden_bufs(
         self, sources: list[torch.Tensor]
@@ -440,7 +437,7 @@ class ThinkerModelRunner(ModelRunner):
         self._th_hidden_slot ^= 1
         snapshots: list[torch.Tensor] = []
         for buf, source in zip(slot_bufs, sources):
-            view = buf if source.ndim == 0 else buf[: source.shape[0]]
+            view = buf[: source.shape[0]]
             view.copy_(source, non_blocking=True)
             snapshots.append(view)
         return tuple(snapshots)
@@ -451,10 +448,10 @@ class ThinkerModelRunner(ModelRunner):
         packed_hidden = logits_output.hidden_states
         captured_aux, stream_hidden = unpack_packed_hidden_capture(
             packed_hidden,
-            capture_layer_count=len(self._capture_hidden_layers or []),
+            capture_layer_count=len(self._capture_hidden_layers),
             hidden_size=self._capture_hidden_width,
         )
-        has_stream_hidden = isinstance(stream_hidden, torch.Tensor)
+        has_stream_hidden = stream_hidden is not None
 
         sources = list(captured_aux) if captured_aux is not None else []
         if has_stream_hidden:

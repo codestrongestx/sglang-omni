@@ -22,6 +22,13 @@ class SGLangOutputProcessor:
         should_emit_hidden: Callable[[Any], bool] | None = None,
         capture_hidden_width: int | None = None,
     ):
+        if capture_hidden and not capture_hidden_layers:
+            raise ValueError("capture_hidden requires capture_hidden_layers")
+        if capture_hidden_layers and capture_hidden_width is None:
+            raise ValueError(
+                "capture_hidden_layers requires capture_hidden_width to unpack "
+                "the packed hidden capture"
+            )
         self._capture_hidden = capture_hidden
         self._capture_hidden_layers = capture_hidden_layers
         self._capture_hidden_width = capture_hidden_width
@@ -80,60 +87,25 @@ class SGLangOutputProcessor:
             if should_emit
         ]
 
-        captured_stream_hidden_states = None
-        if self._capture_hidden_layers:
-            captured_aux_hidden_states = self._take_captured_aux_hidden_states(
-                model_output
-            )
-            captured_stream_hidden_states = self._extract_stream_hidden_states(
-                model_output
-            )
-            if captured_aux_hidden_states is not None:
-                if not request_indexes:
-                    return {}
-                return {
-                    request_index: self._build_aux_hidden_extra(
-                        captured_aux_hidden_states,
-                        request_index=request_index,
-                        scheduler_output=scheduler_output,
-                        stream_hidden_states=captured_stream_hidden_states,
-                    )
-                    for request_index in request_indexes
-                }
-
         if not request_indexes:
             return {}
-
-        raw_hidden = captured_stream_hidden_states
-        if raw_hidden is None:
-            logits_output = model_output.logits_output
-            if logits_output is None:
-                return {}
-            raw_hidden = logits_output.hidden_states
-        if raw_hidden is None:
+        captured_aux_hidden_states = self._take_captured_aux_hidden_states(
+            model_output
+        )
+        if captured_aux_hidden_states is None:
             return {}
-
-        if isinstance(raw_hidden, dict):
-            return {
-                request_index: self._build_dict_hidden_extra(
-                    raw_hidden,
-                    request_index=request_index,
-                    scheduler_output=scheduler_output,
-                )
-                for request_index in request_indexes
-            }
-        elif isinstance(raw_hidden, torch.Tensor):
-            return {
-                request_index: {
-                    "hidden_states": self._slice_per_request_tensor(
-                        raw_hidden,
-                        request_index=request_index,
-                        scheduler_output=scheduler_output,
-                    ).clone()
-                }
-                for request_index in request_indexes
-            }
-        return {}
+        captured_stream_hidden_states = self._extract_stream_hidden_states(
+            model_output
+        )
+        return {
+            request_index: self._build_aux_hidden_extra(
+                captured_aux_hidden_states,
+                request_index=request_index,
+                scheduler_output=scheduler_output,
+                stream_hidden_states=captured_stream_hidden_states,
+            )
+            for request_index in request_indexes
+        }
 
     def _take_captured_aux_hidden_states(
         self, model_output: Any
@@ -145,10 +117,11 @@ class SGLangOutputProcessor:
             model_output._captured_aux_hidden_states = None
             return captured
         logits_output = model_output.logits_output
-        packed_hidden = logits_output.hidden_states
+        if logits_output is None:
+            return None
         captured, _ = unpack_packed_hidden_capture(
-            packed_hidden,
-            capture_layer_count=len(self._capture_hidden_layers or []),
+            logits_output.hidden_states,
+            capture_layer_count=len(self._capture_hidden_layers),
             hidden_size=self._capture_hidden_width,
         )
         return captured
@@ -182,24 +155,6 @@ class SGLangOutputProcessor:
             ).clone()
         return extra
 
-    def _build_dict_hidden_extra(
-        self,
-        hidden_states: dict[Any, torch.Tensor],
-        *,
-        request_index: int,
-        scheduler_output: SchedulerOutput,
-    ) -> dict[str, Any]:
-        return {
-            "hidden_states": {
-                key: self._slice_per_request_tensor(
-                    tensor,
-                    request_index=request_index,
-                    scheduler_output=scheduler_output,
-                )
-                for key, tensor in hidden_states.items()
-            }
-        }
-
     def _extract_stream_hidden_states(self, model_output: Any) -> torch.Tensor | None:
         raw_hidden = model_output._captured_stream_hidden_states
         if raw_hidden is not None:
@@ -208,10 +163,9 @@ class SGLangOutputProcessor:
         logits_output = model_output.logits_output
         if logits_output is None:
             return None
-        raw_hidden = logits_output.hidden_states
         _, stream_hidden = unpack_packed_hidden_capture(
-            raw_hidden,
-            capture_layer_count=len(self._capture_hidden_layers or []),
+            logits_output.hidden_states,
+            capture_layer_count=len(self._capture_hidden_layers),
             hidden_size=self._capture_hidden_width,
         )
         return stream_hidden
@@ -223,30 +177,16 @@ class SGLangOutputProcessor:
         request_index: int,
         scheduler_output: SchedulerOutput,
     ) -> torch.Tensor:
-        if tensor.ndim == 0:
-            return tensor
-
+        # ``requests`` is frozen at launch, whereas the live ScheduleBatch may
+        # be filtered before a lookahead step resolves. Capture tensors carry
+        # one row per launch-time request (decode FULL slices the replayed
+        # graph output to the batch, prefill LAST keeps one row per request),
+        # so launch position is the only legal mapping — anything else is a
+        # wrong-request hidden state, not a shape to accommodate.
         requests = scheduler_output.requests
-        if len(requests) == 1:
-            return tensor[0] if tensor.ndim >= 2 else tensor
-        # ``requests`` is frozen at launch, whereas ``batch_data.reqs`` may be
-        # filtered before a lookahead step resolves. Decode hidden tensors have
-        # one row per launch-time request, so claim that mapping before consulting
-        # mutable per-token batch metadata.
-        if tensor.shape[0] == len(requests):
-            return tensor[request_index]
-
-        batch_data = scheduler_output.batch_data
-        reqs = batch_data.reqs
-        num_requests = len(reqs)
-        if tensor.shape[0] == num_requests:
-            return tensor[request_index]
-
-        lengths = [req.extend_range.length for req in reqs]
-        total_tokens = sum(lengths)
-        if tensor.shape[0] == total_tokens:
-            start = sum(lengths[:request_index])
-            end = start + lengths[request_index]
-            return tensor[start:end]
-
-        return tensor
+        if tensor.shape[0] != len(requests):
+            raise ValueError(
+                f"per-request hidden tensor has {tensor.shape[0]} rows for "
+                f"{len(requests)} launch-time requests"
+            )
+        return tensor[request_index]
