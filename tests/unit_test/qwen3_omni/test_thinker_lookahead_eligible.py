@@ -59,15 +59,6 @@ def test_return_logprob_disables_lookahead():
     assert _runner().lookahead_eligible(_batch(_req(return_logprob=True))) is False
 
 
-def test_missing_or_none_omni_data_falls_to_sync():
-    # request data missing or None cannot be inspected -> fail closed to sync
-    # (never raise, never let a possible hidden-capture batch onto async).
-    no_data = types.SimpleNamespace(sampling_params=_sp())
-    assert _runner().lookahead_eligible(_batch(no_data)) is False
-    none_data = types.SimpleNamespace(sampling_params=_sp(), _omni_data=None)
-    assert _runner().lookahead_eligible(_batch(none_data)) is False
-
-
 def test_each_gated_sampling_param_disables_lookahead():
     for kw in (
         dict(repetition_penalty=1.3),

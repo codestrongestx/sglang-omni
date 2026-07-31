@@ -62,6 +62,9 @@ class ThinkerModelRunner(ModelRunner):
     def _text_only_capture_guard(self, requests: list[Any]):
         # note (jiaxin deng): drop hidden-capture for an all-text batch, shared by
         # sync execute() and async execute_launch so both take the same path.
+        # Saves the eager aux compute (prefill is always eager); under CUDA-graph
+        # decode replay the mutation is a no-op since the graph baked the packed
+        # capture at capture time.
         capture_layers = self._text_model.layers_to_capture
         if not (capture_layers and not self._batch_should_capture_hidden(requests)):
             yield
@@ -128,6 +131,9 @@ class ThinkerModelRunner(ModelRunner):
         del schedule_batch
         from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode
 
+        # FULL matches the mode the CUDA graphs were captured with (bootstrap
+        # sets enable_return_hidden_states before deferred graph capture), so
+        # speech decode batches keep graph replay.
         return (
             CaptureHiddenMode.FULL
             if self._batch_should_capture_hidden(requests)
@@ -361,17 +367,7 @@ class ThinkerModelRunner(ModelRunner):
         conservatively.
         """
         for req in batch.reqs:
-            try:
-                data = req._omni_data
-            except AttributeError:
-                data = None
-            if data is None:
-                return False
-            try:
-                needs_logprob = data.return_logprob
-            except AttributeError:
-                needs_logprob = False
-            if needs_logprob:
+            if req._omni_data.return_logprob:
                 return False
             sp = req.sampling_params
             if (
@@ -413,10 +409,11 @@ class ThinkerModelRunner(ModelRunner):
     ) -> tuple[torch.Tensor, ...]:
         """Copy one step's captured hidden tensors into a private launch slot.
 
-        CUDA-graph replay and the model capture hook both reuse their output
-        storage. Two device-side slots let launch(N+1) publish new hidden states
-        while resolve(N) still owns the previous step. Smaller batches reuse a
-        leading slice; growth or a layout change replaces both slots.
+        CUDA-graph replay reuses its output storage every step. Two device-side
+        slots let launch(N+1) publish new hidden states while resolve(N) still
+        owns the previous step. Smaller batches reuse a leading slice; growth
+        or a layout change replaces both slots (a resolve still holding the old
+        buffers keeps them alive through its own reference).
         """
         need_alloc = (
             self._th_hidden_bufs is None

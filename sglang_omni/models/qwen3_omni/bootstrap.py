@@ -35,6 +35,9 @@ def create_thinker_scheduler(
     from sglang_omni.scheduling.omni_scheduler import OmniScheduler
     from sglang_omni.scheduling.sglang_backend import SGLangOutputProcessor
 
+    # Must match what the talker consumes: layer 0 (embed output) plus
+    # talker_config.accept_hidden_layer (24 for Qwen3-Omni) — the talker side
+    # reads its half from the checkpoint config in create_talker_scheduler.
     capture_hidden_layers = [0, 24] if speech_enabled else None
     capture_hidden = speech_enabled
     want_cuda_graph = not bool(server_args.disable_cuda_graph)
