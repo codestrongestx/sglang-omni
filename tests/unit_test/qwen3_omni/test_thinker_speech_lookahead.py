@@ -426,6 +426,16 @@ def test_lookahead_profile_event_records_capture_and_step(monkeypatch) -> None:
 
     assert [event["request_id"] for event in events] == ["speech-1", "speech-2"]
     assert all(event["event_name"] == "scheduler_lookahead_resolve" for event in events)
+    assert all(
+        event["metadata"]
+        == {
+            "step_id": 17,
+            "batch_size": 2,
+            "hidden_capture": True,
+            "event_ready": False,
+        }
+        for event in events
+    )
 
 
 def test_unconfigured_capture_ignores_audio_default_and_requests_null_mode() -> None:
@@ -494,13 +504,3 @@ def test_slice_rejects_row_count_mismatch() -> None:
 
     with pytest.raises(ValueError):
         output_processor.process(result, scheduler_output)
-    assert all(
-        event["metadata"]
-        == {
-            "step_id": 17,
-            "batch_size": 2,
-            "hidden_capture": True,
-            "event_ready": False,
-        }
-        for event in events
-    )

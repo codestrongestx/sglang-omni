@@ -328,7 +328,7 @@ def test_qwen_aux_hidden_states_skipped_when_no_request_emits_hidden():
     model_output = SimpleNamespace(
         next_token_ids=torch.tensor([11, 22, 33]),
         logits_output=SimpleNamespace(
-            hidden_states=torch.arange(36, dtype=torch.float32).reshape(3, 2 * 3)
+            hidden_states=torch.arange(18, dtype=torch.float32).reshape(3, 6)
         ),
         _captured_aux_hidden_states=None,
         _captured_stream_hidden_states=None,
