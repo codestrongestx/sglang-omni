@@ -21,6 +21,7 @@ import pytest
 import torch
 
 from sglang_omni.model_runner.base import ModelRunner
+from sglang_omni.model_runner.thinker_model_runner import ThinkerModelRunner
 from sglang_omni.scheduling.omni_scheduler import OmniScheduler
 from sglang_omni.scheduling.types import (
     ModelRunnerOutput,
@@ -841,6 +842,32 @@ def _scaffold_async_loop(*, async_pending=None):
     s.self_check_during_busy = lambda: None
     s._resolve_pending_async = OmniScheduler._resolve_pending_async.__get__(s)
     return s
+
+
+def test_thinker_missing_omni_data_routes_through_sync_execute():
+    events = []
+    completed_result = object()
+    runner = object.__new__(ThinkerModelRunner)
+    runner.execute = lambda _batch: events.append("execute") or completed_result
+    runner.execute_launch = lambda _batch: events.append("execute_launch")
+
+    scheduler = _scaffold_async_loop()
+    scheduler._model_runner = runner
+    scheduler.run_batch = runner.execute
+    scheduler._run_batch_launch = runner.execute_launch
+    scheduler.process_batch_result = lambda _batch, result: (
+        events.append("completed") if result is completed_result else None
+    )
+    batch = _FakeBatch(2)
+
+    def get_next_batch_to_run():
+        scheduler._running = False
+        return batch
+
+    scheduler.get_next_batch_to_run = get_next_batch_to_run
+    scheduler._event_loop_async_decode()
+
+    assert events == ["execute", "completed"]
 
 
 def test_async_path_launch_failure_calls_handle_batch_failure():
