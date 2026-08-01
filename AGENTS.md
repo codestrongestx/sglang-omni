@@ -27,6 +27,9 @@ It pulls `/workspace/results/sglang-omni/<run-name>/` into
 Always commit strategically so we can track what worked and what did not. Use
 clear, complete commit messages.
 
+Before every commit, run `uvx pre-commit run --all-files` and repeat until it
+passes without modifying files.
+
 After each commit, launch a headless agent with the latest best model, maximal
 thinking effort, and fast mode to review the commit. Reason through its feedback,
 fix issues if needed, and ask the same agent to review again. Repeat until no
