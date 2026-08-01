@@ -130,9 +130,8 @@ class ThinkerModelRunner(ModelRunner):
         del schedule_batch
         from sglang.srt.model_executor.forward_batch_info import CaptureHiddenMode
 
-        # FULL matches the mode the CUDA graphs were captured with (bootstrap
-        # sets enable_return_hidden_states before deferred graph capture), so
-        # speech decode batches keep graph replay.
+        # Speech CUDA graphs are captured with CaptureHiddenMode.FULL.
+        # Decode must use the same mode; LAST would prevent graph replay.
         return (
             CaptureHiddenMode.FULL
             if self._batch_should_capture_hidden(requests)
