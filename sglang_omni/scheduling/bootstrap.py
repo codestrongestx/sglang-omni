@@ -41,9 +41,6 @@ def create_sglang_infrastructure(
     )
 
     if capture_hidden_layers:
-        # Packed logits-output capture is the only supported mechanism; a model
-        # without this method cannot serve speech, so fail loud here instead of
-        # silently running without hidden states.
         model_worker.model_runner.model.configure_hidden_capture_layers(
             capture_hidden_layers
         )
