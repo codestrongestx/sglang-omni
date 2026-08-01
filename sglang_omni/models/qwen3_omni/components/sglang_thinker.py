@@ -73,9 +73,8 @@ class Qwen3OmniThinkerForCausalLM(nn.Module):
         if isinstance(hidden_states, tuple):
             hidden_states, aux_hidden_states = hidden_states
 
-        # SGLang carries LogitsProcessorOutput.hidden_states through the exact
-        # CUDA-graph output bucket selected for replay and slices padded rows.
-        # Publish only the intermediate layers consumed by the talker.
+        # Qwen3-Omni's talker consumes the captured thinker layers. Route only those
+        # through LogitsProcessorOutput so CUDA-graph replay returns the real-batch rows.
         return self.logits_processor(
             input_ids,
             hidden_states,
