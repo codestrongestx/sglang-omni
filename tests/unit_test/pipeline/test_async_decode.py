@@ -1071,12 +1071,6 @@ def test_drop_stale_overrun_filters_decoding_reqs():
 
 
 def test_prepare_and_forward_stamps_capture_mailbox_slot():
-    """Every batch result must carry the async hidden-capture slot (None when
-    nothing is staged): the scheduler's lookahead profiling probe and the
-    output processor read them unconditionally, and only the thinker runner
-    ever overwrites them. Regression: results from runners that never stage a
-    snapshot (every non-thinker async pipeline) lacked the attributes, so the
-    profiling probe raised AttributeError on launch."""
     runner = object.__new__(ModelRunner)
     batch_result = types.SimpleNamespace(
         next_token_ids=torch.tensor([1]), logits_output=None

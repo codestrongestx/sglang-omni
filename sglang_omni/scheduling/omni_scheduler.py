@@ -41,7 +41,6 @@ from sglang.srt.utils import broadcast_pyobj
 
 from sglang_omni.profiler.event_recorder import emit as _emit_event
 from sglang_omni.profiler.event_recorder import get_active_stage as _get_active_stage
-from sglang_omni.profiler.event_recorder import get_recorder as _get_event_recorder
 from sglang_omni.proto.admin import (
     ADMIN_CONTINUE_GENERATION,
     ADMIN_DESTROY_WEIGHTS_UPDATE_GROUP,
@@ -1279,14 +1278,6 @@ class OmniScheduler:
         batch.forward_iter = self.forward_ct
         sched_output = self._build_sched_output(batch)
         pending_step = self._model_runner.execute_launch(sched_output)
-        if self._lookahead_profiling_active():
-            self._emit_lookahead_events(
-                sched_output,
-                "scheduler_lookahead_launch",
-                hidden_capture=(
-                    pending_step.batch_result._captured_aux_hidden_states is not None
-                ),
-            )
         return sched_output, pending_step
 
     def _run_batch_resolve(self, batch, sched_output, pending_step, skip_rids=()):
@@ -1300,59 +1291,15 @@ class OmniScheduler:
         """
         from sglang.srt.managers.scheduler import GenerationBatchResult
 
-        profile_lookahead = self._lookahead_profiling_active()
-        if profile_lookahead:
-            query_hits_before = self._model_runner._async_query_hit
-            query_misses_before = self._model_runner._async_query_miss
-            hidden_capture = (
-                pending_step.batch_result._captured_aux_hidden_states is not None
-            )
         mr_output = self._model_runner.execute_resolve(pending_step)
         if mr_output is None:
             return _FAILED_BATCH_RESULT
-        if profile_lookahead:
-            event_ready = None
-            if self._model_runner._async_query_hit > query_hits_before:
-                event_ready = True
-            elif self._model_runner._async_query_miss > query_misses_before:
-                event_ready = False
-            self._emit_lookahead_events(
-                sched_output,
-                "scheduler_lookahead_resolve",
-                event_ready=event_ready,
-                hidden_capture=hidden_capture,
-            )
         self._emit_stream_output(sched_output, mr_output, skip_rids=skip_rids)
         return GenerationBatchResult(
             logits_output=None,
             next_token_ids=mr_output.next_token_ids,
             can_run_cuda_graph=mr_output.can_run_cuda_graph,
         )
-
-    def _emit_lookahead_events(
-        self,
-        sched_output: Any,
-        event_name: str,
-        **metadata: Any,
-    ) -> None:
-        """Record launch/resolve ordering only while request profiling is active."""
-        if not self._lookahead_profiling_active():
-            return
-        event_metadata = {
-            "step_id": sched_output.step_id,
-            "batch_size": len(sched_output.requests),
-            **metadata,
-        }
-        for request in sched_output.requests:
-            _emit_event(
-                request_id=request.request_id,
-                stage=None,
-                event_name=event_name,
-                metadata=event_metadata,
-            )
-
-    def _lookahead_profiling_active(self) -> bool:
-        return _get_event_recorder().is_active() and self.is_entry_rank
 
     def _handle_batch_failure(self, batch: Any, error: Exception) -> None:
         reqs = list(batch.reqs)

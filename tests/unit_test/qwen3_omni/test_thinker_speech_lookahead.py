@@ -13,8 +13,6 @@ from sglang_omni.model_runner.thinker_model_runner import ThinkerModelRunner
 from sglang_omni.models.qwen3_omni.components.sglang_thinker import (
     Qwen3OmniThinkerForCausalLM,
 )
-from sglang_omni.scheduling import omni_scheduler as omni_scheduler_module
-from sglang_omni.scheduling.omni_scheduler import OmniScheduler
 from sglang_omni.scheduling.sglang_backend import SGLangOutputProcessor
 from sglang_omni.scheduling.types import SchedulerOutput, SchedulerRequest
 
@@ -364,50 +362,6 @@ def test_output_processor_uses_launch_rows_after_live_batch_shrinks() -> None:
     audio_extra = outputs["audio"].extra
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([5.0, 6.0]))
     assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([15.0, 16.0]))
-
-
-def test_lookahead_profile_event_records_capture_and_step(monkeypatch) -> None:
-    events: list[dict] = []
-    monkeypatch.setattr(
-        omni_scheduler_module,
-        "_get_event_recorder",
-        lambda: SimpleNamespace(is_active=lambda: True),
-    )
-    monkeypatch.setattr(
-        omni_scheduler_module,
-        "_emit_event",
-        lambda **event: events.append(event),
-    )
-    scheduler = object.__new__(OmniScheduler)
-    scheduler.is_entry_rank = True
-    scheduler_output = SchedulerOutput(
-        requests=[
-            SchedulerRequest(request_id="speech-1"),
-            SchedulerRequest(request_id="speech-2"),
-        ],
-        batch_data=None,
-        step_id=17,
-    )
-
-    scheduler._emit_lookahead_events(
-        scheduler_output,
-        "scheduler_lookahead_resolve",
-        hidden_capture=True,
-        event_ready=False,
-    )
-
-    assert [event["request_id"] for event in events] == ["speech-1", "speech-2"]
-    assert all(event["event_name"] == "scheduler_lookahead_resolve" for event in events)
-    assert all(
-        event["metadata"]
-        == {
-            "step_id": 17,
-            "batch_size": 2,
-            "hidden_capture": True,
-            "event_ready": False,
-        }
-        for event in events
-    )
 
 
 def test_unconfigured_capture_ignores_audio_default_and_requests_null_mode() -> None:
