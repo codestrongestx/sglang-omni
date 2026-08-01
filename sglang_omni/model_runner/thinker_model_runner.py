@@ -62,9 +62,8 @@ class ThinkerModelRunner(ModelRunner):
     def _text_only_capture_guard(self, requests: list[Any]):
         # note (jiaxin deng): drop hidden-capture for an all-text batch, shared by
         # sync execute() and async execute_launch so both take the same path.
-        # Saves the eager aux compute (prefill is always eager); under CUDA-graph
-        # decode replay the mutation is a no-op since the graph baked the packed
-        # capture at capture time.
+        # These thinker layers feed Qwen3-Omni's talker. This toggle affects eager
+        # forwards only; graph replay still runs the layer capture recorded at graph build.
         capture_layers = self._text_model.layers_to_capture
         if not (capture_layers and not self._batch_should_capture_hidden(requests)):
             yield
