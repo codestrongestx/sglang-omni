@@ -448,15 +448,14 @@ class ThinkerModelRunner(ModelRunner):
                 "Speech lookahead requested hidden capture, but the model "
                 "produced no hidden states"
             )
-        captured_aux, stream_hidden = unpack_packed_hidden_capture(
+        captured_aux = unpack_packed_hidden_capture(
             packed_hidden,
             capture_layer_count=len(self._capture_hidden_layers),
             hidden_size=self._capture_hidden_width,
         )
-        snapshots = self._async_hidden_bufs([*captured_aux, stream_hidden])
-        aux_count = len(captured_aux)
-        result._captured_aux_hidden_states = snapshots[:aux_count]
-        result._captured_stream_hidden_states = snapshots[aux_count]
+        result._captured_aux_hidden_states = self._async_hidden_bufs(
+            list(captured_aux)
+        )
 
     def _sample_lookahead(self, logits_output, forward_batch, requests):
         # note (jiaxin deng): penalties never reach here (lookahead_eligible routes

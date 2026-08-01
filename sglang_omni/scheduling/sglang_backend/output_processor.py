@@ -94,15 +94,11 @@ class SGLangOutputProcessor:
         )
         if captured_aux_hidden_states is None:
             return {}
-        captured_stream_hidden_states = self._extract_stream_hidden_states(
-            model_output
-        )
         return {
             request_index: self._build_aux_hidden_extra(
                 captured_aux_hidden_states,
                 request_index=request_index,
                 scheduler_output=scheduler_output,
-                stream_hidden_states=captured_stream_hidden_states,
             )
             for request_index in request_indexes
         }
@@ -110,7 +106,7 @@ class SGLangOutputProcessor:
     def _take_captured_aux_hidden_states(
         self, model_output: Any
     ) -> Sequence[torch.Tensor] | None:
-        # Base runners stamp the capture slots on every batch result; non-None
+        # Base runners stamp the capture slot on every batch result; non-None
         # means the async launch staged a snapshot for this exact step.
         captured = model_output._captured_aux_hidden_states
         if captured is not None:
@@ -119,12 +115,11 @@ class SGLangOutputProcessor:
         logits_output = model_output.logits_output
         if logits_output is None:
             return None
-        captured, _ = unpack_packed_hidden_capture(
+        return unpack_packed_hidden_capture(
             logits_output.hidden_states,
             capture_layer_count=len(self._capture_hidden_layers),
             hidden_size=self._capture_hidden_width,
         )
-        return captured
 
     def _build_aux_hidden_extra(
         self,
@@ -132,7 +127,6 @@ class SGLangOutputProcessor:
         *,
         request_index: int,
         scheduler_output: SchedulerOutput,
-        stream_hidden_states: torch.Tensor | None,
     ) -> dict[str, Any]:
         per_request_hidden = {}
         for layer_id, tensor in zip(
@@ -146,29 +140,7 @@ class SGLangOutputProcessor:
                 scheduler_output=scheduler_output,
             ).clone()
 
-        extra: dict[str, Any] = {"hidden_states": per_request_hidden}
-        if stream_hidden_states is not None:
-            extra["stream_hidden_states"] = self._slice_per_request_tensor(
-                stream_hidden_states,
-                request_index=request_index,
-                scheduler_output=scheduler_output,
-            ).clone()
-        return extra
-
-    def _extract_stream_hidden_states(self, model_output: Any) -> torch.Tensor | None:
-        raw_hidden = model_output._captured_stream_hidden_states
-        if raw_hidden is not None:
-            model_output._captured_stream_hidden_states = None
-            return raw_hidden
-        logits_output = model_output.logits_output
-        if logits_output is None:
-            return None
-        _, stream_hidden = unpack_packed_hidden_capture(
-            logits_output.hidden_states,
-            capture_layer_count=len(self._capture_hidden_layers),
-            hidden_size=self._capture_hidden_width,
-        )
-        return stream_hidden
+        return {"hidden_states": per_request_hidden}
 
     @staticmethod
     def _slice_per_request_tensor(

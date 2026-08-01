@@ -28,14 +28,13 @@ def _runner() -> ThinkerModelRunner:
     return runner
 
 
-def _result(stream_hidden: torch.Tensor | None) -> SimpleNamespace:
+def _result(packed_hidden: torch.Tensor | None) -> SimpleNamespace:
     # Mirrors the base-runner mailbox contract: every batch result carries the
-    # capture slots stamped to None before any post-decode hook runs.
+    # capture slot stamped to None before any post-decode hook runs.
     return SimpleNamespace(
         next_token_ids=torch.tensor([11, 22]),
-        logits_output=SimpleNamespace(hidden_states=stream_hidden),
+        logits_output=SimpleNamespace(hidden_states=packed_hidden),
         _captured_aux_hidden_states=None,
-        _captured_stream_hidden_states=None,
     )
 
 
@@ -43,7 +42,7 @@ def _packed_result(*hidden_parts: torch.Tensor) -> SimpleNamespace:
     return _result(torch.cat(hidden_parts, dim=-1))
 
 
-def test_thinker_model_publishes_aux_and_stream_on_logits_output() -> None:
+def test_thinker_model_publishes_aux_layers_on_logits_output() -> None:
     calls: list[dict] = []
     logits_result = object()
 
@@ -90,14 +89,7 @@ def test_thinker_model_publishes_aux_and_stream_on_logits_output() -> None:
     assert call["hidden_states"] is stream_hidden
     assert call["lm_head"] is lm_head
     assert call["forward_batch"] is forward_batch
-    assert all(
-        actual is expected
-        for actual, expected in zip(
-            call["aux_hidden_states"],
-            [*aux_hidden, stream_hidden],
-            strict=True,
-        )
-    )
+    assert call["aux_hidden_states"] is aux_hidden
 
 
 def test_speech_batches_request_last_prefill_and_full_decode_hidden_output() -> None:
@@ -126,7 +118,6 @@ def test_text_only_lookahead_skips_hidden_snapshot() -> None:
     result = _packed_result(
         torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
         torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
-        torch.tensor([[21.0, 22.0], [23.0, 24.0]]),
     )
 
     runner.post_decode_launch(
@@ -139,7 +130,6 @@ def test_text_only_lookahead_skips_hidden_snapshot() -> None:
     )
 
     assert result._captured_aux_hidden_states is None
-    assert result._captured_stream_hidden_states is None
     assert runner._th_hidden_bufs is None
 
 
@@ -149,8 +139,7 @@ def test_speech_hidden_capture_pingpongs_across_lookahead_launches() -> None:
         torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
         torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
     ]
-    first_stream = torch.tensor([[21.0, 22.0], [23.0, 24.0]])
-    first_result = _packed_result(*first_aux, first_stream)
+    first_result = _packed_result(*first_aux)
 
     runner._stage_async_hidden_capture(first_result)
 
@@ -158,14 +147,12 @@ def test_speech_hidden_capture_pingpongs_across_lookahead_launches() -> None:
         torch.tensor([[101.0, 102.0], [103.0, 104.0]]),
         torch.tensor([[111.0, 112.0], [113.0, 114.0]]),
     ]
-    second_stream = torch.tensor([[121.0, 122.0], [123.0, 124.0]])
-    second_result = _packed_result(*second_aux, second_stream)
+    second_result = _packed_result(*second_aux)
 
     runner._stage_async_hidden_capture(second_result)
 
     assert torch.equal(first_result._captured_aux_hidden_states[0], first_aux[0])
     assert torch.equal(first_result._captured_aux_hidden_states[1], first_aux[1])
-    assert torch.equal(first_result._captured_stream_hidden_states, first_stream)
     assert torch.equal(second_result._captured_aux_hidden_states[0], second_aux[0])
     assert (
         first_result._captured_aux_hidden_states[0].data_ptr()
@@ -179,25 +166,21 @@ def test_speech_hidden_capture_uses_the_replayed_graph_output() -> None:
         torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
         torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
     ]
-    graph_a_stream = torch.tensor([[21.0, 22.0], [23.0, 24.0]])
     graph_b_aux = [
         torch.tensor([[101.0, 102.0], [103.0, 104.0]]),
         torch.tensor([[111.0, 112.0], [113.0, 114.0]]),
     ]
-    graph_b_stream = torch.tensor([[121.0, 122.0], [123.0, 124.0]])
-    graph_a_output = torch.cat([*graph_a_aux, graph_a_stream], dim=-1)
-    graph_b_output = torch.cat([*graph_b_aux, graph_b_stream], dim=-1)
+    graph_a_output = torch.cat(graph_a_aux, dim=-1)
+    graph_b_output = torch.cat(graph_b_aux, dim=-1)
 
     graph_a_result = _result(graph_a_output)
     runner._stage_async_hidden_capture(graph_a_result)
 
     assert torch.equal(graph_a_result._captured_aux_hidden_states[0], graph_a_aux[0])
-    assert torch.equal(graph_a_result._captured_stream_hidden_states, graph_a_stream)
 
     graph_b_result = _result(graph_b_output)
     runner._stage_async_hidden_capture(graph_b_result)
     assert torch.equal(graph_b_result._captured_aux_hidden_states[0], graph_b_aux[0])
-    assert torch.equal(graph_b_result._captured_stream_hidden_states, graph_b_stream)
 
     # Replaying graph A mutates and returns graph A's own output allocation.
     graph_a_output.add_(1000)
@@ -207,10 +190,6 @@ def test_speech_hidden_capture_uses_the_replayed_graph_output() -> None:
     assert torch.equal(
         graph_a_replay._captured_aux_hidden_states[0],
         torch.tensor([[1001.0, 1002.0], [1003.0, 1004.0]]),
-    )
-    assert torch.equal(
-        graph_a_replay._captured_stream_hidden_states,
-        torch.tensor([[1021.0, 1022.0], [1023.0, 1024.0]]),
     )
 
 
@@ -230,15 +209,14 @@ def test_output_processor_consumes_result_owned_capture_not_later_launch() -> No
         torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
         torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
     ]
-    stream = torch.tensor([[21.0, 22.0], [23.0, 24.0]])
-    result = _packed_result(*aux, stream)
+    result = _packed_result(*aux)
     runner._stage_async_hidden_capture(result)
 
     # Launch(N+1) replays the same graph before this step resolves: the packed
     # logits-output buffer now holds the NEXT step's values. Emitted extras
     # must come from the launch-owned snapshot, not the live buffer.
     result.logits_output.hidden_states = torch.cat(
-        [part + 100.0 for part in [*aux, stream]], dim=-1
+        [part + 100.0 for part in aux], dim=-1
     )
     output_processor = SGLangOutputProcessor(
         capture_hidden=True,
@@ -265,18 +243,16 @@ def test_output_processor_consumes_result_owned_capture_not_later_launch() -> No
     audio_extra = outputs["audio"].extra
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
     assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([13.0, 14.0]))
-    assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([23.0, 24.0]))
 
     # Two more launches cycle both ping-pong slots after this payload entered
     # the async stream queue; the emitted request must own its slice.
     runner._stage_async_hidden_capture(
-        _packed_result(*[part + 200.0 for part in [*aux, stream]])
+        _packed_result(*[part + 200.0 for part in aux])
     )
     runner._stage_async_hidden_capture(
-        _packed_result(*[part + 300.0 for part in [*aux, stream]])
+        _packed_result(*[part + 300.0 for part in aux])
     )
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
-    assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([23.0, 24.0]))
 
 
 def test_output_processor_reads_graph_owned_packed_capture() -> None:
@@ -289,7 +265,6 @@ def test_output_processor_reads_graph_owned_packed_capture() -> None:
     result = _packed_result(
         torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
         torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
-        torch.tensor([[21.0, 22.0], [23.0, 24.0]]),
     )
     scheduler_output = SchedulerOutput(
         requests=[
@@ -310,7 +285,6 @@ def test_output_processor_reads_graph_owned_packed_capture() -> None:
     audio_extra = outputs["audio"].extra
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
     assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([13.0, 14.0]))
-    assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([23.0, 24.0]))
 
 
 def test_output_processor_reads_last_only_capture_after_multi_token_prefill() -> None:
@@ -323,7 +297,6 @@ def test_output_processor_reads_last_only_capture_after_multi_token_prefill() ->
     result = _packed_result(
         torch.tensor([[7.0, 8.0]]),
         torch.tensor([[17.0, 18.0]]),
-        torch.tensor([[27.0, 28.0]]),
     )
     scheduler_output = SchedulerOutput(
         requests=[SchedulerRequest(request_id="audio")],
@@ -334,7 +307,6 @@ def test_output_processor_reads_last_only_capture_after_multi_token_prefill() ->
 
     assert torch.equal(output.extra["hidden_states"]["embed"], torch.tensor([7.0, 8.0]))
     assert torch.equal(output.extra["hidden_states"][24], torch.tensor([17.0, 18.0]))
-    assert torch.equal(output.extra["stream_hidden_states"], torch.tensor([27.0, 28.0]))
 
 
 def test_output_processor_maps_last_only_capture_for_mixed_prefill() -> None:
@@ -347,7 +319,6 @@ def test_output_processor_maps_last_only_capture_for_mixed_prefill() -> None:
     result = _packed_result(
         torch.tensor([[1.0, 2.0], [7.0, 8.0]]),
         torch.tensor([[11.0, 12.0], [17.0, 18.0]]),
-        torch.tensor([[21.0, 22.0], [27.0, 28.0]]),
     )
     scheduler_output = SchedulerOutput(
         requests=[
@@ -368,7 +339,6 @@ def test_output_processor_maps_last_only_capture_for_mixed_prefill() -> None:
     audio_extra = outputs["audio"].extra
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([7.0, 8.0]))
     assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([17.0, 18.0]))
-    assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([27.0, 28.0]))
 
 
 def test_output_processor_uses_launch_rows_after_live_batch_shrinks() -> None:
@@ -378,13 +348,10 @@ def test_output_processor_uses_launch_rows_after_live_batch_shrinks() -> None:
         capture_hidden_width=2,
         should_emit_hidden=lambda request: request.request_id == "audio",
     )
-    result = _result(torch.tensor([[21.0, 22.0], [23.0, 24.0], [25.0, 26.0]]))
+    result = _result(None)
     result._captured_aux_hidden_states = (
         torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
         torch.tensor([[11.0, 12.0], [13.0, 14.0], [15.0, 16.0]]),
-    )
-    result._captured_stream_hidden_states = torch.tensor(
-        [[21.0, 22.0], [23.0, 24.0], [25.0, 26.0]]
     )
     scheduler_output = SchedulerOutput(
         requests=[
@@ -401,7 +368,6 @@ def test_output_processor_uses_launch_rows_after_live_batch_shrinks() -> None:
     audio_extra = outputs["audio"].extra
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([5.0, 6.0]))
     assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([15.0, 16.0]))
-    assert torch.equal(audio_extra["stream_hidden_states"], torch.tensor([25.0, 26.0]))
 
 
 def test_lookahead_profile_event_records_capture_and_step(monkeypatch) -> None:
@@ -471,11 +437,10 @@ def test_unconfigured_capture_ignores_audio_default_and_requests_null_mode() -> 
     assert runner.requested_capture_hidden_mode_decode(None, requests).name == "NULL"
     assert runner.requested_capture_hidden_mode_prefill(None, requests).name == "NULL"
 
-    result = _result(torch.tensor([[1.0, 2.0], [3.0, 4.0]]))
+    result = _result(None)
     runner.post_decode_launch(result, forward_batch=None, requests=requests)
 
     assert result._captured_aux_hidden_states is None
-    assert result._captured_stream_hidden_states is None
     assert runner._th_hidden_bufs is None
 
 
@@ -484,7 +449,7 @@ def test_unpack_rejects_width_mismatch() -> None:
     # a mismatch means speech hidden states would be silently wrong. Fail loud.
     with pytest.raises(AssertionError):
         unpack_packed_hidden_capture(
-            torch.zeros(2, 4),
+            torch.zeros(2, 6),
             capture_layer_count=2,
             hidden_size=2,
         )
@@ -502,7 +467,6 @@ def test_slice_rejects_row_count_mismatch() -> None:
     result = _packed_result(
         torch.tensor([[1.0, 2.0]]),
         torch.tensor([[11.0, 12.0]]),
-        torch.tensor([[21.0, 22.0]]),
     )
     scheduler_output = SchedulerOutput(
         requests=[

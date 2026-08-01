@@ -454,10 +454,9 @@ class ModelRunner:
                 batch_result = self.tp_worker.forward_batch_generation(forward_batch)
 
             # Async hidden-capture mailbox contract: every batch result carries
-            # both slots (None = no launch-owned snapshot). The thinker runner
-            # overwrites them at launch when a speech batch stages a snapshot.
+            # the slot (None = no launch-owned snapshot). The thinker runner
+            # overwrites it at launch when a speech batch stages a snapshot.
             batch_result._captured_aux_hidden_states = None
-            batch_result._captured_stream_hidden_states = None
 
             if (
                 not schedule_batch.is_prefill_only

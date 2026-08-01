@@ -75,19 +75,13 @@ class Qwen3OmniThinkerForCausalLM(nn.Module):
 
         # SGLang carries LogitsProcessorOutput.hidden_states through the exact
         # CUDA-graph output bucket selected for replay and slices padded rows.
-        # Include the final state as the last part so speech streaming needs no
-        # model-global side channel.
-        captured_and_stream = (
-            [*aux_hidden_states, hidden_states]
-            if aux_hidden_states is not None
-            else None
-        )
+        # Publish only the intermediate layers consumed by the talker.
         return self.logits_processor(
             input_ids,
             hidden_states,
             self.lm_head,
             forward_batch,
-            aux_hidden_states=captured_and_stream,
+            aux_hidden_states=aux_hidden_states,
         )
 
     def forward(

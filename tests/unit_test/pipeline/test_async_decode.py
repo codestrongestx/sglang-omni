@@ -1070,8 +1070,8 @@ def test_drop_stale_overrun_filters_decoding_reqs():
     assert out.decoding_reqs == [live_decode]
 
 
-def test_prepare_and_forward_stamps_capture_mailbox_slots():
-    """Every batch result must carry the async hidden-capture slots (None when
+def test_prepare_and_forward_stamps_capture_mailbox_slot():
+    """Every batch result must carry the async hidden-capture slot (None when
     nothing is staged): the scheduler's lookahead profiling probe and the
     output processor read them unconditionally, and only the thinker runner
     ever overwrites them. Regression: results from runners that never stage a
@@ -1095,4 +1095,3 @@ def test_prepare_and_forward_stamps_capture_mailbox_slots():
 
     assert out is batch_result
     assert out._captured_aux_hidden_states is None
-    assert out._captured_stream_hidden_states is None
