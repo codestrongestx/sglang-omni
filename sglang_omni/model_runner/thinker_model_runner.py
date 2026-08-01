@@ -443,27 +443,20 @@ class ThinkerModelRunner(ModelRunner):
         """Snapshot graph-owned hidden output into this lookahead launch."""
         logits_output = result.logits_output
         packed_hidden = logits_output.hidden_states
+        if packed_hidden is None:
+            raise RuntimeError(
+                "Speech lookahead requested hidden capture, but the model "
+                "produced no hidden states"
+            )
         captured_aux, stream_hidden = unpack_packed_hidden_capture(
             packed_hidden,
             capture_layer_count=len(self._capture_hidden_layers),
             hidden_size=self._capture_hidden_width,
         )
-        has_stream_hidden = stream_hidden is not None
-
-        sources = list(captured_aux) if captured_aux is not None else []
-        if has_stream_hidden:
-            sources.append(stream_hidden)
-        if not sources:
-            return
-
-        snapshots = self._async_hidden_bufs(sources)
-        aux_count = len(captured_aux) if captured_aux is not None else 0
-        result._captured_aux_hidden_states = (
-            snapshots[:aux_count] if captured_aux is not None else None
-        )
-        result._captured_stream_hidden_states = (
-            snapshots[aux_count] if has_stream_hidden else None
-        )
+        snapshots = self._async_hidden_bufs([*captured_aux, stream_hidden])
+        aux_count = len(captured_aux)
+        result._captured_aux_hidden_states = snapshots[:aux_count]
+        result._captured_stream_hidden_states = snapshots[aux_count]
 
     def _sample_lookahead(self, logits_output, forward_batch, requests):
         # note (jiaxin deng): penalties never reach here (lookahead_eligible routes

@@ -28,7 +28,7 @@ def _runner() -> ThinkerModelRunner:
     return runner
 
 
-def _result(stream_hidden: torch.Tensor) -> SimpleNamespace:
+def _result(stream_hidden: torch.Tensor | None) -> SimpleNamespace:
     # Mirrors the base-runner mailbox contract: every batch result carries the
     # capture slots stamped to None before any post-decode hook runs.
     return SimpleNamespace(
@@ -212,6 +212,16 @@ def test_speech_hidden_capture_uses_the_replayed_graph_output() -> None:
         graph_a_replay._captured_stream_hidden_states,
         torch.tensor([[1021.0, 1022.0], [1023.0, 1024.0]]),
     )
+
+
+def test_speech_hidden_capture_rejects_missing_packed_output() -> None:
+    runner = _runner()
+    result = _result(None)
+
+    with pytest.raises(RuntimeError, match="model produced no hidden states"):
+        runner._stage_async_hidden_capture(result)
+
+    assert runner._th_hidden_bufs is None
 
 
 def test_output_processor_consumes_result_owned_capture_not_later_launch() -> None:
