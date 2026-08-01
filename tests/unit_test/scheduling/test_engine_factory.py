@@ -145,7 +145,7 @@ def test_tts_engine_builder_phase_order_and_override_contract(monkeypatch) -> No
         events.append("output_processor")
         assert kwargs["capture_hidden"] is False
         assert kwargs["capture_hidden_layers"] is None
-        assert "model" not in kwargs
+        assert isinstance(kwargs["model"], FakeModel)
         return SimpleNamespace(**kwargs)
 
     monkeypatch.setattr(

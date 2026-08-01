@@ -19,6 +19,7 @@ class SGLangOutputProcessor:
         self,
         capture_hidden: bool = False,
         capture_hidden_layers: list[int] | None = None,
+        model: Any = None,
         should_emit_hidden: Callable[[Any], bool] | None = None,
         capture_hidden_width: int | None = None,
     ):
@@ -31,6 +32,7 @@ class SGLangOutputProcessor:
             )
         self._capture_hidden = capture_hidden
         self._capture_hidden_layers = capture_hidden_layers
+        self._model = model
         self._capture_hidden_width = capture_hidden_width
         self._should_emit_hidden = should_emit_hidden
 

@@ -84,6 +84,7 @@ def create_sglang_whisper_asr_executor(
     output_proc = SGLangOutputProcessor(
         capture_hidden=False,
         capture_hidden_layers=None,
+        model=model_worker.model_runner.model,
     )
     request_builder, result_adapter = make_whisper_scheduler_adapters(
         processor=processor,

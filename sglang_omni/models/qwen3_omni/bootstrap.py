@@ -200,6 +200,7 @@ def create_talker_scheduler(
     output_proc = SGLangOutputProcessor(
         capture_hidden=False,
         capture_hidden_layers=None,
+        model=model_worker.model_runner.model,
     )
 
     tokenizer = get_tokenizer(

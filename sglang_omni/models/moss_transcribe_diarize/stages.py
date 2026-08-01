@@ -188,6 +188,7 @@ def create_sglang_moss_transcribe_diarize_executor(
     output_proc = SGLangOutputProcessor(
         capture_hidden=False,
         capture_hidden_layers=None,
+        model=model_worker.model_runner.model,
     )
     audio_encoder_service = BatchedAudioEncoderService(
         model_worker.model_runner.model,

@@ -97,6 +97,7 @@ class TtsEngineBuilder(ABC):
         output_proc = sglang_backend.SGLangOutputProcessor(
             capture_hidden=False,
             capture_hidden_layers=None,
+            model=model,
         )
         model_runner = self.make_model_runner(model_worker, output_proc)
         request_builder, result_adapter = self.make_adapters(model)
