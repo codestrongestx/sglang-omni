@@ -291,8 +291,6 @@ def test_qwen_aux_hidden_states_clone_only_audio_request_slice():
 
 
 def test_qwen_aux_hidden_states_skipped_when_no_request_emits_hidden():
-    # Negative branch: with capture configured and a packed tensor present, a
-    # batch where no request emits hidden states must produce no extras.
     output_processor = SGLangOutputProcessor(
         capture_hidden=True,
         capture_hidden_layers=[0, 24],

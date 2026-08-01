@@ -440,7 +440,6 @@ def test_omni_scheduler_custom_runner_advances_forward_ct() -> None:
     scheduler._model_runner = FakeModelRunner()
     scheduler._stream_output_builder = None
     scheduler._prefill_start_done = set()
-    scheduler.forward_ct = 0
 
     def _batch():
         return SimpleNamespace(

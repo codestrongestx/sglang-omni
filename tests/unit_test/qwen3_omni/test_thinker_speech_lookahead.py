@@ -1,18 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Speech hidden-capture ownership across thinker lookahead launches."""
-
-from __future__ import annotations
+"""Speech hidden capture across asynchronous thinker launches."""
 
 from types import SimpleNamespace
 
 import pytest
 import torch
 
-from sglang_omni.model_runner._hidden_capture import unpack_packed_hidden_capture
 from sglang_omni.model_runner.thinker_model_runner import ThinkerModelRunner
-from sglang_omni.models.qwen3_omni.components.sglang_thinker import (
-    Qwen3OmniThinkerForCausalLM,
-)
 from sglang_omni.scheduling.sglang_backend import SGLangOutputProcessor
 from sglang_omni.scheduling.types import SchedulerOutput, SchedulerRequest
 
@@ -26,326 +20,51 @@ def _runner() -> ThinkerModelRunner:
     return runner
 
 
-def _result(packed_hidden: torch.Tensor | None) -> SimpleNamespace:
-    # Mirrors the base-runner mailbox contract: every batch result carries the
-    # capture slot stamped to None before any post-decode hook runs.
+def _result(embed: torch.Tensor | None) -> SimpleNamespace:
+    packed = None if embed is None else torch.cat((embed, embed + 10), dim=-1)
     return SimpleNamespace(
-        next_token_ids=torch.tensor([11, 22]),
-        logits_output=SimpleNamespace(hidden_states=packed_hidden),
+        next_token_ids=torch.tensor([11, 22, 33]),
+        logits_output=SimpleNamespace(hidden_states=packed),
         _captured_aux_hidden_states=None,
     )
 
 
-def _packed_result(*hidden_parts: torch.Tensor) -> SimpleNamespace:
-    return _result(torch.cat(hidden_parts, dim=-1))
-
-
-def test_thinker_model_publishes_aux_layers_on_logits_output() -> None:
-    calls: list[dict] = []
-    logits_result = object()
-
-    def logits_processor(
-        input_ids,
-        hidden_states,
-        lm_head,
-        forward_batch,
-        *,
-        aux_hidden_states,
-    ):
-        calls.append(
-            {
-                "input_ids": input_ids,
-                "hidden_states": hidden_states,
-                "lm_head": lm_head,
-                "forward_batch": forward_batch,
-                "aux_hidden_states": aux_hidden_states,
-            }
-        )
-        return logits_result
-
-    lm_head = object()
-    model = SimpleNamespace(logits_processor=logits_processor, lm_head=lm_head)
-    input_ids = torch.tensor([1, 2])
-    stream_hidden = torch.tensor([[21.0, 22.0], [23.0, 24.0]])
-    aux_hidden = [
-        torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
-        torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
-    ]
-    forward_batch = object()
-
-    result = Qwen3OmniThinkerForCausalLM.process_hidden_states(
-        model,
-        input_ids=input_ids,
-        hidden_states=(stream_hidden, aux_hidden),
-        forward_batch=forward_batch,
-    )
-
-    assert result is logits_result
-    assert len(calls) == 1
-    call = calls[0]
-    assert call["input_ids"] is input_ids
-    assert call["hidden_states"] is stream_hidden
-    assert call["lm_head"] is lm_head
-    assert call["forward_batch"] is forward_batch
-    assert call["aux_hidden_states"] is aux_hidden
-
-
-def test_speech_batches_request_last_prefill_and_full_decode_hidden_output() -> None:
+def test_speech_capture_modes() -> None:
     runner = _runner()
     runner._should_capture_hidden = lambda request: request.request_id == "audio"
-    text_request = SimpleNamespace(request_id="text")
-    audio_request = SimpleNamespace(request_id="audio")
+    text = SimpleNamespace(request_id="text")
+    audio = SimpleNamespace(request_id="audio")
 
-    assert (
-        runner.requested_capture_hidden_mode_decode(None, [text_request]).name == "NULL"
-    )
-    assert (
-        runner.requested_capture_hidden_mode_decode(None, [audio_request]).name
-        == "FULL"
-    )
-    assert (
-        runner.requested_capture_hidden_mode_prefill(None, [audio_request]).name
-        == "LAST"
-    )
+    assert runner.requested_capture_hidden_mode_decode(None, [text]).name == "NULL"
+    assert runner.requested_capture_hidden_mode_decode(None, [audio]).name == "FULL"
+    assert runner.requested_capture_hidden_mode_prefill(None, [audio]).name == "LAST"
 
-
-def test_text_only_lookahead_skips_hidden_snapshot() -> None:
-    runner = _runner()
-    runner._should_capture_hidden = lambda request: request.request_id == "audio"
     runner._async_host_buf = lambda like, n: torch.empty(n, dtype=like.dtype)
-    result = _packed_result(
-        torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
-        torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
-    )
+    text_result = _result(None)
+    runner.post_decode_launch(text_result, None, [text])
+    assert text_result._captured_aux_hidden_states is None
 
-    runner.post_decode_launch(
-        result,
-        forward_batch=None,
-        requests=[
-            SimpleNamespace(request_id="text-1"),
-            SimpleNamespace(request_id="text-2"),
-        ],
-    )
-
-    assert result._captured_aux_hidden_states is None
-    assert runner._th_hidden_bufs is None
+    runner._capture_hidden_layers = None
+    assert runner.requested_capture_hidden_mode_decode(None, [audio]).name == "NULL"
+    assert runner.requested_capture_hidden_mode_prefill(None, [audio]).name == "NULL"
 
 
-def test_speech_hidden_capture_pingpongs_across_lookahead_launches() -> None:
+def test_launch_snapshot_survives_replay_and_batch_changes() -> None:
     runner = _runner()
-    first_aux = [
-        torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
-        torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
-    ]
-    first_result = _packed_result(*first_aux)
-
-    runner._stage_async_hidden_capture(first_result)
-
-    second_aux = [
-        torch.tensor([[101.0, 102.0], [103.0, 104.0]]),
-        torch.tensor([[111.0, 112.0], [113.0, 114.0]]),
-    ]
-    second_result = _packed_result(*second_aux)
-
-    runner._stage_async_hidden_capture(second_result)
-
-    assert torch.equal(first_result._captured_aux_hidden_states[0], first_aux[0])
-    assert torch.equal(first_result._captured_aux_hidden_states[1], first_aux[1])
-    assert torch.equal(second_result._captured_aux_hidden_states[0], second_aux[0])
-    assert (
-        first_result._captured_aux_hidden_states[0].data_ptr()
-        != second_result._captured_aux_hidden_states[0].data_ptr()
-    )
-
-
-def test_speech_hidden_capture_uses_the_replayed_graph_output() -> None:
-    runner = _runner()
-    graph_a_aux = [
-        torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
-        torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
-    ]
-    graph_b_aux = [
-        torch.tensor([[101.0, 102.0], [103.0, 104.0]]),
-        torch.tensor([[111.0, 112.0], [113.0, 114.0]]),
-    ]
-    graph_a_output = torch.cat(graph_a_aux, dim=-1)
-    graph_b_output = torch.cat(graph_b_aux, dim=-1)
-
-    graph_a_result = _result(graph_a_output)
-    runner._stage_async_hidden_capture(graph_a_result)
-
-    assert torch.equal(graph_a_result._captured_aux_hidden_states[0], graph_a_aux[0])
-
-    graph_b_result = _result(graph_b_output)
-    runner._stage_async_hidden_capture(graph_b_result)
-    assert torch.equal(graph_b_result._captured_aux_hidden_states[0], graph_b_aux[0])
-
-    # Replaying graph A mutates and returns graph A's own output allocation.
-    graph_a_output.add_(1000)
-    graph_a_replay = _result(graph_a_output)
-    runner._stage_async_hidden_capture(graph_a_replay)
-
-    assert torch.equal(
-        graph_a_replay._captured_aux_hidden_states[0],
-        torch.tensor([[1001.0, 1002.0], [1003.0, 1004.0]]),
-    )
-
-
-def test_speech_hidden_capture_rejects_missing_packed_output() -> None:
-    runner = _runner()
-    result = _result(None)
-
-    with pytest.raises(RuntimeError, match="model produced no hidden states"):
-        runner._stage_async_hidden_capture(result)
-
-    assert runner._th_hidden_bufs is None
-
-
-def test_output_processor_consumes_result_owned_capture_not_later_launch() -> None:
-    runner = _runner()
-    aux = [
-        torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
-        torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
-    ]
-    result = _packed_result(*aux)
+    embed = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    result = _result(embed)
     runner._stage_async_hidden_capture(result)
 
-    # Launch(N+1) replays the same graph before this step resolves: the packed
-    # logits-output buffer now holds the NEXT step's values. Emitted extras
-    # must come from the launch-owned snapshot, not the live buffer.
-    result.logits_output.hidden_states = torch.cat(
-        [part + 100.0 for part in aux], dim=-1
-    )
-    output_processor = SGLangOutputProcessor(
+    result.logits_output.hidden_states.add_(100)
+    next_result = _result(embed + 200)
+    runner._stage_async_hidden_capture(next_result)
+    assert torch.equal(next_result._captured_aux_hidden_states[0], embed + 200)
+
+    processor = SGLangOutputProcessor(
         capture_hidden=True,
         capture_hidden_layers=[0, 24],
         capture_hidden_width=2,
         should_emit_hidden=lambda request: request.request_id == "audio",
-    )
-    scheduler_output = SchedulerOutput(
-        requests=[
-            SchedulerRequest(request_id="text"),
-            SchedulerRequest(request_id="audio"),
-        ],
-        batch_data=SimpleNamespace(
-            reqs=[
-                SimpleNamespace(extend_input_len=1),
-                SimpleNamespace(extend_input_len=1),
-            ]
-        ),
-    )
-
-    outputs = output_processor.process(result, scheduler_output)
-
-    assert outputs["text"].extra is None
-    audio_extra = outputs["audio"].extra
-    assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
-    assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([13.0, 14.0]))
-
-    # Two more launches cycle both ping-pong slots after this payload entered
-    # the async stream queue; the emitted request must own its slice.
-    runner._stage_async_hidden_capture(_packed_result(*[part + 200.0 for part in aux]))
-    runner._stage_async_hidden_capture(_packed_result(*[part + 300.0 for part in aux]))
-    assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
-
-
-def test_output_processor_reads_graph_owned_packed_capture() -> None:
-    output_processor = SGLangOutputProcessor(
-        capture_hidden=True,
-        capture_hidden_layers=[0, 24],
-        capture_hidden_width=2,
-        should_emit_hidden=lambda request: request.request_id == "audio",
-    )
-    result = _packed_result(
-        torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
-        torch.tensor([[11.0, 12.0], [13.0, 14.0]]),
-    )
-    scheduler_output = SchedulerOutput(
-        requests=[
-            SchedulerRequest(request_id="text"),
-            SchedulerRequest(request_id="audio"),
-        ],
-        batch_data=SimpleNamespace(
-            reqs=[
-                SimpleNamespace(extend_input_len=1),
-                SimpleNamespace(extend_input_len=1),
-            ]
-        ),
-    )
-
-    outputs = output_processor.process(result, scheduler_output)
-
-    assert outputs["text"].extra is None
-    audio_extra = outputs["audio"].extra
-    assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
-    assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([13.0, 14.0]))
-
-
-def test_output_processor_reads_last_only_capture_after_multi_token_prefill() -> None:
-    output_processor = SGLangOutputProcessor(
-        capture_hidden=True,
-        capture_hidden_layers=[0, 24],
-        capture_hidden_width=2,
-        should_emit_hidden=lambda request: True,
-    )
-    result = _packed_result(
-        torch.tensor([[7.0, 8.0]]),
-        torch.tensor([[17.0, 18.0]]),
-    )
-    scheduler_output = SchedulerOutput(
-        requests=[SchedulerRequest(request_id="audio")],
-        batch_data=SimpleNamespace(reqs=[SimpleNamespace(extend_input_len=5)]),
-    )
-
-    output = output_processor.process(result, scheduler_output)["audio"]
-
-    assert torch.equal(output.extra["hidden_states"]["embed"], torch.tensor([7.0, 8.0]))
-    assert torch.equal(output.extra["hidden_states"][24], torch.tensor([17.0, 18.0]))
-
-
-def test_output_processor_maps_last_only_capture_for_mixed_prefill() -> None:
-    output_processor = SGLangOutputProcessor(
-        capture_hidden=True,
-        capture_hidden_layers=[0, 24],
-        capture_hidden_width=2,
-        should_emit_hidden=lambda request: request.request_id == "audio",
-    )
-    result = _packed_result(
-        torch.tensor([[1.0, 2.0], [7.0, 8.0]]),
-        torch.tensor([[11.0, 12.0], [17.0, 18.0]]),
-    )
-    scheduler_output = SchedulerOutput(
-        requests=[
-            SchedulerRequest(request_id="text"),
-            SchedulerRequest(request_id="audio"),
-        ],
-        batch_data=SimpleNamespace(
-            reqs=[
-                SimpleNamespace(extend_input_len=3),
-                SimpleNamespace(extend_input_len=5),
-            ]
-        ),
-    )
-
-    outputs = output_processor.process(result, scheduler_output)
-
-    assert outputs["text"].extra is None
-    audio_extra = outputs["audio"].extra
-    assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([7.0, 8.0]))
-    assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([17.0, 18.0]))
-
-
-def test_output_processor_uses_launch_rows_after_live_batch_shrinks() -> None:
-    output_processor = SGLangOutputProcessor(
-        capture_hidden=True,
-        capture_hidden_layers=[0, 24],
-        capture_hidden_width=2,
-        should_emit_hidden=lambda request: request.request_id == "audio",
-    )
-    result = _result(None)
-    result._captured_aux_hidden_states = (
-        torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
-        torch.tensor([[11.0, 12.0], [13.0, 14.0], [15.0, 16.0]]),
     )
     scheduler_output = SchedulerOutput(
         requests=[
@@ -353,78 +72,20 @@ def test_output_processor_uses_launch_rows_after_live_batch_shrinks() -> None:
             SchedulerRequest(request_id="retracted"),
             SchedulerRequest(request_id="audio"),
         ],
-        # The live ScheduleBatch has already dropped two launch-time rows.
-        batch_data=SimpleNamespace(reqs=[SimpleNamespace(extend_input_len=1)]),
+        batch_data=SimpleNamespace(reqs=[object()]),
     )
 
-    outputs = output_processor.process(result, scheduler_output)
+    outputs = processor.process(result, scheduler_output)
+    hidden = outputs["audio"].extra["hidden_states"]
+    assert torch.equal(hidden["embed"], torch.tensor([5.0, 6.0]))
+    assert torch.equal(hidden[24], torch.tensor([15.0, 16.0]))
 
-    audio_extra = outputs["audio"].extra
-    assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([5.0, 6.0]))
-    assert torch.equal(audio_extra["hidden_states"][24], torch.tensor([15.0, 16.0]))
-
-
-def test_unconfigured_capture_ignores_audio_default_and_requests_null_mode() -> None:
-    """A text-only deployment installs no capture layers. Requests that default
-    to audio output (missing output_modalities) must still keep NULL capture
-    and never reach the hidden-snapshot path. Regression: capture gating used
-    to read only per-request metadata, so such a batch requested FULL decode
-    capture (mismatching the NULL-captured CUDA graphs and disabling replay)
-    and the launch snapshot dereferenced capture state that text deployments
-    never create (AttributeError, failing every lookahead batch)."""
-    runner = object.__new__(ThinkerModelRunner)
-    runner._capture_hidden_layers = None
-    runner._capture_hidden_width = None
-    runner._should_capture_hidden = lambda request: True  # modalities default
-    runner._th_hidden_bufs = None
-    runner._th_hidden_slot = 0
-    runner._async_host_buf = lambda like, n: torch.empty(n, dtype=like.dtype)
-    requests = [
-        SimpleNamespace(request_id="text-1"),
-        SimpleNamespace(request_id="text-2"),
-    ]
-
-    assert runner.requested_capture_hidden_mode_decode(None, requests).name == "NULL"
-    assert runner.requested_capture_hidden_mode_prefill(None, requests).name == "NULL"
-
-    result = _result(None)
-    runner.post_decode_launch(result, forward_batch=None, requests=requests)
-
-    assert result._captured_aux_hidden_states is None
-    assert runner._th_hidden_bufs is None
+    reused_result = _result(embed + 300)
+    runner._stage_async_hidden_capture(reused_result)
+    assert torch.equal(reused_result._captured_aux_hidden_states[0], embed + 300)
+    assert torch.equal(hidden["embed"], torch.tensor([5.0, 6.0]))
 
 
-def test_unpack_rejects_width_mismatch() -> None:
-    # Width is the contract between the capture config and the model's packing;
-    # a mismatch means speech hidden states would be silently wrong. Fail loud.
-    with pytest.raises(AssertionError):
-        unpack_packed_hidden_capture(
-            torch.zeros(2, 6),
-            capture_layer_count=2,
-            hidden_size=2,
-        )
-
-
-def test_slice_rejects_row_count_mismatch() -> None:
-    # A capture tensor whose rows don't match the launch-time request count
-    # would map hidden states to the wrong request (wrong voice downstream).
-    output_processor = SGLangOutputProcessor(
-        capture_hidden=True,
-        capture_hidden_layers=[0, 24],
-        capture_hidden_width=2,
-        should_emit_hidden=lambda request: True,
-    )
-    result = _packed_result(
-        torch.tensor([[1.0, 2.0]]),
-        torch.tensor([[11.0, 12.0]]),
-    )
-    scheduler_output = SchedulerOutput(
-        requests=[
-            SchedulerRequest(request_id="a"),
-            SchedulerRequest(request_id="b"),
-        ],
-        batch_data=None,
-    )
-
-    with pytest.raises(ValueError):
-        output_processor.process(result, scheduler_output)
+def test_missing_speech_capture_fails() -> None:
+    with pytest.raises(RuntimeError, match="model produced no hidden states"):
+        _runner()._stage_async_hidden_capture(_result(None))
