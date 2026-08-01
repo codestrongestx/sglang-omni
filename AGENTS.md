@@ -41,3 +41,5 @@ Do not expose internal plan steps in code.
 When committing issue-related work, avoid GitHub autolinks unless intentionally
 updating the issue timeline. Write `issue 890` instead of `#890`, `fixes #890`,
 or `sgl-project#890` in commit messages.
+
+Keep granular commits on this -dev branch, and keep the corresponding non--dev branch implementation-identical but squashed into one PR-ready commit.
