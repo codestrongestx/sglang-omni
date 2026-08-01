@@ -106,8 +106,6 @@ class SGLangOutputProcessor:
     def _take_captured_aux_hidden_states(
         self, model_output: Any
     ) -> Sequence[torch.Tensor] | None:
-        # Base runners stamp the capture slot on every batch result; non-None
-        # means the async launch staged a snapshot for this exact step.
         captured = model_output._captured_aux_hidden_states
         if captured is not None:
             model_output._captured_aux_hidden_states = None
