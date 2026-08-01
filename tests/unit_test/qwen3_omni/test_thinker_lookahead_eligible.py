@@ -59,6 +59,16 @@ def test_return_logprob_disables_lookahead():
     assert _runner().lookahead_eligible(_batch(_req(return_logprob=True))) is False
 
 
+def test_missing_omni_data_disables_lookahead():
+    req = types.SimpleNamespace(sampling_params=_sp())
+    assert _runner().lookahead_eligible(_batch(req)) is False
+
+
+def test_none_omni_data_disables_lookahead():
+    req = types.SimpleNamespace(sampling_params=_sp(), _omni_data=None)
+    assert _runner().lookahead_eligible(_batch(req)) is False
+
+
 def test_each_gated_sampling_param_disables_lookahead():
     for kw in (
         dict(repetition_penalty=1.3),

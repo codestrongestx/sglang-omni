@@ -365,7 +365,10 @@ class ThinkerModelRunner(ModelRunner):
         conservatively.
         """
         for req in batch.reqs:
-            if req._omni_data.return_logprob:
+            data = getattr(req, "_omni_data", None)
+            if data is None:
+                return False
+            if getattr(data, "return_logprob", False):
                 return False
             sp = req.sampling_params
             if (
