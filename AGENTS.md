@@ -42,4 +42,4 @@ When committing issue-related work, avoid GitHub autolinks unless intentionally
 updating the issue timeline. Write `issue 890` instead of `#890`, `fixes #890`,
 or `sgl-project#890` in commit messages.
 
-Keep granular commits on this -dev branch, and keep the corresponding non--dev branch implementation-identical but squashed into one PR-ready commit.
+Make and review each change first as a granular commit on this `-dev` branch, then apply the finalized change to the corresponding branch without the `-dev` suffix and amend that branch's single PR-ready commit, keeping the implementations identical.
