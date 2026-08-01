@@ -441,11 +441,6 @@ class ThinkerModelRunner(ModelRunner):
 
     def _stage_async_hidden_capture(self, result: Any) -> None:
         """Snapshot graph-owned hidden output into this lookahead launch."""
-        capture_layers = self._capture_hidden_layers
-        capture_width = self._capture_hidden_width
-        assert (
-            capture_layers is not None and capture_width is not None
-        ), "hidden capture staging requires configured layers and width"
         logits_output = result.logits_output
         packed_hidden = logits_output.hidden_states
         if packed_hidden is None:
@@ -455,10 +450,9 @@ class ThinkerModelRunner(ModelRunner):
             )
         captured_aux = unpack_packed_hidden_capture(
             packed_hidden,
-            capture_layer_count=len(capture_layers),
-            hidden_size=capture_width,
+            capture_layer_count=len(self._capture_hidden_layers),
+            hidden_size=self._capture_hidden_width,
         )
-        assert captured_aux is not None
         result._captured_aux_hidden_states = self._async_hidden_bufs(list(captured_aux))
 
     def _sample_lookahead(self, logits_output, forward_batch, requests):
