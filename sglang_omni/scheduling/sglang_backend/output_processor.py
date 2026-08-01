@@ -89,9 +89,7 @@ class SGLangOutputProcessor:
 
         if not request_indexes:
             return {}
-        captured_aux_hidden_states = self._take_captured_aux_hidden_states(
-            model_output
-        )
+        captured_aux_hidden_states = self._take_captured_aux_hidden_states(model_output)
         if captured_aux_hidden_states is None:
             return {}
         return {

@@ -246,12 +246,8 @@ def test_output_processor_consumes_result_owned_capture_not_later_launch() -> No
 
     # Two more launches cycle both ping-pong slots after this payload entered
     # the async stream queue; the emitted request must own its slice.
-    runner._stage_async_hidden_capture(
-        _packed_result(*[part + 200.0 for part in aux])
-    )
-    runner._stage_async_hidden_capture(
-        _packed_result(*[part + 300.0 for part in aux])
-    )
+    runner._stage_async_hidden_capture(_packed_result(*[part + 200.0 for part in aux]))
+    runner._stage_async_hidden_capture(_packed_result(*[part + 300.0 for part in aux]))
     assert torch.equal(audio_extra["hidden_states"]["embed"], torch.tensor([3.0, 4.0]))
 
 
