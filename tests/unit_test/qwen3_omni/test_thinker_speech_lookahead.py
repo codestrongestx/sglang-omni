@@ -126,21 +126,25 @@ def test_capture_growth_keeps_pending_snapshot_alive_and_shrink_reuses_capacity(
     grown_requests = [*small_requests, SchedulerRequest(request_id="text-2")]
     grown_aux, _ = runner._stage_async_hidden_capture(_result(), grown_requests)
     grown_pointers = tuple(tensor.data_ptr() for tensor in grown_aux)
+    grown_slots = runner._th_hidden_bufs
 
     for snapshot, expected in zip(small_aux, small_values):
         torch.testing.assert_close(snapshot, expected)
     assert all(tensor.shape[0] == 3 for tensor in grown_aux)
+    assert grown_slots is not None
+    assert all(buffer.shape[0] == 3 for slot in grown_slots for buffer in slot)
 
     live_embed.add_(100)
     live_layer.add_(100)
     shrunk_aux, _ = runner._stage_async_hidden_capture(
         _result(), [SchedulerRequest(request_id="audio")]
     )
+    assert runner._th_hidden_bufs is grown_slots
     assert all(tensor.shape[0] == 1 for tensor in shrunk_aux)
-    assert all(
-        pointer != tensor.data_ptr()
-        for pointer, tensor in zip(grown_pointers, shrunk_aux)
-    )
+    assert all(buffer.shape[0] == 3 for slot in grown_slots for buffer in slot)
+
+    reused_grown_aux, _ = runner._stage_async_hidden_capture(_result(), small_requests)
+    assert tuple(tensor.data_ptr() for tensor in reused_grown_aux) == grown_pointers
 
 
 def test_text_only_launch_does_not_read_static_capture() -> None:
