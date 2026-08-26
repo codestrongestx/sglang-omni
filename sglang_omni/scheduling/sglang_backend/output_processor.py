@@ -81,6 +81,20 @@ class SGLangOutputProcessor:
         if not request_indexes:
             return {}
 
+        if hasattr(model_output, "_omni_aux_hidden_states"):
+            captured_aux = model_output._omni_aux_hidden_states
+            model_output._omni_aux_hidden_states = None
+            if captured_aux is None:
+                raise RuntimeError(
+                    "Speech lookahead resolved without a launch-owned hidden capture"
+                )
+            return self._build_aux_hidden_extras(
+                captured_aux,
+                model_output=model_output,
+                scheduler_output=scheduler_output,
+                request_indexes=request_indexes,
+            )
+
         if self._model is not None and self._capture_hidden_layers:
             static_capture = getattr(self._model, "_omni_aux_hidden_capture", None)
             if static_capture is not None:
@@ -190,6 +204,10 @@ class SGLangOutputProcessor:
         }
 
     def _extract_stream_hidden_states(self, model_output: Any) -> torch.Tensor | None:
+        if hasattr(model_output, "_omni_stream_hidden_states"):
+            raw_hidden = model_output._omni_stream_hidden_states
+            model_output._omni_stream_hidden_states = None
+            return raw_hidden if isinstance(raw_hidden, torch.Tensor) else None
         logits_output = model_output.logits_output
         if logits_output is None:
             return None

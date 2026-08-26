@@ -8,6 +8,7 @@ visual embeddings for Qwen3-Omni's thinker stage.
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from numbers import Integral
 from typing import Any
 
@@ -20,6 +21,13 @@ from sglang_omni.model_runner.sglang_execution import attn_forward_context
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class _ThinkerDecodeLaunch:
+    token_ids: torch.Tensor
+    aux_hidden_states: tuple[torch.Tensor, ...] | None
+    stream_hidden_states: torch.Tensor | None
+
+
 class ThinkerModelRunner(ModelRunner):
     def __init__(self, tp_worker: Any, output_processor: Any):
         super().__init__(tp_worker, output_processor)
@@ -30,6 +38,8 @@ class ThinkerModelRunner(ModelRunner):
         self._embed_tokens = self._text_model.embed_tokens
         self._th_host_bufs = None
         self._th_slot = 0
+        self._th_hidden_bufs: list[list[torch.Tensor]] | None = None
+        self._th_hidden_slot = 0
 
         thinker_cfg = tp_worker.model_runner.model_config.hf_config.thinker_config
         self._image_token_id = thinker_cfg.image_token_id
@@ -411,21 +421,18 @@ class ThinkerModelRunner(ModelRunner):
     def lookahead_eligible(self, batch: Any) -> bool:
         """Reject batches whose state would diverge under one-step lookahead.
 
-        Audio can overwrite hidden-state capture before resolve; stateful or
-        unsupported sampling options use the synchronous path for parity.
+        Speech hidden states are snapshotted into launch-owned ping-pong buffers,
+        so audio-output requests are safe. Stateful or unsupported sampling
+        options still use the synchronous path for parity.
         """
-        from sglang_omni.models.qwen3_omni.request_builders import (
-            should_generate_audio_output,
-        )
-
         for req in batch.reqs:
-            # note (jiaxin deng): fail closed if the request data is missing or None
-            # so a hidden-capture batch can never slip onto the async path.
+            # Request data remains mandatory because return_logprob is an Omni
+            # request field rather than an SGLang sampling parameter.
             try:
                 data = req._omni_data
             except AttributeError:
                 data = None
-            if data is None or should_generate_audio_output(data.stage_payload):
+            if data is None:
                 return False
             try:
                 needs_logprob = data.return_logprob
@@ -459,6 +466,80 @@ class ThinkerModelRunner(ModelRunner):
         self._th_slot ^= 1
         return buf
 
+    @staticmethod
+    def _hidden_buf_fits(buf: torch.Tensor, source: torch.Tensor) -> bool:
+        if (
+            buf.dtype != source.dtype
+            or buf.device != source.device
+            or buf.ndim != source.ndim
+        ):
+            return False
+        if source.ndim == 0:
+            return buf.shape == source.shape
+        return buf.shape[0] >= source.shape[0] and buf.shape[1:] == source.shape[1:]
+
+    def _async_hidden_bufs(
+        self, sources: list[torch.Tensor]
+    ) -> tuple[torch.Tensor, ...]:
+        """Snapshot graph-reused hidden tensors into one launch-owned slot."""
+        need_alloc = (
+            self._th_hidden_bufs is None
+            or len(self._th_hidden_bufs[0]) != len(sources)
+            or any(
+                not self._hidden_buf_fits(buf, source)
+                for buf, source in zip(self._th_hidden_bufs[0], sources)
+            )
+        )
+        if need_alloc:
+            self._th_hidden_bufs = [
+                [torch.empty_like(source) for source in sources] for _ in range(2)
+            ]
+            self._th_hidden_slot = 0
+
+        assert self._th_hidden_bufs is not None
+        slot_bufs = self._th_hidden_bufs[self._th_hidden_slot]
+        self._th_hidden_slot ^= 1
+        snapshots: list[torch.Tensor] = []
+        for buf, source in zip(slot_bufs, sources):
+            view = buf if source.ndim == 0 else buf[: source.shape[0]]
+            view.copy_(source, non_blocking=True)
+            snapshots.append(view)
+        return tuple(snapshots)
+
+    def _stage_async_hidden_capture(
+        self,
+        result: Any,
+        requests: list[Any],
+    ) -> tuple[tuple[torch.Tensor, ...] | None, torch.Tensor | None]:
+        if not self.output_processor._capture_hidden or not any(
+            self.output_processor._should_emit_hidden_for_request(request)
+            for request in requests
+        ):
+            return None, None
+
+        static_capture = getattr(self.model, "_omni_aux_hidden_capture", None)
+        if static_capture is None:
+            raise RuntimeError(
+                "Speech lookahead requested hidden capture, but the model has "
+                "no static auxiliary hidden capture"
+            )
+
+        aux_sources = static_capture.views(len(requests))
+        logits_output = result.logits_output
+        stream_hidden = (
+            logits_output.hidden_states if logits_output is not None else None
+        )
+        has_stream_hidden = isinstance(stream_hidden, torch.Tensor)
+        sources = list(aux_sources)
+        if has_stream_hidden:
+            sources.append(stream_hidden)
+        snapshots = self._async_hidden_bufs(sources)
+        aux_count = len(aux_sources)
+        return (
+            snapshots[:aux_count],
+            snapshots[aux_count] if has_stream_hidden else None,
+        )
+
     def _sample_lookahead(self, logits_output, forward_batch, requests):
         # note (jiaxin deng): penalties never reach here (lookahead_eligible routes
         # those batches to sync); only static suppress tokens are lag-safe.
@@ -478,7 +559,12 @@ class ThinkerModelRunner(ModelRunner):
         nt = result.next_token_ids
         host_buf = self._async_host_buf(nt, n)
         host_buf[:n].copy_(nt[:n], non_blocking=True)
-        return host_buf
+        aux_hidden, stream_hidden = self._stage_async_hidden_capture(result, requests)
+        return _ThinkerDecodeLaunch(
+            token_ids=host_buf,
+            aux_hidden_states=aux_hidden,
+            stream_hidden_states=stream_hidden,
+        )
 
     def post_decode_resolve(
         self, launch_buf, result, forward_batch, schedule_batch, requests
@@ -487,4 +573,6 @@ class ThinkerModelRunner(ModelRunner):
         if len(requests) == 0 or launch_buf is None:
             return
         n = len(requests)
-        result.next_token_ids = launch_buf[:n].to(torch.long).clone()
+        result.next_token_ids = launch_buf.token_ids[:n].to(torch.long).clone()
+        result._omni_aux_hidden_states = launch_buf.aux_hidden_states
+        result._omni_stream_hidden_states = launch_buf.stream_hidden_states
