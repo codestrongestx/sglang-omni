@@ -37,10 +37,12 @@ class SimpleScheduler:
         batch_compute_fn: Callable | None = None,
         max_batch_size: int = 1,
         max_batch_wait_ms: int = 0,
+        batch_wait_when_idle: bool = True,
         request_cost_fn: Callable[[Any], int] | None = None,
         max_batch_cost: int | None = None,
         max_concurrency: int = 1,
         abort_callback: Callable[[str], None] | None = None,
+        shutdown_callback: Callable[[], None] | None = None,
     ):
         self.inbox: _queue_mod.Queue[IncomingMessage] = _queue_mod.Queue()
         self.outbox: _queue_mod.Queue[OutgoingMessage] = _queue_mod.Queue()
@@ -49,6 +51,7 @@ class SimpleScheduler:
         self._batch_fn = batch_compute_fn
         self._max_batch_size = max(int(max_batch_size), 1)
         self._max_batch_wait_s = max(float(max_batch_wait_ms), 0.0) / 1000.0
+        self._batch_wait_when_idle = bool(batch_wait_when_idle)
         self._request_cost_fn = request_cost_fn
         self._max_batch_cost = (
             max(int(max_batch_cost), 0) if max_batch_cost is not None else None
@@ -64,6 +67,8 @@ class SimpleScheduler:
                 "max_concurrency > 1 and batch_compute_fn are mutually exclusive"
             )
         self._abort_callback = abort_callback
+        self._shutdown_callback = shutdown_callback
+        self._shutdown_lock = threading.Lock()
         self._aborted: set[str] = set()
         self._abort_lock = threading.Lock()
         self._running = False
@@ -104,11 +109,17 @@ class SimpleScheduler:
             return batch
 
         batch_cost = self._message_cost(first_msg)
-        deadline = time.monotonic() + self._max_batch_wait_s
+        deadline: float | None = (
+            time.monotonic() + self._max_batch_wait_s
+            if self._batch_wait_when_idle
+            else None
+        )
         while len(batch) < self._max_batch_size:
             try:
                 msg = self.inbox.get_nowait()
             except _queue_mod.Empty:
+                if deadline is None:
+                    break
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     break
@@ -125,6 +136,8 @@ class SimpleScheduler:
                         break
                     batch_cost += msg_cost
                 batch.append(msg)
+                if deadline is None:
+                    deadline = time.monotonic() + self._max_batch_wait_s
             else:
                 self._pending_messages.append(msg)
         return batch
@@ -298,6 +311,11 @@ class SimpleScheduler:
 
     def stop(self) -> None:
         self._running = False
+        with self._shutdown_lock:
+            callback = self._shutdown_callback
+            self._shutdown_callback = None
+        if callback is not None:
+            callback()
 
     def abort(self, request_id: str) -> None:
         with self._abort_lock:

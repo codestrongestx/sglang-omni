@@ -10,7 +10,6 @@ import numpy as np
 import pytest
 import torch
 
-from sglang_omni.config import build_process_topology_plan, build_stage_placement_plan
 from sglang_omni.models.registry import PIPELINE_CONFIG_REGISTRY
 from sglang_omni.models.voxtral_tts.config import VoxtralTTSPipelineConfig
 from sglang_omni.models.voxtral_tts.io import VoxtralTTSState
@@ -20,6 +19,7 @@ from sglang_omni.proto import OmniRequest, StagePayload
 from sglang_omni.scheduling.types import RequestOutput
 from sglang_omni.utils.audio_payload import audio_waveform_payload
 from tests.unit_test.fakes import FakeExecutionBridge, FakeServerArgs
+from tests.unit_test.pipeline.helpers import build_compiled_process_topology
 
 
 def test_voxtral_tts_config_uses_current_stage_schema() -> None:
@@ -31,19 +31,17 @@ def test_voxtral_tts_config_uses_current_stage_schema() -> None:
     ]
     assert config.terminal_stages == ["vocoder"]
     assert config.gpu_placement == {"tts_generation": 0, "vocoder": 0}
-    assert "device" not in config.stages[1].factory_args
-    assert "device" not in config.stages[2].factory_args
+    assert config.stages[1].factory.device is None
+    assert config.stages[2].factory.device is None
     assert [stage.process for stage in config.stages] == [
         "pipeline",
         "pipeline",
         "pipeline",
     ]
     assert [
-        stage.runtime.resources.total_gpu_memory_fraction
-        for stage in config.stages
-        if stage.gpu is not None
+        stage.gpu_memory_fraction for stage in config.stages if stage.gpu is not None
     ] == [None, None]
-    build_process_topology_plan(config, build_stage_placement_plan(config))
+    build_compiled_process_topology(config)
     assert (
         PIPELINE_CONFIG_REGISTRY.get_config("VoxtralTTSForConditionalGeneration")
         is VoxtralTTSPipelineConfig
@@ -485,6 +483,7 @@ def test_voxtral_generation_reenables_cuda_graph_after_bootstrap(
     class FakeWorker:
         def __init__(self, server_args) -> None:
             self.model_runner = FakeSGLangRunner(server_args)
+            self.enable_prefill_input_embeds = False
 
     monkeypatch.setattr(
         engine_factory, "_resolve_checkpoint", lambda model_path: model_path
@@ -515,7 +514,8 @@ def test_voxtral_generation_reenables_cuda_graph_after_bootstrap(
                 decode=SimpleNamespace(
                     max_bs=kwargs["cuda_graph_max_bs"],
                     bs=kwargs["cuda_graph_bs"],
-                )
+                ),
+                prefill=SimpleNamespace(backend="disabled", bs=None, max_bs=None),
             ),
             disable_cuda_graph=kwargs["disable_cuda_graph"],
             disable_overlap_schedule=kwargs["disable_overlap_schedule"],

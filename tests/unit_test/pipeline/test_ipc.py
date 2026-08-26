@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import signal
 from pathlib import Path
-from types import SimpleNamespace
+from types import FrameType, SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
@@ -65,7 +66,7 @@ def _make_config(base_path: Path) -> PipelineConfig:
             StageConfig(
                 name="preprocessing",
                 process="pipeline",
-                factory=f"{__name__}.noop_factory",
+                factory_path=f"{__name__}.noop_factory",
                 terminal=True,
             )
         ],
@@ -157,7 +158,6 @@ def test_ipc_stage_groups_use_unique_endpoints_for_same_model_name(
             config,
             FakeMpContext(),
             stages_cfg=prep_a.stages_cfg,
-            name_map=prep_a.name_map,
             endpoints=prep_a.endpoints,
             placement_plan=prep_a.placement_plan,
             process_plan=prep_a.process_plan,
@@ -166,7 +166,6 @@ def test_ipc_stage_groups_use_unique_endpoints_for_same_model_name(
             config,
             FakeMpContext(),
             stages_cfg=prep_b.stages_cfg,
-            name_map=prep_b.name_map,
             endpoints=prep_b.endpoints,
             placement_plan=prep_b.placement_plan,
             process_plan=prep_b.process_plan,
@@ -290,7 +289,7 @@ async def test_mp_runner_startup_failure_includes_child_factory_traceback(
             StageConfig(
                 name="preprocessing",
                 process="pipeline",
-                factory=f"{__name__}.failing_factory",
+                factory_path=f"{__name__}.failing_factory",
                 terminal=True,
             )
         ],
@@ -298,8 +297,11 @@ async def test_mp_runner_startup_failure_includes_child_factory_traceback(
     )
     runner = mp_runner.MultiProcessPipelineRunner(config)
 
+    # A cold child can spend close to 10s importing torch before the factory
+    # even runs; the dead-process fail-fast branch needs the child to have
+    # exited, so give slow hosts room instead of racing the teardown.
     with pytest.raises(RuntimeError, match="factory boom"):
-        await runner.start(timeout=10.0)
+        await runner.start(timeout=30.0)
 
     assert list(tmp_path.iterdir()) == []
 
@@ -319,8 +321,19 @@ async def test_mp_runner_stop_cleans_runtime_dir(
             entry_stage: str,
             terminal_stages: list[str] | None = None,
             terminal_stages_resolver=None,
+            replica_topology=None,
+            logical_process_plan=None,
+            max_in_flight=None,
         ) -> None:
-            del abort_endpoint, entry_stage, terminal_stages, terminal_stages_resolver
+            del (
+                abort_endpoint,
+                entry_stage,
+                terminal_stages,
+                terminal_stages_resolver,
+                replica_topology,
+                logical_process_plan,
+                max_in_flight,
+            )
             self.control_plane = SimpleNamespace(
                 completion_endpoint=completion_endpoint
             )
@@ -383,7 +396,7 @@ async def test_mp_runner_stop_cleans_runtime_dir(
 async def _run_launcher_with_fake_runner(
     *,
     config: PipelineConfig,
-    serve_mock: AsyncMock,
+    serve_mock: AsyncMock | None,
     monkeypatch: pytest.MonkeyPatch,
 ) -> tuple[object, FastAPI, SimpleNamespace]:
     app = FastAPI()
@@ -439,7 +452,8 @@ async def _run_launcher_with_fake_runner(
     monkeypatch.setattr(launcher, "MultiProcessPipelineRunner", FakeRunner)
     monkeypatch.setattr(launcher, "ProfilerControlClient", FakeProfilerControl)
     monkeypatch.setattr(launcher, "create_app", lambda *a, **k: app)
-    monkeypatch.setattr(launcher.uvicorn.Server, "serve", serve_mock)
+    if serve_mock is not None:
+        monkeypatch.setattr(launcher.uvicorn.Server, "serve", serve_mock)
 
     await launcher._run_server(config, port=8000)
     assert runner_ref is not None
@@ -555,6 +569,51 @@ async def test_launcher_stops_runner_when_server_raises(
         )
 
     server_serve.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_pipeline_uvicorn_server_consumes_handled_sigterm(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from sglang_omni.serve import launcher
+
+    config = _make_config(tmp_path)
+    replayed_signals: list[int] = []
+    server_ref: launcher.uvicorn.Server | None = None
+    original_handler = signal.getsignal(signal.SIGTERM)
+
+    def recording_handler(sig: int, frame: FrameType | None) -> None:
+        del frame
+        replayed_signals.append(sig)
+
+    async def serve_until_sigterm(
+        server: launcher.uvicorn.Server,
+        sockets=None,
+    ) -> None:
+        del sockets
+        nonlocal server_ref
+        server_ref = server
+        signal.raise_signal(signal.SIGTERM)
+        assert server.should_exit
+
+    monkeypatch.setattr(launcher.uvicorn.Server, "_serve", serve_until_sigterm)
+    signal.signal(signal.SIGTERM, recording_handler)
+    try:
+        runner, _, _ = await _run_launcher_with_fake_runner(
+            config=config,
+            serve_mock=None,
+            monkeypatch=monkeypatch,
+        )
+        assert signal.getsignal(signal.SIGTERM) is recording_handler
+    finally:
+        signal.signal(signal.SIGTERM, original_handler)
+
+    assert isinstance(server_ref, launcher._PipelineUvicornServer)
+    assert runner.started
+    assert runner.stopped
+    assert replayed_signals == []
+    assert server_ref._captured_signals == []
 
 
 @pytest.mark.asyncio

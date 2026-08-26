@@ -413,6 +413,7 @@ def test_fish_s2pro_decode_codebooks_keeps_eos_out_of_audio_embedding(
     assert int(audio_decoder.seen_embedding_ids[0][0].item()) == 0
 
 
+@pytest.mark.accelerator
 @pytest.mark.skipif(
     not torch.cuda.is_available(), reason="multinomial_with_seed needs CUDA"
 )
@@ -658,6 +659,7 @@ def test_fish_req_hits_max_new_tokens_and_scheduler_reports_length() -> None:
     scheduler._request_finished_callback = None
     scheduler._first_emit_done = set()
     scheduler._prefill_start_done = set()
+    scheduler._prefill_end_done = set()
     scheduler._result_adapter = result_adapter
     scheduler._model_runner = None
     scheduler._stream_output_builder = None

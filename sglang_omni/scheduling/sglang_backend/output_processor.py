@@ -8,7 +8,6 @@ from typing import Any
 
 import torch
 
-from sglang_omni.model_runner._hidden_capture import unpack_packed_hidden_capture
 from sglang_omni.scheduling.types import RequestOutput, SchedulerOutput
 
 
@@ -21,19 +20,10 @@ class SGLangOutputProcessor:
         capture_hidden_layers: list[int] | None = None,
         model: Any = None,
         should_emit_hidden: Callable[[Any], bool] | None = None,
-        capture_hidden_width: int | None = None,
     ):
-        if capture_hidden and not capture_hidden_layers:
-            raise ValueError("capture_hidden requires capture_hidden_layers")
-        if capture_hidden_layers and capture_hidden_width is None:
-            raise ValueError(
-                "capture_hidden_layers requires capture_hidden_width to unpack "
-                "the packed hidden capture"
-            )
         self._capture_hidden = capture_hidden
         self._capture_hidden_layers = capture_hidden_layers
         self._model = model
-        self._capture_hidden_width = capture_hidden_width
         self._should_emit_hidden = should_emit_hidden
 
     def process(
@@ -88,36 +78,69 @@ class SGLangOutputProcessor:
             for i, should_emit in enumerate(should_emit_hidden_by_request)
             if should_emit
         ]
-
         if not request_indexes:
             return {}
-        captured_aux_hidden_states = self._take_captured_aux_hidden_states(model_output)
-        if captured_aux_hidden_states is None:
+
+        if self._model is not None and self._capture_hidden_layers:
+            static_capture = getattr(self._model, "_omni_aux_hidden_capture", None)
+            if static_capture is not None:
+                logical_rows = self._logical_hidden_rows(scheduler_output)
+                return self._build_aux_hidden_extras(
+                    static_capture.views(logical_rows),
+                    model_output=model_output,
+                    scheduler_output=scheduler_output,
+                    request_indexes=request_indexes,
+                )
+
+        logits_output = model_output.logits_output
+        if logits_output is None:
             return {}
+        raw_hidden = logits_output.hidden_states
+        if raw_hidden is None:
+            return {}
+
+        if isinstance(raw_hidden, dict):
+            return {
+                request_index: self._build_dict_hidden_extra(
+                    raw_hidden,
+                    request_index=request_index,
+                    scheduler_output=scheduler_output,
+                )
+                for request_index in request_indexes
+            }
+        elif isinstance(raw_hidden, torch.Tensor):
+            return {
+                request_index: {
+                    "hidden_states": self._slice_per_request_tensor(
+                        raw_hidden,
+                        request_index=request_index,
+                        scheduler_output=scheduler_output,
+                    )
+                }
+                for request_index in request_indexes
+            }
+        return {}
+
+    def _build_aux_hidden_extras(
+        self,
+        aux_hidden_states: Sequence[torch.Tensor],
+        *,
+        model_output: Any,
+        scheduler_output: SchedulerOutput,
+        request_indexes: list[int],
+    ) -> dict[int, dict[str, Any] | None]:
+        if not request_indexes:
+            return {}
+        stream_hidden_states = self._extract_stream_hidden_states(model_output)
         return {
             request_index: self._build_aux_hidden_extra(
-                captured_aux_hidden_states,
+                aux_hidden_states,
                 request_index=request_index,
                 scheduler_output=scheduler_output,
+                stream_hidden_states=stream_hidden_states,
             )
             for request_index in request_indexes
         }
-
-    def _take_captured_aux_hidden_states(
-        self, model_output: Any
-    ) -> Sequence[torch.Tensor] | None:
-        captured = model_output._captured_aux_hidden_states
-        if captured is not None:
-            model_output._captured_aux_hidden_states = None
-            return captured
-        logits_output = model_output.logits_output
-        if logits_output is None:
-            return None
-        return unpack_packed_hidden_capture(
-            logits_output.hidden_states,
-            capture_layer_count=len(self._capture_hidden_layers),
-            hidden_size=self._capture_hidden_width,
-        )
 
     def _build_aux_hidden_extra(
         self,
@@ -125,6 +148,7 @@ class SGLangOutputProcessor:
         *,
         request_index: int,
         scheduler_output: SchedulerOutput,
+        stream_hidden_states: torch.Tensor | None,
     ) -> dict[str, Any]:
         per_request_hidden = {}
         for layer_id, tensor in zip(
@@ -132,13 +156,86 @@ class SGLangOutputProcessor:
             aux_hidden_states,
         ):
             key = "embed" if layer_id == 0 else layer_id
-            per_request_hidden[key] = self._slice_per_request_tensor(
+            per_request_hidden[key] = self._slice_static_aux_hidden_tensor(
                 tensor,
                 request_index=request_index,
                 scheduler_output=scheduler_output,
             ).clone()
 
-        return {"hidden_states": per_request_hidden}
+        extra: dict[str, Any] = {"hidden_states": per_request_hidden}
+        if stream_hidden_states is not None:
+            extra["stream_hidden_states"] = self._slice_per_request_tensor(
+                stream_hidden_states,
+                request_index=request_index,
+                scheduler_output=scheduler_output,
+            ).clone()
+        return extra
+
+    def _build_dict_hidden_extra(
+        self,
+        hidden_states: dict[Any, torch.Tensor],
+        *,
+        request_index: int,
+        scheduler_output: SchedulerOutput,
+    ) -> dict[str, Any]:
+        return {
+            "hidden_states": {
+                key: self._slice_per_request_tensor(
+                    tensor,
+                    request_index=request_index,
+                    scheduler_output=scheduler_output,
+                )
+                for key, tensor in hidden_states.items()
+            }
+        }
+
+    def _extract_stream_hidden_states(self, model_output: Any) -> torch.Tensor | None:
+        logits_output = model_output.logits_output
+        if logits_output is None:
+            return None
+        raw_hidden = logits_output.hidden_states
+        return raw_hidden if isinstance(raw_hidden, torch.Tensor) else None
+
+    @staticmethod
+    def _logical_hidden_rows(scheduler_output: SchedulerOutput) -> int:
+        batch_data = scheduler_output.batch_data
+        if batch_data.forward_mode.is_extend():
+            return sum(req.extend_range.length for req in batch_data.reqs)
+        return len(batch_data.reqs)
+
+    @staticmethod
+    def _slice_static_aux_hidden_tensor(
+        tensor: torch.Tensor,
+        *,
+        request_index: int,
+        scheduler_output: SchedulerOutput,
+    ) -> torch.Tensor:
+        batch_data = scheduler_output.batch_data
+        reqs = batch_data.reqs
+        is_extend = bool(batch_data.forward_mode.is_extend())
+
+        if is_extend:
+            layout = "token-major prefill"
+            lengths = [req.extend_range.length for req in reqs]
+            expected_rows = sum(lengths)
+        else:
+            layout = "request-major decode"
+            lengths = None
+            expected_rows = len(reqs)
+
+        actual_rows = int(tensor.shape[0]) if tensor.ndim else None
+        if actual_rows != expected_rows:
+            actual = "a scalar" if actual_rows is None else f"{actual_rows} rows"
+            raise RuntimeError(
+                f"Static aux hidden tensor violates {layout} layout: "
+                f"expected {expected_rows} rows, got {actual}"
+            )
+
+        if lengths is None:
+            return tensor[request_index]
+        start = sum(lengths[:request_index])
+        end = start + lengths[request_index]
+        return tensor[start:end]
 
     @staticmethod
     def _slice_per_request_tensor(
@@ -147,16 +244,24 @@ class SGLangOutputProcessor:
         request_index: int,
         scheduler_output: SchedulerOutput,
     ) -> torch.Tensor:
-        # ``requests`` is frozen at launch, whereas the live ScheduleBatch may
-        # be filtered before a lookahead step resolves. Capture tensors carry
-        # one row per launch-time request (decode FULL slices the replayed
-        # graph output to the batch, prefill LAST keeps one row per request),
-        # so launch position is the only legal mapping — anything else is a
-        # wrong-request hidden state, not a shape to accommodate.
+        if tensor.ndim == 0:
+            return tensor
+
         requests = scheduler_output.requests
-        if tensor.shape[0] != len(requests):
-            raise ValueError(
-                f"per-request hidden tensor has {tensor.shape[0]} rows for "
-                f"{len(requests)} launch-time requests"
-            )
-        return tensor[request_index]
+        batch_data = scheduler_output.batch_data
+        reqs = batch_data.reqs
+        num_requests = len(reqs)
+
+        if len(requests) == 1:
+            return tensor[0] if tensor.ndim >= 2 else tensor
+        if tensor.shape[0] == num_requests:
+            return tensor[request_index]
+
+        is_extend = bool(batch_data.forward_mode.is_extend())
+        lengths = [req.extend_range.length for req in reqs] if is_extend else None
+        if lengths is not None and tensor.shape[0] == sum(lengths):
+            start = sum(lengths[:request_index])
+            end = start + lengths[request_index]
+            return tensor[start:end]
+
+        return tensor

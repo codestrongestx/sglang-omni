@@ -13,6 +13,7 @@ from sglang.srt.mem_cache.kv_cache_configurator import KVCacheConfigurator
 from sglang.srt.model_executor.model_runner import ModelRunner
 from sglang.srt.server_args import PortArgs, ServerArgs
 
+from sglang_omni.model_runner.prefill_inputs import get_omni_prefill_inputs
 from sglang_omni.utils.gpu_memory import (
     calculate_stage_budget_available_bytes,
     calculate_stage_load_delta_bytes,
@@ -20,6 +21,7 @@ from sglang_omni.utils.gpu_memory import (
     get_gpu_device_info,
     get_process_gpu_memory_bytes,
 )
+from sglang_omni.vendor.sglang.parallel_state import create_parallel_state
 from sglang_omni.vendor.sglang.server_args import override_server_args
 
 logger = logging.getLogger(__name__)
@@ -199,8 +201,10 @@ class SGLModelRunner(ModelRunner):
                 server_args.attn_cp_size,
             )
         )
-        ps = ParallelState(
+        ps = create_parallel_state(
+            ParallelState,
             tp_rank=tp_rank,
+            dcp_size=server_args.dcp_size,
             tp_size=tp_size,
             pp_rank=pp_rank,
             pp_size=pp_size,
@@ -216,7 +220,6 @@ class SGLModelRunner(ModelRunner):
             moe_ep_size=moe_ep_size,
             moe_dp_rank=None,
             moe_dp_size=server_args.moe_dp_size,
-            dcp_size=server_args.dcp_size,
             gpu_id=gpu_id,
         )
 
@@ -228,6 +231,33 @@ class SGLModelRunner(ModelRunner):
             nccl_port=nccl_port,
             server_args=server_args,
         )
+
+    def _extend_forward_kwargs(self, forward_batch, pp_proxy_tensors):
+        """Expose Omni's private prefill sidecar after graph admission.
+
+        Upstream owns ``mm_inputs`` and the official ``input_embeds`` batch
+        field. Keeping both untouched during admission preserves their
+        contracts; model kwargs are the supported late-bound transport used by
+        both eager execution and breakable prefill graph capture/replay.
+        """
+        kwargs = super()._extend_forward_kwargs(forward_batch, pp_proxy_tensors)
+        prefill_inputs = get_omni_prefill_inputs(forward_batch)
+        if prefill_inputs is None:
+            return kwargs
+
+        if "input_embeds" in kwargs:
+            raise RuntimeError(
+                "Omni prefill sidecar conflicts with an upstream input_embeds "
+                "forward kwarg"
+            )
+
+        kwargs["input_embeds"] = prefill_inputs.input_embeds
+        kwargs["omni_prefill_rids"] = forward_batch.rids
+        if prefill_inputs.input_embeds_are_projected is not None:
+            kwargs["input_embeds_are_projected"] = (
+                prefill_inputs.input_embeds_are_projected
+            )
+        return kwargs
 
     def load_model(self):
         """Load weights, honoring the same-GPU weight-share role, if any.
@@ -419,6 +449,8 @@ class SGLModelRunner(ModelRunner):
             "Qwen3ASRForConditionalGeneration": "sglang_omni.models.qwen3_asr.sglang_model:Qwen3ASRForConditionalGeneration",
             "FunAsrNanoForConditionalGeneration": "sglang_omni.models.fun_asr.sglang_model:FunAsrNanoForConditionalGeneration",
             "ArkasrForConditionalGeneration": "sglang_omni.models.arkasr.sglang_model:ArkasrForConditionalGeneration",
+            "DotsTTSForConditionalGeneration": "sglang_omni.models.dots_tts.sglang_model:DotsTTSSGLangModel",
+            "FunCosyVoice3SGLangModel": "sglang_omni.models.fun_cosyvoice3.sglang_model:FunCosyVoice3SGLangModel",
         }
         for arch, path in sglang_omni_models.items():
             module_path, _, attr = path.partition(":")

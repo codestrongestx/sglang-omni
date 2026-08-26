@@ -127,11 +127,9 @@ def _apply_colocated_ar_memory_budget(
     explicit_mem_fraction = overrides.get("mem_fraction_static")
     applied_codec_mem_reserve = codec_mem_reserve
     if explicit_mem_fraction is not None:
+        # Range is the schema's rule (engine.mem_fraction_static in (0, 1));
+        # only the model's own budget relation is checked here.
         explicit_mem_fraction = float(explicit_mem_fraction)
-        if not 0.0 < explicit_mem_fraction < 1.0:
-            raise ValueError(
-                f"mem_fraction_static must be > 0 and < 1, got {explicit_mem_fraction}"
-            )
         if explicit_mem_fraction > total_gpu_memory_fraction:
             raise ValueError(
                 f"MOSS-TTS Local tts_engine mem_fraction_static cannot exceed "
@@ -608,6 +606,8 @@ def create_sglang_tts_engine_executor(
     server_args_overrides: dict[str, Any] | None = None,
     enable_async_decode: bool = False,
     async_decode_min_batch_size: int = 2,
+    prefill_coalesce_requests: int = 0,
+    prefill_coalesce_wait_ms: float = 60.0,
     total_gpu_memory_fraction: float | None = None,
     process_total_gpu_memory_fraction: float | None = None,
     codec_mem_reserve: float = 0.0,
@@ -619,6 +619,8 @@ def create_sglang_tts_engine_executor(
     return MossTtsLocalEngineBuilder(
         enable_async_decode=enable_async_decode,
         async_decode_min_batch_size=async_decode_min_batch_size,
+        prefill_coalesce_requests=prefill_coalesce_requests,
+        prefill_coalesce_wait_ms=prefill_coalesce_wait_ms,
         total_gpu_memory_fraction=total_gpu_memory_fraction,
         process_total_gpu_memory_fraction=process_total_gpu_memory_fraction,
         codec_mem_reserve=codec_mem_reserve,
