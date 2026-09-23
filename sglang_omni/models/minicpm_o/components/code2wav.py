@@ -31,6 +31,7 @@ class MiniCPMOCode2Wav(nn.Module):
         self,
         model_path: str,
         *,
+        enable_flow_norm_fusion: bool,
         device: str = "cuda",
         dtype: str | torch.dtype | None = None,
         n_timesteps: int = 10,
@@ -63,7 +64,11 @@ class MiniCPMOCode2Wav(nn.Module):
             )
         with self.device_context:
             self.token2wav = Token2Wav(
-                Path(asset_dir), device=dev, dtype=torch_dtype, n_timesteps=n_timesteps
+                Path(asset_dir),
+                device=dev,
+                dtype=torch_dtype,
+                n_timesteps=n_timesteps,
+                enable_flow_norm_fusion=enable_flow_norm_fusion,
             )
 
         if prompt_wav is None:

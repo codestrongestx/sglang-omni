@@ -115,6 +115,7 @@ def code2wav_stage(*, gpu: int, process: str) -> StageConfig:
         process=process,
         factory_path=f"{PKG}.stages.create_code2wav_executor",
         factory=FactoryArgs(
+            enable_flow_norm_fusion=True,
             max_batch_size=8,
             max_batch_wait_ms=0.0,
             batch_wait_when_idle=False,

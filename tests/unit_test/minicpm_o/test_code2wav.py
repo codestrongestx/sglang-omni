@@ -15,6 +15,7 @@ import numpy as np
 import pytest
 import torch
 
+from sglang_omni.models.minicpm_o import stages
 from sglang_omni.models.minicpm_o.components.code2wav import (
     SAMPLES_PER_CODEC_TOKEN,
     MiniCPMOCode2Wav,
@@ -80,7 +81,9 @@ def test_native_vocoder_with_checkpoint() -> None:
     checkpoint = _checkpoint_dir()
     if checkpoint is None or not torch.cuda.is_available():
         pytest.skip("Set MINICPMO_CHECKPOINT and provide CUDA for vocoder validation")
-    model = MiniCPMOCode2Wav(str(checkpoint), device="cuda:0")
+    model = MiniCPMOCode2Wav(
+        str(checkpoint), device="cuda:0", enable_flow_norm_fusion=True
+    )
     tokens = [1498, 1734, 3732, 3726, 3645]
     output = model(codec_tokens=torch.tensor(tokens))
     waveform = output["waveform"]
@@ -97,7 +100,9 @@ def test_native_vocoder_batch_matches_single_request_shapes() -> None:
     checkpoint = _checkpoint_dir()
     if checkpoint is None or not torch.cuda.is_available():
         pytest.skip("Set MINICPMO_CHECKPOINT and provide CUDA for vocoder validation")
-    model = MiniCPMOCode2Wav(str(checkpoint), device="cuda:0")
+    model = MiniCPMOCode2Wav(
+        str(checkpoint), device="cuda:0", enable_flow_norm_fusion=True
+    )
     tokens_a = [1498, 1734, 3732, 3726, 3645]
     tokens_b = tokens_a + [3645, 3726]
     batched = model.vocode([tokens_a, tokens_b], None)
@@ -162,6 +167,7 @@ def test_invalid_reference_does_not_silently_use_default() -> None:
 def test_speech_pipeline_enables_code2wav_batching_by_default() -> None:
     config = MiniCPMOSpeechPipelineConfig(model_path="unused")
     code2wav = next(stage for stage in config.stages if stage.name == "code2wav")
+    assert code2wav.factory.enable_flow_norm_fusion is True
     assert code2wav.factory.max_batch_size == 8
     assert code2wav.factory.max_batch_wait_ms == 0.0
     assert code2wav.factory.batch_wait_when_idle is False
@@ -275,3 +281,18 @@ def test_vocode_payloads_resolves_default_reference_before_grouping() -> None:
         [_payload(request_id="a", tokens=[1]), _payload(request_id="b", tokens=[2, 3])],
     )
     fake.vocode.assert_called_once_with([[1], [2, 3]], b"default")
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_code2wav_factory_forwards_flow_norm_setting(
+    enabled: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    model = MagicMock()
+    monkeypatch.setattr(stages, "MiniCPMOCode2Wav", model)
+    config = MiniCPMOSpeechPipelineConfig(model_path="unused")
+    code2wav = next(stage for stage in config.stages if stage.name == "code2wav")
+    code2wav.factory.enable_flow_norm_fusion = enabled
+    stages.create_code2wav_executor(
+        "unused", device="cpu", **code2wav.factory.model_dump(exclude_none=True)
+    )
+    assert model.call_args.kwargs["enable_flow_norm_fusion"] is enabled
