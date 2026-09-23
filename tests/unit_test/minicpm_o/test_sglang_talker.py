@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 import torch
 import torch.nn.functional as F
@@ -12,6 +14,7 @@ from sglang_omni.models.minicpm_o.components.sglang_talker import (
     MiniCPMOTalkerForCausalLM,
     MiniCPMTTSProjector,
 )
+from sglang_omni.models.minicpm_o.talker_model_runner import MiniCPMOTalkerModelRunner
 
 HIDDEN = 8
 LLM_DIM = 16
@@ -60,3 +63,35 @@ def test_condition_length_mismatch_raises():
     model = _bare_model()
     with pytest.raises(ValueError, match="length mismatch"):
         model.build_condition_embeddings(torch.tensor([1, 2]), torch.randn(3, LLM_DIM))
+
+
+@pytest.mark.parametrize("device", ["cpu", "cuda"])
+def test_runner_penalty_slices_positions_before_filtering(device: str) -> None:
+    if device == "cuda" and not torch.cuda.is_available():
+        pytest.skip("CUDA is required")
+    else:
+        runner = object.__new__(MiniCPMOTalkerModelRunner)
+        requests = [
+            SimpleNamespace(
+                data=SimpleNamespace(
+                    req=SimpleNamespace(output_ids=history),
+                    talker_model_inputs=inputs,
+                )
+            )
+            for history, inputs in [
+                ([0] * 16 + [-1] * 14 + [1, 1], {"rep_penalty": 2.0}),
+                ([0] * 16, {"rep_penalty": 1.0}),
+                ([], {"rep_penalty": 2.0}),
+                ([-1, 4] * 8, {"rep_penalty": 2.0}),
+                ([0] * 16, {}),
+            ]
+        ]
+        logits = torch.tensor([[2.0, -3.0, 4.0, -5.0]], device=device).repeat(5, 1)
+        expected = logits.clone()
+        expected[0, 1] *= 4
+
+        runner.process_sampling_logits(
+            SimpleNamespace(next_token_logits=logits), requests
+        )
+
+        torch.testing.assert_close(logits, expected, rtol=0, atol=0)
