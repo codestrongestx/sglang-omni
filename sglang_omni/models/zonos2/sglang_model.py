@@ -353,7 +353,9 @@ class Zonos2SGLangModel(nn.Module):
         -> embed -> radix hash. Reads/writes the ``_cg`` buffers in place."""
         cg = self._cg
         logits = self.compute_logits(cg["hidden"][:bs]).float()
-        logits[:, 0].add_(cg["break_mask"][:bs])
+        logits[:, 0].scatter_add_(
+            1, cg["loop_token_ids"][:bs], cg["loop_penalties"][:bs]
+        )
         codes = sample_tts(
             logits,
             temperature=cg["temperature"][:bs],
@@ -395,7 +397,8 @@ class Zonos2SGLangModel(nn.Module):
                 (mb,), params.repetition_penalty, device=dev, dtype=f32
             ),
             "rep_ids": torch.full((mb, n, W), -1, device=dev, dtype=i64),
-            "break_mask": torch.zeros(mb, V, device=dev, dtype=f32),
+            "loop_token_ids": torch.zeros(mb, 1, device=dev, dtype=i64),
+            "loop_penalties": torch.zeros(mb, 1, device=dev, dtype=f32),
             "codes": torch.zeros(mb, n, device=dev, dtype=i64),
             "keys": torch.zeros(mb, device=dev, dtype=i64),
             "feedback": torch.zeros(mb, dim, device=dev, dtype=dt),
@@ -423,8 +426,17 @@ class Zonos2SGLangModel(nn.Module):
 
     @torch.no_grad()
     def run_tail_graph(
-        self, hidden, temperature, top_k, top_p, min_p, rep_pen, rep_ids, break_mask
-    ):
+        self,
+        hidden: torch.Tensor,
+        temperature: torch.Tensor,
+        top_k: torch.Tensor,
+        top_p: torch.Tensor,
+        min_p: torch.Tensor,
+        rep_pen: torch.Tensor,
+        rep_ids: torch.Tensor,
+        loop_token_ids: torch.Tensor,
+        loop_penalties: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Stage inputs into the static buffers, replay the bs-bucket graph (padded
         up to the next bucket; extra rows compute on stale data and are ignored),
         and return views of (codes [bs,n], keys [bs], feedback [bs,dim])."""
@@ -438,7 +450,8 @@ class Zonos2SGLangModel(nn.Module):
         cg["min_p"][:bs].copy_(min_p)
         cg["rep_pen"][:bs].copy_(rep_pen)
         cg["rep_ids"][:bs].copy_(rep_ids)
-        cg["break_mask"][:bs].copy_(break_mask)
+        cg["loop_token_ids"][:bs].copy_(loop_token_ids)
+        cg["loop_penalties"][:bs].copy_(loop_penalties)
         self._tail_graphs[bucket].replay()
         return cg["codes"][:bs], cg["keys"][:bs], cg["feedback"][:bs]
 

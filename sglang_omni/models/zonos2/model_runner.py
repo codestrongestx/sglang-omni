@@ -66,7 +66,7 @@ class Zonos2ModelRunner(ModelRunner):
             torch.compile(sample_tts, dynamic=True) if compile_sampler else sample_tts
         )
         # Opt-in: replay the captured per-frame tail graph (head+sample+embed+hash)
-        # for the GPU tail, fed rep_ids/break_mask from the on-device ring. Inert
+        # for the GPU tail, fed rep_ids/loop penalties from the on-device ring. Inert
         # unless the model captured tail graphs.
         self._frame_graph = frame_graph
         # Opt-in async-decode lookahead (overlap the resolve D2H with the next
@@ -184,7 +184,7 @@ class Zonos2ModelRunner(ModelRunner):
         dev = hidden.device
 
         # Compose with the tail CUDA-graph (ZONOS2_FRAME_GRAPH): when armed, run
-        # head+sample+embed+hash as one captured replay, with rep_ids/break_mask
+        # head+sample+embed+hash as one captured replay, with rep_ids/loop penalties
         # fed from the ON-DEVICE ring (not host-built) so no host work re-enters.
         use_graph = (
             self._frame_graph
@@ -197,7 +197,7 @@ class Zonos2ModelRunner(ModelRunner):
             rep_ids = self.rep_window_ring(
                 row_t, n, int(params.repetition_window), cb_size, dev
             )
-            break_mask = self.break_mask_ring(row_t, model.audio_vocab, dev)
+            loop_token_ids, loop_penalties = self.loop_break_inputs(row_t)
             codes, keys, feedback = model.run_tail_graph(
                 hidden,
                 torch.tensor([x.temperature for x in p], device=dev),
@@ -206,7 +206,8 @@ class Zonos2ModelRunner(ModelRunner):
                 torch.tensor([x.min_p for x in p], device=dev),
                 torch.tensor([x.repetition_penalty for x in p], device=dev),
                 rep_ids,
-                break_mask,
+                loop_token_ids,
+                loop_penalties,
             )
         else:
             logits = model.compute_logits(hidden).float()  # [B, 9, 1026]
@@ -381,22 +382,19 @@ class Zonos2ModelRunner(ModelRunner):
         rep[:, :rc] = torch.where(t[:, :rc] < cb_size, t[:, :rc], rep[:, :rc])
         return rep
 
-    def break_mask_ring(self, row_t, vocab, device, run: int = 8):
-        # Additive [B, vocab] codebook-0 mask (-inf at a looping token) from the
-        # on-device ring, feeding the tail graph's break_mask input (mirrors
-        # _break_mask_graph + _break_frame_loops, vectorized on the GPU ring).
+    def loop_break_inputs(
+        self, row_indices: torch.Tensor, run: int = 8
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         pool = self.model._decode_state_pool
-        ring = pool.rep_hist[row_t]  # [B, ring, n]
-        last = ring[:, -1, :]  # [B, n]
-        window = ring[:, -run:, :]  # [B, run, n]
-        all_eq = (window == last.unsqueeze(1)).all(dim=2).all(dim=1)
-        active = all_eq & (pool.rep_len[row_t] >= run) & (last[:, 0] >= 0)
-        mask = torch.zeros(last.shape[0], vocab, device=device, dtype=torch.float32)
-        tok = last[:, 0].clamp(min=0)
-        vals = torch.where(
-            active,
-            torch.full((last.shape[0],), float("-inf"), device=device),
-            torch.zeros(last.shape[0], device=device),
+        history = pool.rep_hist[row_indices]
+        last_frame = history[:, -1, :]
+        window = history[:, -run:, :]
+        is_repeated = (window == last_frame.unsqueeze(1)).all(dim=2).all(dim=1)
+        should_suppress = (
+            is_repeated & (pool.rep_len[row_indices] >= run) & (last_frame[:, 0] >= 0)
         )
-        mask.scatter_(1, tok.unsqueeze(1), vals.unsqueeze(1))
-        return mask
+        token_ids = last_frame[:, :1].clamp(min=0)
+        penalties = torch.zeros(
+            token_ids.shape, device=history.device, dtype=torch.float32
+        ).masked_fill_(should_suppress.unsqueeze(1), float("-inf"))
+        return token_ids, penalties
