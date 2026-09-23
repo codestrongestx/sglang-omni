@@ -199,9 +199,16 @@ class CausalConvBlock(nn.Module):
 class DiTBlock(nn.Module):
 
     def __init__(
-        self, hidden_size: int, num_heads: int, head_dim: int, mlp_ratio: float = 4.0
+        self,
+        hidden_size: int,
+        num_heads: int,
+        head_dim: int,
+        mlp_ratio: float = 4.0,
+        *,
+        enable_flow_norm_fusion: bool,
     ) -> None:
         super().__init__()
+        self.enable_flow_norm_fusion = enable_flow_norm_fusion
         self.norm1 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-06)
         self.attn = Attention(
             hidden_size,
@@ -227,6 +234,61 @@ class DiTBlock(nn.Module):
             nn.SiLU(), nn.Linear(hidden_size, 9 * hidden_size, bias=True)
         )
 
+    def norm_modulate(
+        self,
+        x: torch.Tensor,
+        shift: torch.Tensor,
+        scale: torch.Tensor,
+        norm: nn.LayerNorm,
+    ) -> torch.Tensor:
+        if (
+            not self.enable_flow_norm_fusion
+            or self.training
+            or torch.is_grad_enabled()
+            or x.device.type != "cuda"
+            or torch.version.hip is not None
+            or x.dtype != torch.float32
+            or x.ndim != 3
+            or x.shape[-1] != 512
+            or x.numel() == 0
+            or shift.shape != (x.shape[0], 1, 512)
+            or scale.shape != shift.shape
+            or shift.dtype != x.dtype
+            or scale.dtype != x.dtype
+            or shift.device != x.device
+            or scale.device != x.device
+        ):
+            return modulate(norm(x), shift, scale)
+        else:
+            try:
+                from sglang_omni.models.minicpm_o.components.token2wav.flow_norm_kernel import (
+                    norm_modulate_kernel,
+                )
+            except ModuleNotFoundError as error:
+                if error.name == "triton":
+                    return modulate(norm(x), shift, scale)
+                else:
+                    raise
+            output = torch.empty(x.shape, dtype=x.dtype, device=x.device)
+            with torch.cuda.device(x.device):
+                norm_modulate_kernel[(x.shape[0] * x.shape[1],)](
+                    x,
+                    shift,
+                    scale,
+                    output,
+                    x.shape[1],
+                    x.shape[2],
+                    *x.stride(),
+                    shift.stride(0),
+                    shift.stride(2),
+                    scale.stride(0),
+                    scale.stride(2),
+                    norm.eps,
+                    512,
+                    enable_fp_fusion=False,
+                )
+            return output
+
     def forward(
         self, x: torch.Tensor, c: torch.Tensor, attn_mask: torch.Tensor
     ) -> torch.Tensor:
@@ -242,10 +304,14 @@ class DiTBlock(nn.Module):
             gate_conv,
         ) = self.adaLN_modulation(c).chunk(9, dim=-1)
         x = x + gate_msa * self.attn(
-            modulate(self.norm1(x), shift_msa, scale_msa), attn_mask
+            self.norm_modulate(x, shift_msa, scale_msa, self.norm1), attn_mask
         )
-        x = x + gate_conv * self.conv(modulate(self.norm3(x), shift_conv, scale_conv))
-        x = x + gate_mlp * self.mlp(modulate(self.norm2(x), shift_mlp, scale_mlp))
+        x = x + gate_conv * self.conv(
+            self.norm_modulate(x, shift_conv, scale_conv, self.norm3)
+        )
+        x = x + gate_mlp * self.mlp(
+            self.norm_modulate(x, shift_mlp, scale_mlp, self.norm2)
+        )
         return x
 
 
@@ -277,6 +343,8 @@ class DiT(nn.Module):
         num_heads: int = 8,
         head_dim: int = 64,
         hidden_size: int = 256,
+        *,
+        enable_flow_norm_fusion: bool,
     ) -> None:
         super().__init__()
         self.in_channels = in_channels
@@ -285,7 +353,13 @@ class DiT(nn.Module):
         self.in_proj = nn.Linear(in_channels, hidden_size)
         self.blocks = nn.ModuleList(
             [
-                DiTBlock(hidden_size, num_heads, head_dim, mlp_ratio=mlp_ratio)
+                DiTBlock(
+                    hidden_size,
+                    num_heads,
+                    head_dim,
+                    mlp_ratio=mlp_ratio,
+                    enable_flow_norm_fusion=enable_flow_norm_fusion,
+                )
                 for _ in range(depth)
             ]
         )

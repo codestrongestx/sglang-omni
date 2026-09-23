@@ -220,6 +220,7 @@ def vocode_code2wav_payloads(
 def create_code2wav_executor(
     model_path: str,
     *,
+    enable_flow_norm_fusion: bool,
     device: str | None = None,
     gpu_id: int | None = None,
     max_batch_size: int = 8,
@@ -232,6 +233,7 @@ def create_code2wav_executor(
         model_path,
         device=str(resolve_concrete_device(device, gpu_id)),
         dtype=dtype,
+        enable_flow_norm_fusion=enable_flow_norm_fusion,
     )
 
     def codec_token_cost(payload: StagePayload) -> int:

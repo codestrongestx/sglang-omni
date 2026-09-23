@@ -38,7 +38,7 @@ FLOW_TYPES = {
 }
 
 
-def load_flow(path: Path) -> CausalMaskedDiffWithXvec:
+def load_flow(path: Path, *, enable_flow_norm_fusion: bool) -> CausalMaskedDiffWithXvec:
     """Read only the four component tags used by the checkpoint's flow.yaml."""
 
     class FlowLoader(yaml.SafeLoader):
@@ -47,7 +47,11 @@ def load_flow(path: Path) -> CausalMaskedDiffWithXvec:
     def construct_component(
         loader: FlowLoader, node: yaml.MappingNode
     ) -> torch.nn.Module:
-        return FLOW_TYPES[node.tag](**loader.construct_mapping(node, deep=True))
+        component = FLOW_TYPES[node.tag]
+        arguments = loader.construct_mapping(node, deep=True)
+        if component is DiT:
+            arguments["enable_flow_norm_fusion"] = enable_flow_norm_fusion
+        return component(**arguments)
 
     for tag in FLOW_TYPES:
         FlowLoader.add_constructor(tag, construct_component)
@@ -98,6 +102,7 @@ class Token2Wav(torch.nn.Module):
         model_path: Path,
         *,
         device: torch.device,
+        enable_flow_norm_fusion: bool,
         dtype: torch.dtype = torch.float32,
         n_timesteps: int = 10,
     ) -> None:
@@ -122,7 +127,9 @@ class Token2Wav(torch.nn.Module):
             sess_options=options,
             providers=["CPUExecutionProvider"],
         )
-        self.flow = load_flow(model_path / "flow.yaml")
+        self.flow = load_flow(
+            model_path / "flow.yaml", enable_flow_norm_fusion=enable_flow_norm_fusion
+        )
         if dtype != torch.float32:
             self.flow.to(dtype)
         self.flow.load_state_dict(
