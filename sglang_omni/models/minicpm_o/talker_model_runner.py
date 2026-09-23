@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from typing import TYPE_CHECKING
 
 import torch
@@ -13,6 +12,10 @@ from sglang_omni.model_runner.prefill_inputs import (
     OmniPrefillInputs,
     attach_omni_prefill_inputs,
 )
+from sglang_omni.models.minicpm_o.sampling_kernels import (
+    REP_PENALTY_WINDOW,
+    apply_window_penalty,
+)
 
 if TYPE_CHECKING:
     from sglang.srt.layers.logits_processor import LogitsProcessorOutput
@@ -20,9 +23,6 @@ if TYPE_CHECKING:
     from sglang.srt.model_executor.forward_batch_info import ForwardBatch
 
     from sglang_omni.scheduling.types import SchedulerRequest
-
-# note (MayDomine): the checkpoint penalizes only the most recent 16 codec tokens.
-REP_PENALTY_WINDOW = 16
 
 
 class MiniCPMOTalkerModelRunner(ModelRunner):
@@ -83,7 +83,6 @@ class MiniCPMOTalkerModelRunner(ModelRunner):
         if logits is None or logits.ndim != 2:
             return
         vocab = logits.shape[1]
-        device = logits.device
         penalized_rows: list[int] = []
         penalties: list[float] = []
         windows: list[list[int]] = []
@@ -104,17 +103,4 @@ class MiniCPMOTalkerModelRunner(ModelRunner):
             windows.append(window)
         if not penalized_rows:
             return
-        entries = [
-            (row, token, count, penalty)
-            for row, penalty, window in zip(penalized_rows, penalties, windows)
-            for token, count in Counter(window).items()
-        ]
-        rows, tokens, counts, token_penalties = zip(*entries)
-        rows_t = torch.tensor(rows, dtype=torch.long, device=device)
-        tokens_t = torch.tensor(tokens, dtype=torch.long, device=device)
-        alphas = torch.tensor(
-            token_penalties, dtype=torch.float32, device=device
-        ) ** torch.tensor(counts, dtype=torch.float32, device=device)
-        scores = logits[rows_t, tokens_t].to(torch.float32)
-        penalized = torch.where(scores < 0, scores * alphas, scores / alphas)
-        logits[rows_t, tokens_t] = penalized.to(logits.dtype)
+        apply_window_penalty(logits, penalized_rows, penalties, windows)
