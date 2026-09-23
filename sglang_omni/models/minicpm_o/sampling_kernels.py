@@ -113,7 +113,9 @@ def apply_window_penalty(
                 )
                 for token, frequency in Counter(window).items()
             ]
-            metadata = torch.tensor(entries, dtype=torch.int32, device=logits.device)
+            metadata = torch.tensor(
+                entries, dtype=torch.int32, device="cpu", pin_memory=True
+            ).to(logits.device, non_blocking=True)
             alphas = penalty_powers(
                 tuple(penalties), torch.cuda.current_stream(logits.device)
             )

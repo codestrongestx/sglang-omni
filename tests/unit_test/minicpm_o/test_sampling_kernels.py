@@ -13,6 +13,10 @@ import torch
 from sglang_omni.models.minicpm_o import sampling_kernels
 from sglang_omni.models.minicpm_o.sampling_kernels import apply_window_penalty
 
+# note (Codex): delay queued copies so pinned allocations churn before GPU consumption.
+GPU_QUEUE_DELAY_CYCLES = 20_000_000
+
+
 CUDA_AVAILABLE = (
     torch.cuda.is_available()
     and torch.version.hip is None
@@ -122,6 +126,35 @@ def test_cuda_window_penalty_on_independent_streams() -> None:
         torch.testing.assert_close(
             logits.cpu(), torch.tensor([[1.0, -12.0]]), rtol=0, atol=0
         )
+
+
+@pytest.mark.skipif(not CUDA_AVAILABLE, reason="NVIDIA CUDA and Triton are required")
+def test_cuda_window_penalty_preserves_queued_metadata() -> None:
+    streams = [torch.cuda.Stream(), torch.cuda.Stream()]
+    results: list[tuple[int, torch.Tensor]] = []
+    for stream in streams:
+        with torch.cuda.stream(stream):
+            warmup = torch.ones(1, 32, device="cuda")
+            apply_window_penalty(warmup, [0], [2.0], [[0, 1, 1]])
+        stream.synchronize()
+
+    for stream in streams:
+        with torch.cuda.stream(stream):
+            logits = [torch.ones(1, 32, device="cuda") for _ in range(16)]
+            torch.cuda._sleep(GPU_QUEUE_DELAY_CYCLES)
+            for token, scores in enumerate(logits):
+                apply_window_penalty(
+                    scores, [0], [2.0], [[token, token + 1, token + 1]]
+                )
+                torch.empty((2, 4), dtype=torch.int32, pin_memory=True).fill_(-1)
+                results.append((token, scores))
+    for stream in streams:
+        stream.synchronize()
+    for token, scores in results:
+        expected = torch.ones(1, 32)
+        expected[0, token] = 0.5
+        expected[0, token + 1] = 0.25
+        torch.testing.assert_close(scores.cpu(), expected, rtol=0, atol=0)
 
 
 @pytest.mark.skipif(
