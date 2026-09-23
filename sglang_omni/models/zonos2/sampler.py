@@ -29,15 +29,17 @@ def apply_repetition_penalty(
         return logits
     else:
         batch_size, _, vocab_size = logits.shape
-        valid = (rep_token_ids >= 0) & (rep_token_ids < vocab_size)
-        token_ids = torch.where(valid, rep_token_ids, vocab_size).long()
+        is_valid_token = (rep_token_ids >= 0) & (rep_token_ids < vocab_size)
+        token_ids = torch.where(is_valid_token, rep_token_ids, vocab_size).long()
         penalties = penalties.view(batch_size, 1, 1).clamp(min=1.0)
         output_dtype = torch.promote_types(logits.dtype, penalties.dtype)
-        output = torch.nn.functional.pad(logits.to(output_dtype), (0, 1))
-        scores = output.gather(-1, token_ids)
-        adjusted = torch.where(scores > 0, scores / penalties, scores * penalties)
-        output.scatter_(-1, token_ids, adjusted)
-        return output[..., :vocab_size]
+        penalized_logits = torch.nn.functional.pad(logits.to(output_dtype), (0, 1))
+        scores = penalized_logits.gather(-1, token_ids)
+        penalized_scores = torch.where(
+            scores > 0, scores / penalties, scores * penalties
+        )
+        penalized_logits.scatter_(-1, token_ids, penalized_scores)
+        return penalized_logits[..., :vocab_size]
 
 
 def apply_top_k(
