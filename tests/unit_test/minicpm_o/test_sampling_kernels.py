@@ -3,6 +3,10 @@
 
 from __future__ import annotations
 
+import builtins
+import runpy
+from typing import Literal
+
 import pytest
 import torch
 
@@ -85,7 +89,8 @@ def test_cuda_window_penalty_matches_torch(
 @pytest.mark.skipif(not CUDA_AVAILABLE, reason="NVIDIA CUDA and Triton are required")
 @pytest.mark.parametrize("fallback", ["missing_triton", "float64", "strided"])
 def test_cuda_window_penalty_fallback(
-    fallback: str, monkeypatch: pytest.MonkeyPatch
+    fallback: Literal["missing_triton", "float64", "strided"],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     dtype = torch.float64 if fallback == "float64" else torch.float32
     logits = torch.tensor([[2.0, -3.0, 4.0, -5.0]], device="cuda", dtype=dtype)
@@ -131,3 +136,35 @@ def test_cuda_window_penalty_uses_logits_device() -> None:
         torch.testing.assert_close(
             logits.cpu(), torch.tensor([[1.0, -12.0]]), rtol=0, atol=0
         )
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [
+        ModuleNotFoundError("Triton is not installed", name="triton"),
+        ModuleNotFoundError("Broken Triton dependency", name="triton_dependency"),
+        ImportError("Broken Triton installation"),
+    ],
+)
+def test_optional_triton_import_only_allows_missing_package(
+    failure: ImportError, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    original_import = builtins.__import__
+
+    def import_with_failure(name: str, *args: object, **kwargs: object) -> object:
+        if name == "triton":
+            raise failure
+        else:
+            return original_import(name, *args, **kwargs)
+
+    with monkeypatch.context() as imports:
+        imports.setattr(builtins, "__import__", import_with_failure)
+        if failure.name == "triton":
+            module = runpy.run_path(sampling_kernels.__file__)
+            logits = torch.tensor([[2.0, -3.0]])
+            module["apply_window_penalty"](logits, [0], [2.0], [[0, 1, 1]])
+            torch.testing.assert_close(logits, torch.tensor([[1.0, -12.0]]))
+        else:
+            with pytest.raises(type(failure)) as raised:
+                runpy.run_path(sampling_kernels.__file__)
+            assert raised.value is failure

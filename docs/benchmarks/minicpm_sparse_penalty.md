@@ -11,9 +11,11 @@ Penalty powers are computed with Torch FP32 tensor exponentiation and cached in 
 bounded, stream-local table. The kernel converts logits to FP32, multiplies
 negative values or applies correctly rounded division to other values, then
 casts back once. Each `(row, token)` has one writer. CPU, non-NVIDIA backends,
-missing Triton, unsupported dtypes, and noncontiguous logits use the original
+an absent Triton package, unsupported dtypes, and noncontiguous logits use the original
 Torch implementation. Compilation/execution errors on the supported path remain
-visible rather than being silently converted to fallback execution.
+visible rather than being silently converted to fallback execution. Broken
+Triton installations and missing transitive dependencies also propagate their
+import errors.
 
 ## Recorded prototype results
 
@@ -82,7 +84,7 @@ The recorded results therefore support the prototype, with production CUDA
 validation still required before accepting identical performance/parity claims.
 
 Local validation on macOS with Torch 2.14.0: the standalone kernel suite passed
-9 CPU cases and skipped 14 CUDA cases. Triton was absent, exercising the genuine
+12 CPU cases and skipped 14 CUDA cases. Triton was absent, exercising the genuine
 optional-import/CPU fallback path. The SGLang runner integration test was added
 but not run in that minimal environment. Changed-file pre-commit checks passed;
 repository-wide checks passed except Rust formatting because cargo was absent.

@@ -10,10 +10,14 @@ import torch
 
 try:
     import triton
+except ModuleNotFoundError as exc:
+    if exc.name == "triton":
+        triton = None
+        tl = None
+    else:
+        raise
+else:
     import triton.language as tl
-except ImportError:
-    triton = None
-    tl = None
 
 # note (MayDomine): the checkpoint penalizes only the most recent 16 codec tokens.
 REP_PENALTY_WINDOW = 16
