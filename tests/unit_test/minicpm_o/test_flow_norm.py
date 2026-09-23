@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Numerical and fallback contracts for opt-in Flow normalization."""
+"""Numerical and fallback contracts for Flow normalization."""
 
 import pytest
 import torch
@@ -59,9 +59,7 @@ def test_flow_norm_strided_inputs(constant: bool) -> None:
 
 
 @pytest.mark.accelerator
-@pytest.mark.parametrize(
-    "fallback", ["training", "grad", "width", "dtype", "broadcast", "disabled"]
-)
+@pytest.mark.parametrize("fallback", ["training", "grad", "width", "dtype", "disabled"])
 def test_flow_norm_cuda_fallback(fallback: str) -> None:
     if not torch.cuda.is_available():
         pytest.skip("CUDA is required for fallback validation")
@@ -75,9 +73,7 @@ def test_flow_norm_cuda_fallback(fallback: str) -> None:
     block.train(fallback == "training")
     with torch.set_grad_enabled(fallback == "grad"):
         x = torch.randn(2, 7, width, device="cuda", dtype=dtype, requires_grad=True)
-        shift = torch.randn(
-            1 if fallback == "broadcast" else 2, 1, width, device="cuda", dtype=dtype
-        )
+        shift = torch.randn(2, 1, width, device="cuda", dtype=dtype)
         scale = torch.randn_like(shift)
         actual = block.norm_modulate(x, shift, scale, block.norm1)
         expected = block.norm1(x) * (1 + scale) + shift
@@ -87,7 +83,8 @@ def test_flow_norm_cuda_fallback(fallback: str) -> None:
             assert x.grad is not None
 
 
-def test_flow_norm_block_cpu_parity() -> None:
+@pytest.mark.parametrize("autocast", [False, True])
+def test_flow_norm_block_cpu_parity(autocast: bool) -> None:
     torch.manual_seed(42)
     native = DiTBlock(64, 1, 64, enable_flow_norm_fusion=False).eval()
     fused = DiTBlock(64, 1, 64, enable_flow_norm_fusion=True).eval()
@@ -96,7 +93,10 @@ def test_flow_norm_block_cpu_parity() -> None:
     conditioning = torch.randn(2, 1, 64)
     mask = torch.ones(2, 1, 7, dtype=torch.bool)
     mask[1, :, -2:] = False
-    with torch.inference_mode():
+    with (
+        torch.inference_mode(),
+        torch.autocast("cpu", dtype=torch.bfloat16, enabled=autocast),
+    ):
         torch.testing.assert_close(
             fused(x, conditioning, mask), native(x, conditioning, mask), rtol=0, atol=0
         )

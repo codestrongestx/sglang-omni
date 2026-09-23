@@ -82,7 +82,7 @@ def test_native_vocoder_with_checkpoint() -> None:
     if checkpoint is None or not torch.cuda.is_available():
         pytest.skip("Set MINICPMO_CHECKPOINT and provide CUDA for vocoder validation")
     model = MiniCPMOCode2Wav(
-        str(checkpoint), device="cuda:0", enable_flow_norm_fusion=False
+        str(checkpoint), device="cuda:0", enable_flow_norm_fusion=True
     )
     tokens = [1498, 1734, 3732, 3726, 3645]
     output = model(codec_tokens=torch.tensor(tokens))
@@ -101,7 +101,7 @@ def test_native_vocoder_batch_matches_single_request_shapes() -> None:
     if checkpoint is None or not torch.cuda.is_available():
         pytest.skip("Set MINICPMO_CHECKPOINT and provide CUDA for vocoder validation")
     model = MiniCPMOCode2Wav(
-        str(checkpoint), device="cuda:0", enable_flow_norm_fusion=False
+        str(checkpoint), device="cuda:0", enable_flow_norm_fusion=True
     )
     tokens_a = [1498, 1734, 3732, 3726, 3645]
     tokens_b = tokens_a + [3645, 3726]
@@ -167,7 +167,7 @@ def test_invalid_reference_does_not_silently_use_default() -> None:
 def test_speech_pipeline_enables_code2wav_batching_by_default() -> None:
     config = MiniCPMOSpeechPipelineConfig(model_path="unused")
     code2wav = next(stage for stage in config.stages if stage.name == "code2wav")
-    assert code2wav.factory.enable_flow_norm_fusion is False
+    assert code2wav.factory.enable_flow_norm_fusion is True
     assert code2wav.factory.max_batch_size == 8
     assert code2wav.factory.max_batch_wait_ms == 0.0
     assert code2wav.factory.batch_wait_when_idle is False

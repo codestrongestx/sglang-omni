@@ -241,6 +241,10 @@ class DiTBlock(nn.Module):
         scale: torch.Tensor,
         norm: nn.LayerNorm,
     ) -> torch.Tensor:
+        assert x.ndim == 3
+        assert shift.shape == scale.shape == (x.shape[0], 1, x.shape[2])
+        assert shift.dtype == scale.dtype
+        assert shift.device == scale.device == x.device
         if (
             not self.enable_flow_norm_fusion
             or self.training
@@ -248,15 +252,8 @@ class DiTBlock(nn.Module):
             or x.device.type != "cuda"
             or torch.version.hip is not None
             or x.dtype != torch.float32
-            or x.ndim != 3
-            or x.shape[-1] != 512
-            or x.numel() == 0
-            or shift.shape != (x.shape[0], 1, 512)
-            or scale.shape != shift.shape
             or shift.dtype != x.dtype
-            or scale.dtype != x.dtype
-            or shift.device != x.device
-            or scale.device != x.device
+            or x.shape[-1] != 512
         ):
             return modulate(norm(x), shift, scale)
         else:

@@ -1,18 +1,18 @@
 # MiniCPM-o Flow normalization fusion
 
-The optional `code2wav` factory setting `enable_flow_norm_fusion` fuses LayerNorm
-and adaptive modulation at the three DiTBlock sites. It defaults to `false`.
-Enable it in a pipeline YAML override:
+The `code2wav` factory setting `enable_flow_norm_fusion` fuses LayerNorm
+and adaptive modulation at the three DiTBlock sites. It defaults to `true`.
+To disable it, use a pipeline YAML override:
 
 ```yaml
 stages:
   code2wav:
     factory:
-      enable_flow_norm_fusion: true
+      enable_flow_norm_fusion: false
 ```
 
 The kernel supports NVIDIA CUDA FP32 tensors shaped `(batch, frames, 512)` and
-per-batch `(batch, 1, 512)` modulation, including strided tensors. Other shapes,
+per-batch `(batch, 1, 512)` modulation, including strided tensors. Other widths,
 dtypes, devices, training, autograd, and missing Triton use eager PyTorch. Attention,
 convolution, MLPs, residuals, final normalization, and the Flow schedule are unchanged.
 
@@ -43,7 +43,8 @@ channels, sample rate, termination, and token counts. These checks do not establ
 waveform or perceptual equivalence. Concurrency-4 throughput improved about 4.9%,
 but concurrency-1 latency regressed about 1.6%. There was only one cohort per
 concurrency; the result has not been independently repeated and is not a general
-serving speedup claim. This tradeoff is why the setting defaults off.
+serving speedup claim. The switch permits disabling fusion for workloads where
+single-request latency matters more than throughput.
 
 The measured kernel's function AST and launch arithmetic are preserved in this
 implementation. The final configuration and DiT integration have not been rerun
@@ -53,5 +54,5 @@ on CUDA. Run the primitive, adversarial, and fallback suite on the target CUDA s
 python -m pytest tests/unit_test/minicpm_o/test_flow_norm.py -q
 ```
 
-Before enabling in production, repeat trained Flow comparisons with fixed noise
+For production validation, repeat trained Flow comparisons with fixed noise
 and paired HTTP measurements on the intended workload and software versions.
