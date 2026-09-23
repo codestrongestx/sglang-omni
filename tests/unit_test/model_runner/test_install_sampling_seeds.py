@@ -11,6 +11,9 @@ import torch
 from sglang_omni.model_runner.base import ModelRunner
 from sglang_omni.sampling.seed import derive_sampling_seed
 
+# note (Codex): delay queued copies so pinned allocations churn before GPU consumption.
+GPU_QUEUE_DELAY_CYCLES = 20_000_000
+
 
 def _req(seed, request_id="req"):
     sp = SimpleNamespace(sampling_seed=seed)
@@ -105,3 +108,34 @@ def test_allows_seeded_pytorch_top_p(monkeypatch):
     fb = _fb(top_p=True)
     runner.install_sampling_seeds(fb, [_req(42)])
     assert int(fb.sampling_info.sampling_seed[0]) == 42
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is required")
+def test_cuda_sampling_seeds_preserve_queued_rows() -> None:
+    runner = object.__new__(ModelRunner)
+    streams = [torch.cuda.Stream(), torch.cuda.Stream()]
+    results: list[tuple[int, torch.Tensor]] = []
+    for stream in streams:
+        with torch.cuda.stream(stream):
+            warmup = _fb()
+            warmup.sampling_info.device = "cuda"
+            runner.install_sampling_seeds(warmup, [_req(0), _req(1)])
+        stream.synchronize()
+
+    for stream in streams:
+        with torch.cuda.stream(stream):
+            torch.cuda._sleep(GPU_QUEUE_DELAY_CYCLES)
+            for seed in range(16):
+                batch = _fb()
+                batch.sampling_info.device = "cuda"
+                requests = [_req(seed, "seeded"), _req(None, f"unseeded-{seed}")]
+                runner.install_sampling_seeds(batch, requests)
+                results.append((seed, batch.sampling_info.sampling_seed))
+                torch.empty(2, dtype=torch.long, pin_memory=True).fill_(-1)
+    for stream in streams:
+        stream.synchronize()
+    for seed, actual in results:
+        expected = torch.tensor(
+            [seed, derive_sampling_seed("sglang-omni-unseeded-row", f"unseeded-{seed}")]
+        )
+        torch.testing.assert_close(actual.cpu(), expected, rtol=0, atol=0)
