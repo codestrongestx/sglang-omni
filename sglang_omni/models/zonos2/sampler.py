@@ -33,11 +33,9 @@ def apply_repetition_penalty(
         token_ids = torch.where(valid, rep_token_ids, vocab_size).long()
         penalties = penalties.view(batch_size, 1, 1).clamp(min=1.0)
         output_dtype = torch.promote_types(logits.dtype, penalties.dtype)
-        # note (codestrongestx): invalid history IDs write only to the extra bin.
         output = torch.nn.functional.pad(logits.to(output_dtype), (0, 1))
         scores = output.gather(-1, token_ids)
         adjusted = torch.where(scores > 0, scores / penalties, scores * penalties)
-        # note (codestrongestx): duplicate IDs scatter identical, once-penalized scores.
         output.scatter_(-1, token_ids, adjusted)
         return output[..., :vocab_size]
 
