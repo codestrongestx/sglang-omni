@@ -20,7 +20,7 @@ _NEG_INF = float("-inf")
 
 def apply_repetition_penalty(
     logits: torch.Tensor,
-    rep_token_ids: Optional[torch.Tensor],
+    rep_token_ids: torch.Tensor | None,
     penalties: torch.Tensor,
 ) -> torch.Tensor:
     """Penalize per-codebook repeats. logits (B,C,V), rep_token_ids (B,C,W),
@@ -28,16 +28,18 @@ def apply_repetition_penalty(
     if rep_token_ids is None or rep_token_ids.numel() == 0:
         return logits
     else:
-        pass
-    B, C, V = logits.shape
-    safe = rep_token_ids.clamp(min=0, max=V - 1).long()
-    valid = (rep_token_ids >= 0) & (rep_token_ids < V)
-    counts = torch.zeros((B, C, V), dtype=torch.int32, device=logits.device)
-    counts.scatter_add_(-1, safe, valid.to(torch.int32))
-    repeated = counts > 0
-    pen = penalties.view(B, 1, 1).clamp(min=1.0)
-    adjusted = torch.where(logits > 0, logits / pen, logits * pen)
-    return torch.where(repeated, adjusted, logits)
+        batch_size, _, vocab_size = logits.shape
+        is_valid_token = (rep_token_ids >= 0) & (rep_token_ids < vocab_size)
+        token_ids = torch.where(is_valid_token, rep_token_ids, vocab_size).long()
+        penalties = penalties.view(batch_size, 1, 1).clamp(min=1.0)
+        output_dtype = torch.promote_types(logits.dtype, penalties.dtype)
+        penalized_logits = torch.nn.functional.pad(logits.to(output_dtype), (0, 1))
+        scores = penalized_logits.gather(-1, token_ids)
+        penalized_scores = torch.where(
+            scores > 0, scores / penalties, scores * penalties
+        )
+        penalized_logits.scatter_(-1, token_ids, penalized_scores)
+        return penalized_logits[..., :vocab_size]
 
 
 def apply_top_k(
