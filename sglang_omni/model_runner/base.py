@@ -978,9 +978,14 @@ class ModelRunner:
             else:
                 pass
             row_seeds.append(seed)
-        sampling_info.sampling_seed = torch.tensor(
-            row_seeds, dtype=torch.long, device=sampling_info.device
-        )
+        if torch.device(sampling_info.device).type == "cuda":
+            sampling_info.sampling_seed = torch.tensor(
+                row_seeds, dtype=torch.long, device="cpu", pin_memory=True
+            ).to(sampling_info.device, non_blocking=True)
+        else:
+            sampling_info.sampling_seed = torch.tensor(
+                row_seeds, dtype=torch.long, device=sampling_info.device
+            )
 
     @staticmethod
     def validate_seeded_sampling_supported(sampling_info: Any) -> None:
