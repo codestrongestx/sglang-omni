@@ -1,4 +1,6 @@
-# MiniCPM-o Reference Audio
+# MiniCPM-o
+
+## Reference audio
 
 On the speech pipeline, pass an explicit speaker reference in
 `audio.ref_audio` on `/v1/chat/completions`:
@@ -38,3 +40,28 @@ The vocoder caches only the most recently used reference by audio content. A
 different reference, including switching back to the default, rebuilds the
 conditioning. Invalid references fail instead of silently using the default.
 Audio output remains non-streaming.
+
+## Online INT8 thinker weights
+
+On NVIDIA Ampere or newer GPUs, the thinker can compress an ordinary BF16 or
+FP16 checkpoint into symmetric INT8 weights at load time:
+
+```bash
+python -m sglang_omni.cli serve \
+  --model-path openbmb/MiniCPM-o-4_5 \
+  --model-name minicpmo --text-only \
+  --thinker.engine.json_model_override_args '{"online_int8":true}'
+```
+
+This opt-in path uses groups of 32 input channels and Marlin kernels. Transformer
+linear weights are compressed after checkpoint loading and tensor-parallel
+sharding. Activations, the language-model head, embeddings, and modality encoders
+retain their original precision. Already-quantized checkpoints cannot use this
+option.
+
+INT8 arithmetic can change generated responses and accuracy. Evaluate the
+complete workload before enabling it in a deployment.
+
+Validation uses initial checkpoint loading on one RTX 3090 with tensor parallel
+size 1. Other tensor-parallel sizes, CPU offload, and live weight replacement
+have not been validated.

@@ -178,6 +178,7 @@ async def run(
     results = build_mmsu_results(request_results, samples, modalities)
     metrics = compute_mmsu_metrics(results)
     speed = compute_speed_metrics(request_results, wall_clock_s=runner.wall_clock_s)
+    speed["benchmark_wall_clock_s"] = runner.wall_clock_s
     warn_if_tail_percentile_is_thin(len(request_results))
     audio_mode = "audio" in modalities
     if audio_mode:
