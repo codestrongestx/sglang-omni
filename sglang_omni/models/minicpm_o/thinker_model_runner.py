@@ -5,8 +5,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from sglang.srt.managers.schedule_batch import ScheduleBatch
+from sglang.srt.managers.scheduler import GenerationBatchResult
+from sglang.srt.model_executor.forward_batch_info import ForwardBatch
+
 from sglang_omni.model_runner.base import ModelRunner
 from sglang_omni.model_runner.thinker_model_runner import ThinkerModelRunner
+from sglang_omni.models.minicpm_o.speculative import MiniCPMOSpeculativeDecoder
+from sglang_omni.scheduling.types import SchedulerRequest
 
 if TYPE_CHECKING:
     import torch
@@ -31,7 +37,10 @@ class MiniCPMOThinkerModelRunner(ThinkerModelRunner):
     """Run the thinker and accumulate hidden states for speech conditioning."""
 
     def __init__(
-        self, tp_worker: ModelWorker, output_processor: SGLangOutputProcessor
+        self,
+        tp_worker: ModelWorker,
+        output_processor: SGLangOutputProcessor,
+        speculative_decoder: MiniCPMOSpeculativeDecoder | None = None,
     ) -> None:
         from sglang.srt.model_executor.forward_batch_info import (
             CaptureHiddenMode,
@@ -59,6 +68,9 @@ class MiniCPMOThinkerModelRunner(ThinkerModelRunner):
             else get_server_return_hidden_states_mode()
         )
         self.pending_hidden: dict[str, list[torch.Tensor]] = {}
+        self.speculative_decoder: MiniCPMOSpeculativeDecoder | None = (
+            speculative_decoder
+        )
 
     def requested_capture_hidden_mode_prefill(
         self, schedule_batch: ScheduleBatch, requests: list[SchedulerRequest]
@@ -113,6 +125,10 @@ class MiniCPMOThinkerModelRunner(ThinkerModelRunner):
         """Flush the request's hidden accumulator with a single D2H copy."""
         import torch
 
+        if self.speculative_decoder is not None:
+            self.speculative_decoder.reset_request(request_id)
+        else:
+            pass
         seq = self.pending_hidden.pop(request_id, None)
         if not seq:
             return
@@ -124,3 +140,38 @@ class MiniCPMOThinkerModelRunner(ThinkerModelRunner):
     def reset_request(self, request_id: str) -> None:
         """Drop accumulated hidden states on abort (no terminal flush runs)."""
         self.pending_hidden.pop(request_id, None)
+        if self.speculative_decoder is not None:
+            self.speculative_decoder.reset_request(request_id)
+        else:
+            pass
+
+    def before_prefill(
+        self,
+        forward_batch: ForwardBatch,
+        schedule_batch: ScheduleBatch,
+        requests: list[SchedulerRequest],
+    ) -> None:
+        for request in requests:
+            if self.speculative_decoder is not None:
+                self.speculative_decoder.reset_request(request.request_id)
+            else:
+                pass
+
+        super().before_prefill(forward_batch, schedule_batch, requests)
+
+    def custom_decode_forward(
+        self,
+        forward_batch: ForwardBatch,
+        schedule_batch: ScheduleBatch,
+        requests: list[SchedulerRequest],
+    ) -> GenerationBatchResult | None:
+        if self.speculative_decoder is None:
+            return None
+        elif len(schedule_batch.reqs) != 1:
+            for request in schedule_batch.reqs:
+                self.speculative_decoder.reset_request(request.rid)
+            return None
+        else:
+            return self.speculative_decoder.forward(
+                forward_batch, schedule_batch.reqs[0]
+            )
