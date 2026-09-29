@@ -7,6 +7,7 @@ from collections.abc import Iterable, Iterator
 
 import torch
 import torch.nn as nn
+from sglang.srt.layers.linear import LinearBase
 from sglang.srt.layers.logits_processor import LogitsProcessorOutput
 from sglang.srt.layers.quantization.base_config import QuantizationConfig
 from sglang.srt.model_executor.forward_batch_info import ForwardBatch
@@ -35,6 +36,15 @@ class MiniCPMOThinkerForCausalLM(nn.Module):
     ) -> None:
         super().__init__()
         self.root_config = config
+        online_int8 = config.to_dict().get("online_int8", False)
+        if not isinstance(online_int8, bool):
+            raise ValueError("online_int8 must be a boolean")
+        else:
+            self.online_int8: bool = online_int8
+        if self.online_int8 and quant_config is not None:
+            raise ValueError("Online INT8 requires a full-precision checkpoint")
+        else:
+            pass
         self.config = derive_text_config(config)
         self.language_model = Qwen3ForCausalLM(
             self.config,
@@ -84,6 +94,18 @@ class MiniCPMOThinkerForCausalLM(nn.Module):
                     pass
 
         self.language_model.load_weights(_text_weights())
+        if self.online_int8:
+            from sglang_omni.models.minicpm_o.components.online_int8 import (
+                OnlineInt8LinearMethod,
+            )
+
+            for layer in self.language_model.model.modules():
+                if isinstance(layer, LinearBase):
+                    layer.quant_method = OnlineInt8LinearMethod()
+                else:
+                    pass
+        else:
+            pass
 
 
 EntryClass = MiniCPMOThinkerForCausalLM
