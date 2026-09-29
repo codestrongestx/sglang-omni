@@ -278,6 +278,8 @@ def create_sglang_thinker_executor_from_config(
     enable_async_decode: bool = True,
     async_decode_min_batch_size: int = 2,
     speech_enabled: bool = False,
+    speculative_draft_socket: str | None = None,
+    speculative_draft_tokens: int = 4,
 ) -> OmniScheduler:
     """Returns OmniScheduler for the MiniCPM-o thinker."""
     concrete_device = resolve_concrete_device(device, gpu_id)
@@ -293,6 +295,27 @@ def create_sglang_thinker_executor_from_config(
     )
     overrides.setdefault("trust_remote_code", False)
     overrides["tp_size"] = tp_size
+    if speculative_draft_socket is not None:
+        if (
+            speculative_draft_tokens < 1
+            or tp_size != 1
+            or overrides["max_running_requests"] != 1
+        ):
+            raise ValueError(
+                "Speculative decoding requires positive draft tokens, TP=1 and one running request"
+            )
+        else:
+            pass
+        overrides.update(
+            speculative_algorithm="NGRAM",
+            speculative_num_draft_tokens=speculative_draft_tokens + 1,
+            speculative_num_steps=speculative_draft_tokens,
+            speculative_eagle_topk=1,
+            disable_prefill_cuda_graph=True,
+        )
+        enable_async_decode = False
+    else:
+        pass
     server_args = build_sglang_server_args(
         model_path,
         context_length=max_seq_len,
@@ -319,6 +342,8 @@ def create_sglang_thinker_executor_from_config(
         enable_async_decode=enable_async_decode,
         async_decode_min_batch_size=async_decode_min_batch_size,
         speech_enabled=speech_enabled,
+        speculative_draft_socket=speculative_draft_socket,
+        speculative_draft_tokens=speculative_draft_tokens,
     )
     logger.info(
         f"sglang_ar_started stage=thinker gpu_id={gpu_id} "

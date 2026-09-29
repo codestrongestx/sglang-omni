@@ -145,7 +145,9 @@ def build_sglang_thinker_request(
     max_new_tokens = params.get("max_new_tokens", 2048)
     temperature = params.get("temperature", 0.0)
 
+    stage_parameters = (params.get("stage_params") or {}).get(THINKER_STAGE, {})
     sampling_params = SamplingParams(
+        ignore_eos=stage_parameters.get("ignore_eos", False),
         max_new_tokens=max_new_tokens,
         temperature=temperature,
         top_p=params.get("top_p", 1.0),

@@ -114,6 +114,8 @@ def create_thinker_scheduler(
     enable_async_decode: bool = True,
     async_decode_min_batch_size: int = 2,
     speech_enabled: bool = False,
+    speculative_draft_socket: str | None = None,
+    speculative_draft_tokens: int = 4,
 ) -> OmniScheduler:
     """Create a thinker scheduler with optional hidden-state capture for speech."""
     from sglang.srt.arg_groups.model_override_base import resolved_view
@@ -192,7 +194,18 @@ def create_thinker_scheduler(
         capture_hidden=speech_enabled,
         should_emit_hidden=_should_emit_hidden if speech_enabled else None,
     )
-    model_runner = MiniCPMOThinkerModelRunner(model_worker, output_proc)
+    from sglang_omni.models.minicpm_o.speculative import MiniCPMOSpeculativeDecoder
+
+    speculative_decoder = (
+        MiniCPMOSpeculativeDecoder(
+            model_worker, tree_cache, speculative_draft_socket, speculative_draft_tokens
+        )
+        if speculative_draft_socket is not None
+        else None
+    )
+    model_runner = MiniCPMOThinkerModelRunner(
+        model_worker, output_proc, speculative_decoder
+    )
 
     tokenizer = get_tokenizer(model_config.model_path, trust_remote_code=True)
     request_builder, result_adapter = make_thinker_scheduler_adapters(
@@ -212,6 +225,7 @@ def create_thinker_scheduler(
         result_adapter=result_adapter,
         stream_output_builder=build_thinker_stream_output,
         abort_callback=model_runner.reset_request,
+        request_finished_callback=model_runner.reset_request,
         enable_async_decode=enable_async_decode,
         async_decode_min_batch_size=async_decode_min_batch_size,
     )

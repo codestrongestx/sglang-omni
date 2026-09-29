@@ -202,6 +202,7 @@ async def run_mmmu_eval(
     }
 
     results = {
+        "benchmark_wall_clock_s": runner.wall_clock_s,
         "summary": summary,
         "speed": speed_metrics,
         "config": config_dict,
