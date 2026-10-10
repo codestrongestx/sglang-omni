@@ -1,9 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import logging
 import os
+import subprocess
+import sys
 from contextlib import contextmanager
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -563,3 +567,101 @@ def test_cpu_scheduler_construction_skips_startup_lock(monkeypatch) -> None:
     scheduler = stage_workers.construct_scheduler(spec, None, RecordingLog())
 
     assert isinstance(scheduler, FakeScheduler)
+
+
+@pytest.mark.parametrize(
+    ("platform_type", "expected"),
+    [
+        (platforms.CPUOmniPlatform, []),
+        (
+            platforms.XPUOmniPlatform,
+            ["set_device:xpu:1", "synchronize", "empty_cache"],
+        ),
+        (
+            CUDAOmniPlatform,
+            ["set_device:cuda:1", "synchronize", "empty_cache", "ipc_collect"],
+        ),
+    ],
+)
+def test_stage_teardown_reclaims_through_the_platform(
+    monkeypatch: pytest.MonkeyPatch,
+    platform_type: type[platforms.OmniPlatform],
+    expected: list[str],
+) -> None:
+    """A stage that dies on a non-CUDA accelerator still has to give its memory back,
+    which the torch.cuda.is_available guard used to skip entirely."""
+    calls: list[str] = []
+    platform = platform_type()
+    monkeypatch.setattr(stage_workers, "current_platform", platform)
+    monkeypatch.setattr(
+        platform_type,
+        "set_device",
+        lambda self, device: calls.append(f"set_device:{device}"),
+    )
+    monkeypatch.setattr(
+        platform_type, "synchronize", lambda self: calls.append("synchronize")
+    )
+    monkeypatch.setattr(
+        platform_type, "empty_cache", lambda self: calls.append("empty_cache")
+    )
+    monkeypatch.setattr(torch.cuda, "ipc_collect", lambda: calls.append("ipc_collect"))
+
+    stage_workers.reclaim_process_gpu_memory(
+        [1], logging.getLogger(__name__), reason="test"
+    )
+
+    assert calls == expected
+
+
+def test_stage_process_asks_to_die_with_its_parent(monkeypatch) -> None:
+    calls = []
+    monkeypatch.setattr(
+        stage_workers, "kill_itself_when_parent_died", lambda: calls.append(1)
+    )
+    spec = SimpleNamespace(
+        log_level=logging.getLogger().level, stage_specs=[], process_name="p"
+    )
+
+    with pytest.raises(ValueError, match="requires at least one stage"):
+        stage_workers.stage_process_main(spec, None)
+
+    assert calls == [1]
+
+
+# note (Richard Wang): the worker spawned below runs this once its parent is
+# gone, so the parent dies before the worker registers its death signal. The
+# worker inherits the output pipes, so the run returns once it exits.
+STAGE_PROCESS_AFTER_PARENT_DIED = """
+import multiprocessing, time
+from pathlib import Path
+from types import SimpleNamespace
+from sglang_omni.pipeline import stage_workers
+parent = multiprocessing.parent_process()
+while parent.is_alive():
+    time.sleep(0.01)
+try:
+    stage_workers.stage_process_main(
+        SimpleNamespace(log_level=20, stage_specs=[], process_name="p"), None
+    )
+except ValueError:
+    Path(marker_dir, "built").touch()
+finally:
+    Path(marker_dir, "exited").touch()
+"""
+
+
+def test_stage_process_exits_when_its_parent_died_before_it_started(
+    tmp_path: Path,
+) -> None:
+    spawn_and_die = (
+        "import multiprocessing, os, sys\n"
+        "multiprocessing.get_context('spawn').Process(target=exec, args=("
+        "sys.argv[1], {'marker_dir': sys.argv[2]})).start()\n"
+        "os._exit(0)\n"
+    )
+    command = [sys.executable, "-c", spawn_and_die, STAGE_PROCESS_AFTER_PARENT_DIED]
+
+    subprocess.run([*command, str(tmp_path)], capture_output=True, timeout=300)
+
+    assert (tmp_path / "exited").exists()
+    assert not (tmp_path / "built").exists()
